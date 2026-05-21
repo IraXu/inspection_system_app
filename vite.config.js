@@ -2,8 +2,8 @@
  * @Author: AloofXu
  * @Date: 2026-04-29 18:32:08
  * @LastEditors: null
- * @LastEditTime: 2026-05-21 11:01:13
- * @FilePath: /inspection-system_app/app-vue/vite.config.js
+ * @LastEditTime: 2026-05-21 11:15:36
+ * @FilePath: /app-vue/vite.config.js
  */
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
