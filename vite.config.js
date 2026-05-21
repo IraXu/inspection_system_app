@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     vue()
   ],
-  base: '/', //github pages部署需要设置base路径
+  base: '/inspection_system_app/', //github pages部署需要设置base路径
   server: {
     host: '0.0.0.0',
     port: 5173
