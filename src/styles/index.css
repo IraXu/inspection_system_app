@@ -1,0 +1,274 @@
+/* 全局样式 */
+:root {
+  --prototype-page-width: 402px;
+  --prototype-safe-top: calc(12px + env(safe-area-inset-top, 0px));
+  --prototype-safe-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  --prototype-page-padding-x: 16px;
+  --prototype-navbar-height: 48px;
+  --prototype-content-top: calc(var(--prototype-safe-top) + var(--prototype-navbar-height));
+  --prototype-section-gap: 14px;
+  --prototype-surface-bg: #f4f9fc;
+  --prototype-card-radius: 20px;
+  --prototype-card-shadow: 0 14px 30px rgba(74, 116, 146, 0.08);
+  --prototype-glass-border: 1px solid rgba(255, 255, 255, 0.52);
+  --theme-glass-1: #f4fbff;
+  --theme-glass-2: #e8f6ff;
+  --theme-glass-3: #d8efff;
+  --theme-glass-4: #bfe6ff;
+  --theme-glass-5: #97d2f2;
+  --theme-glass-3-rgb: 216, 239, 255;
+  --theme-glass-4-rgb: 191, 230, 255;
+  --theme-glass-5-rgb: 151, 210, 242;
+  --theme-primary: #63b3df;
+  --theme-primary-strong: #479bc9;
+  --theme-primary-deep: #367a9f;
+  --theme-primary-ink: #295d7c;
+  --theme-primary-rgb: 99, 179, 223;
+  --theme-primary-strong-rgb: 71, 155, 201;
+  --td-brand-color-1: #f4fbff;
+  --td-brand-color-2: #e8f6ff;
+  --td-brand-color-3: #d8efff;
+  --td-brand-color-4: #c3e7fe;
+  --td-brand-color-5: #a7d8f2;
+  --td-brand-color-6: #76b9de;
+  --td-brand-color-7: #5aa5cc;
+  --td-brand-color-8: #3f7fa4;
+  --td-brand-color-9: #295d7c;
+  --td-brand-color-10: #1d435c;
+  --td-brand-color: var(--td-brand-color-6);
+  --td-brand-color-light: var(--td-brand-color-1);
+  --td-brand-color-light-hover: var(--td-brand-color-2);
+  --td-brand-color-light-active: var(--td-brand-color-3);
+  --td-brand-color-hover: var(--td-brand-color-5);
+  --td-brand-color-active: var(--td-brand-color-7);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(180deg, var(--theme-glass-1) 0%, #f2f7fb 100%);
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100%;
+}
+
+/* 页面容器 */
+.page-container {
+  min-height: 100%;
+  background: var(--prototype-surface-bg);
+  padding-bottom: var(--app-tabbar-space, 92px);
+}
+
+.app-page {
+  min-height: 100%;
+  background: var(--prototype-surface-bg);
+  padding-bottom: calc(var(--app-tabbar-space, 92px) + var(--prototype-safe-bottom));
+}
+
+.app-page--navbar {
+  padding-top: var(--prototype-content-top);
+}
+
+.app-page--flush {
+  padding-top: 0;
+}
+
+.app-section {
+  padding-left: var(--prototype-page-padding-x);
+  padding-right: var(--prototype-page-padding-x);
+}
+
+.app-stack {
+  display: grid;
+  gap: var(--prototype-section-gap);
+}
+
+.app-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: var(--prototype-glass-border);
+  border-radius: var(--prototype-card-radius);
+  box-shadow: var(--prototype-card-shadow);
+}
+
+/* 渐变背景 - TDesign 品牌蓝 */
+.gradient-bg {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.6), transparent 34%),
+    linear-gradient(135deg, var(--theme-glass-4) 0%, var(--theme-primary) 58%, var(--theme-primary-strong) 100%);
+}
+
+.t-button--theme-primary:not(.t-button--variant-outline):not(.t-button--variant-text):not(.t-button--variant-dashed) {
+  background: linear-gradient(135deg, var(--theme-glass-4) 0%, var(--theme-primary) 58%, var(--theme-primary-strong) 100%) !important;
+  border-color: var(--theme-primary-strong) !important;
+  box-shadow: 0 10px 22px rgba(var(--theme-primary-rgb), 0.2);
+}
+
+.t-link--theme-primary,
+.t-button--variant-text.t-button--theme-primary,
+.t-button--variant-outline.t-button--theme-primary {
+  color: var(--theme-primary-strong) !important;
+}
+
+.t-button--variant-outline.t-button--theme-primary {
+  border-color: rgba(var(--theme-primary-rgb), 0.28) !important;
+}
+
+.t-tabs__item--active,
+.t-search__cancel,
+.t-radio__icon--checked,
+.t-checkbox__icon--checked {
+  color: var(--theme-primary-strong) !important;
+}
+
+/* 卡片样式 */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  margin: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 状态栏占位 */
+.status-bar-placeholder {
+  height: env(safe-area-inset-top, 20px);
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state-text {
+  font-size: 14px;
+}
+
+/* 全局 Toast */
+.t-toast {
+  --td-toast-max-width: min(calc(100vw - 32px), 280px);
+  --td-toast-radius: 18px;
+  --td-toast-color: #274765;
+  --td-toast-bg-color: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow:
+    0 12px 28px rgba(58, 92, 126, 0.12),
+    0 2px 10px rgba(var(--theme-primary-rgb), 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.t-toast.app-toast--success {
+  --td-toast-color: #1e5d46;
+  --td-toast-bg-color: rgba(245, 255, 250, 0.9);
+  border-color: rgba(214, 243, 228, 0.92);
+  box-shadow:
+    0 12px 28px rgba(41, 128, 89, 0.12),
+    0 2px 10px rgba(43, 164, 113, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.t-toast.app-toast--warning {
+  --td-toast-color: #8a5719;
+  --td-toast-bg-color: rgba(255, 251, 245, 0.92);
+  border-color: rgba(255, 230, 196, 0.94);
+  box-shadow:
+    0 12px 28px rgba(190, 122, 28, 0.12),
+    0 2px 10px rgba(227, 138, 39, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.t-toast.app-toast--error {
+  --td-toast-color: #8a3241;
+  --td-toast-bg-color: rgba(255, 247, 248, 0.92);
+  border-color: rgba(247, 215, 221, 0.94);
+  box-shadow:
+    0 12px 28px rgba(193, 72, 92, 0.13),
+    0 2px 10px rgba(214, 97, 118, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.t-toast.app-toast--info {
+  --td-toast-color: #274765;
+  --td-toast-bg-color: rgba(255, 255, 255, 0.88);
+}
+
+.t-toast__content {
+  align-items: center;
+}
+
+.t-toast__content--row {
+  min-height: 48px;
+  padding: 12px 16px;
+  justify-content: center;
+  text-align: center;
+}
+
+.t-toast__content--column {
+  min-width: 96px;
+  min-height: 96px;
+  padding: 18px 16px;
+}
+
+.t-toast__icon--row {
+  font-size: 18px;
+}
+
+.t-toast__icon--column {
+  font-size: 28px;
+}
+
+.t-toast__text {
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.t-toast__text--row:not(:empty):not(:only-child) {
+  margin-left: 6px;
+}
+
+.t-toast__text--column:not(:empty):not(:only-child) {
+  margin-top: 8px;
+}
+
+body.prototype-preview-shell .t-toast,
+body.prototype-preview-canvas .t-toast {
+  left: calc(var(--preview-overlay-left, 0px) + (var(--preview-overlay-width, min(402px, 100vw)) / 2)) !important;
+  max-width: min(calc(var(--preview-overlay-width, min(402px, 100vw)) - 28px), 280px) !important;
+}
