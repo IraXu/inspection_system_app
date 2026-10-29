@@ -161,32 +161,45 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Toast } from 'tdesign-mobile-vue'
-import { deviceNotifications } from '../../data/device-notifications'
+import { useTodoStore } from '../../stores/todo'
+import { useNotificationStore } from '../../stores/notifications'
 
 const router = useRouter()
+const todoStore = useTodoStore()
+const notificationStore = useNotificationStore()
 
 const currentEnterprise = {
   name: 'XX科技有限公司'
 }
 
-const inspectionTaskQueue = ref([
-  {
-    id: 'inspection-east',
-    area: '华东区 / 上海工厂 / 生产车间',
-    count: 5
-  },
-  {
-    id: 'inspection-south',
-    area: '华南区 / 深圳园区 / 仓储中心',
-    count: 3
-  },
-  {
-    id: 'inspection-north',
-    area: '华北区 / 北京总部 / 能源机房',
-    count: 2
-  }
-])
+const dismissedNoticeIds = ref([])
+const noticeOrder = ref([])
+
+const noticeGroups = computed(() => {
+  const groups = new Map()
+  todoStore.pendingTasks.forEach((task) => {
+    const current = groups.get(task.storeName) || {
+      id: task.storeName,
+      area: task.storeName,
+      count: 0,
+      taskIds: []
+    }
+    current.count += 1
+    current.taskIds.push(task.id)
+    groups.set(task.storeName, current)
+  })
+  return Array.from(groups.values())
+})
+
+const inspectionTaskQueue = computed(() => {
+  const list = noticeGroups.value.filter((group) => !dismissedNoticeIds.value.includes(group.id))
+  const order = noticeOrder.value
+  return [...list].sort((a, b) => {
+    const indexA = order.indexOf(a.id)
+    const indexB = order.indexOf(b.id)
+    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB)
+  })
+})
 
 const showInspectionNotice = computed(() => inspectionTaskQueue.value.length > 0)
 const inspectionGesture = ref({
@@ -203,16 +216,14 @@ const deviceStats = {
   onlineRate: '66.7%'
 }
 
-const taskStats = [
-  { label: '待执行', value: 10, tone: 'primary' },
-  { label: '待整改', value: 8, tone: 'warning' },
-  { label: '待审核', value: 2, tone: 'danger' },
-  { label: '已完成', value: 99, tone: 'success' }
-]
+const taskStats = computed(() => [
+  { label: '待执行', value: todoStore.pendingTasks.length, tone: 'primary' },
+  { label: '待整改', value: todoStore.rectifyTickets.length, tone: 'warning' },
+  { label: '待审核', value: todoStore.reviewTickets.length, tone: 'danger' },
+  { label: '已完成', value: todoStore.completedTickets.length, tone: 'success' }
+])
 
-const unreadNotificationCount = computed(() => {
-  return deviceNotifications.filter(item => item.status === 'unread').length
-})
+const unreadNotificationCount = computed(() => notificationStore.unreadCount)
 
 const rollingNotifications = computed(() => {
   const levelLabelMap = {
@@ -221,7 +232,7 @@ const rollingNotifications = computed(() => {
     normal: '提示'
   }
 
-  const base = deviceNotifications.slice(0, 4).map((item) => ({
+  const base = notificationStore.items.slice(0, 4).map((item) => ({
     ...item,
     levelLabel: levelLabelMap[item.level] || '提示'
   }))
@@ -241,7 +252,10 @@ const openNotifications = () => {
 }
 
 const dismissInspectionNotice = () => {
-  inspectionTaskQueue.value.shift()
+  const first = inspectionTaskQueue.value[0]
+  if (first) {
+    dismissedNoticeIds.value = [...dismissedNoticeIds.value, first.id]
+  }
 }
 
 const shiftInspectionNotice = () => {
@@ -249,19 +263,18 @@ const shiftInspectionNotice = () => {
     return
   }
 
-  const nextQueue = [...inspectionTaskQueue.value]
-  const current = nextQueue.shift()
-
-  if (!current) {
-    return
-  }
-
-  nextQueue.push(current)
-  inspectionTaskQueue.value = nextQueue
+  const ids = inspectionTaskQueue.value.map((item) => item.id)
+  noticeOrder.value = [...ids.slice(1), ids[0]]
 }
 
 const openInspectionTask = () => {
-  Toast.info('巡检任务模块设计中')
+  const task = inspectionTaskQueue.value[0]
+  const targetId = task?.taskIds?.[0] || todoStore.pendingTasks[0]?.id
+  if (targetId) {
+    router.push(`/todo/inspection/${targetId}`)
+    return
+  }
+  router.push('/todo')
 }
 
 const goTodoPage = () => {
@@ -289,15 +302,14 @@ const handleInspectionNoticeClick = (index) => {
     return
   }
 
-  const nextQueue = [...inspectionTaskQueue.value]
-  const [selected] = nextQueue.splice(index, 1)
+  const ids = inspectionTaskQueue.value.map((item) => item.id)
+  const [selected] = ids.splice(index, 1)
 
   if (!selected) {
     return
   }
 
-  nextQueue.unshift(selected)
-  inspectionTaskQueue.value = nextQueue
+  noticeOrder.value = [selected, ...ids]
 }
 
 const handleInspectionTouchStart = (event) => {

@@ -807,11 +807,24 @@ body.prototype-preview-canvas .t-popup__content {
 }
 
 body.prototype-preview-shell .t-popup--bottom,
-body.prototype-preview-canvas .t-popup--bottom,
+body.prototype-preview-canvas .t-popup--bottom {
+  top: auto !important;
+  height: auto !important;
+  max-height: var(--preview-overlay-height, 100dvh) !important;
+  bottom: calc(100vh - var(--preview-overlay-top, 0px) - var(--preview-overlay-height, 100dvh)) !important;
+  left: var(--preview-overlay-left, 0px) !important;
+  width: var(--preview-overlay-width, min(402px, 100vw)) !important;
+  right: auto !important;
+  transform: none !important;
+}
+
 body.prototype-preview-shell .t-popup--top,
 body.prototype-preview-canvas .t-popup--top {
+  top: var(--preview-overlay-top, 0px) !important;
+  height: auto !important;
+  bottom: auto !important;
+  left: var(--preview-overlay-left, 0px) !important;
   width: var(--preview-overlay-width, min(402px, 100vw)) !important;
-  left: 0 !important;
   right: auto !important;
   transform: none !important;
 }

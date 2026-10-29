@@ -1,0 +1,1 @@
+const t=(e,a="landscape_4_3")=>`https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(e)}&image_size=${a}`,i=e=>t(`rectified and cleaned scene for ${e}, tidy and compliant, CCTV still frame`);export{i as a,t as b};

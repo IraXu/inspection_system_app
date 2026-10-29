@@ -20,21 +20,6 @@
             <t-icon name="refresh" />
           </button>
         </div>
-
-        <div class="todo-overview">
-          <div class="todo-overview-card todo-overview-card--focus">
-            <span class="todo-overview-label">当前待处理</span>
-            <span class="todo-overview-value">{{ pendingTotal }}</span>
-          </div>
-          <div class="todo-overview-card">
-            <span class="todo-overview-label">今日优先</span>
-            <span class="todo-overview-value warning">{{ highPriorityCount }}</span>
-          </div>
-          <div class="todo-overview-card">
-            <span class="todo-overview-label">已完成</span>
-            <span class="todo-overview-value success">{{ completedCount }}</span>
-          </div>
-        </div>
       </div>
     </header>
 
@@ -80,58 +65,84 @@
 
           <template v-else-if="currentTodos.length > 0">
             <div
-              v-for="todo in currentTodos"
-              :key="todo.id"
+              v-for="item in currentTodos"
+              :key="item.id"
               class="todo-card app-card"
-              :class="[`priority-${todo.priority}`, { 'todo-card--completed': activeTab === 'completed' }]"
-              @click="openTask(todo)"
+              :class="`todo-card--${activeTab}`"
+              @click="handlePrimary(item)"
             >
               <div class="todo-card-head">
-                <div class="todo-card-badge" :class="todo.priority">
-                  <t-icon :name="getTodoIcon(todo.type)" />
+                <div class="todo-card-badge" :class="activeTab">
+                  <t-icon :name="getTabIcon(activeTab)" />
                 </div>
-
                 <div class="todo-card-copy">
                   <div class="todo-card-topline">
-                    <h3 class="todo-card-title">{{ todo.title }}</h3>
-                    <span class="todo-card-deadline">{{ todo.deadline }}</span>
+                    <h3 class="todo-card-title">{{ item.storeName }}</h3>
+                    <span class="todo-card-time">{{ getTimeLabel(item) }}</span>
                   </div>
-                  <p class="todo-card-desc">{{ todo.description }}</p>
+                  <div class="todo-card-chips">
+                    <span class="todo-chip">{{ item.id }}</span>
+                    <span v-if="activeTab !== 'pending'" class="todo-chip todo-chip--issue">
+                      问题 {{ item.issueCount }} 个
+                    </span>
+                    <span v-if="item.sourceType === 'ai'" class="todo-chip todo-chip--ai">AI</span>
+                  </div>
                 </div>
+              </div>
+
+              <div class="todo-meta-grid">
+                <div class="todo-meta-item">
+                  <span class="todo-meta-label">巡检模板</span>
+                  <span class="todo-meta-value">{{ item.templateName }}</span>
+                </div>
+                <div class="todo-meta-item">
+                  <span class="todo-meta-label">巡检方式</span>
+                  <span class="todo-meta-value">{{ item.method }}</span>
+                </div>
+                <div class="todo-meta-item">
+                  <span class="todo-meta-label">{{ getPersonLabel() }}</span>
+                  <span class="todo-meta-value">{{ getPersonValue(item) }}</span>
+                </div>
+                <div class="todo-meta-item">
+                  <span class="todo-meta-label">{{ getExtraLabel() }}</span>
+                  <span class="todo-meta-value">{{ getExtraValue(item) }}</span>
+                </div>
+              </div>
+
+              <div v-if="activeTab === 'rectify' && item.rejectReason" class="todo-reject">
+                <t-icon name="error-circle-filled" class="todo-reject-icon" />
+                <div class="todo-reject-copy">
+                  <span class="todo-reject-label">审核驳回原因</span>
+                  <span class="todo-reject-text">{{ item.rejectReason }}</span>
+                </div>
+              </div>
+
+              <div v-if="activeTab === 'completed' && item.reviewOpinion" class="todo-opinion">
+                <t-icon name="check-circle-filled" class="todo-opinion-icon" />
+                <span>审核意见：{{ item.reviewOpinion }}</span>
+              </div>
+
+              <div v-if="activeTab === 'completed' && !item.issueCount" class="todo-opinion todo-opinion--calm">
+                <t-icon name="check-circle" class="todo-opinion-icon" />
+                <span>本次巡检全部检查项合格，已自动归档</span>
               </div>
 
               <div class="todo-card-foot">
                 <div class="todo-card-tags">
-                  <span class="todo-type-pill">{{ getTypeText(todo.type) }}</span>
-                  <span v-if="activeTab !== 'completed'" class="todo-priority-pill" :class="todo.priority">
-                    {{ getPriorityText(todo.priority) }}
+                  <span class="todo-status-pill" :class="getStatusTone(item)">
+                    {{ getStatusText(item) }}
                   </span>
+                  <span class="todo-type-pill">{{ item.method }}</span>
                 </div>
 
                 <div class="todo-card-actions">
                   <button
-                    v-if="activeTab !== 'completed'"
-                    type="button"
-                    class="todo-action todo-action--ghost"
-                    @click.stop="editTask(todo)"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    v-if="activeTab !== 'completed'"
-                    type="button"
-                    class="todo-action todo-action--light-danger"
-                    @click.stop="openDeleteDialog(todo)"
-                  >
-                    删除
-                  </button>
-                  <button
                     type="button"
                     class="todo-action"
-                    :class="{ 'todo-action--danger': activeTab !== 'completed' }"
-                    @click.stop="handlePrimaryAction(todo)"
+                    :class="`todo-action--${getActionTone()}`"
+                    @click.stop="handlePrimary(item)"
                   >
-                    {{ activeTab === 'completed' ? '查看' : '处理' }}
+                    {{ getActionLabel() }}
                   </button>
                 </div>
               </div>
@@ -148,117 +159,69 @@
         </div>
       </t-pull-down-refresh>
     </section>
-
-    <div v-if="deleteDialog.visible" class="todo-dialog-overlay" @click="closeDeleteDialog">
-      <div class="todo-dialog app-card" @click.stop>
-        <div class="todo-dialog-icon">
-          <t-icon name="error-circle-filled" />
-        </div>
-        <div class="todo-dialog-title">删除任务</div>
-        <div class="todo-dialog-content">确认删除“{{ deleteDialog.task?.title }}”吗？</div>
-        <div class="todo-dialog-actions">
-          <button type="button" class="todo-dialog-btn todo-dialog-btn--ghost" @click="closeDeleteDialog">
-            取消
-          </button>
-          <button type="button" class="todo-dialog-btn todo-dialog-btn--danger" @click="confirmDeleteTask">
-            删除
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
+import { useTodoStore } from '../../stores/todo'
+
+const route = useRoute()
+const router = useRouter()
+const todoStore = useTodoStore()
 
 const activeTab = ref('pending')
 const loading = ref(true)
 const refreshing = ref(false)
 
-const deleteDialog = ref({
-  visible: false,
-  task: null
-})
-
-const allTodos = ref({
-  pending: [
-    { id: 1, title: '日常巡检-车间A', type: 'inspection', priority: 'high', deadline: '今天 14:00', description: '负责区域：车间A生产线' },
-    { id: 2, title: '设备点检-压缩机房', type: 'check', priority: 'medium', deadline: '今天 16:00', description: '检查设备运行状态' },
-    { id: 3, title: '安全隐患排查', type: 'safety', priority: 'high', deadline: '明天 10:00', description: '厂区安全隐患排查' },
-    { id: 4, title: '消防设施检查', type: 'inspection', priority: 'low', deadline: '本周五', description: '消防器材有效期检查' },
-    { id: 5, title: '环境监测记录', type: 'check', priority: 'medium', deadline: '本周内', description: '温湿度记录与上报' }
-  ],
-  rectify: [
-    { id: 6, title: '设备故障整改-车间B', type: 'rectify', priority: 'high', deadline: '今天 18:00', description: '设备编号：EQ-B-001' },
-    { id: 7, title: '安全隐患整改', type: 'rectify', priority: 'high', deadline: '明天', description: '安全通道堆放杂物' },
-    { id: 8, title: '质量问题整改', type: 'rectify', priority: 'medium', deadline: '3天内', description: '产品外观质量问题' }
-  ],
-  review: [
-    { id: 9, title: '问题单审核-设备异常', type: 'review', priority: 'medium', deadline: '今天 17:00', description: '提交人：张三' },
-    { id: 10, title: '整改验收审核', type: 'review', priority: 'low', deadline: '明天', description: '整改项目：安全隐患' }
-  ],
-  completed: [
-    { id: 11, title: '日常巡检-车间B', type: 'inspection', priority: 'low', deadline: '已完成', description: '完成时间：2024-01-15 10:30' },
-    { id: 12, title: '设备维护记录', type: 'check', priority: 'medium', deadline: '已完成', description: '完成时间：2024-01-15 09:00' },
-    { id: 13, title: '安全培训签到', type: 'training', priority: 'low', deadline: '已完成', description: '完成时间：2024-01-14 15:00' }
-  ]
-})
-
-const tabList = computed(() => [
-  { value: 'pending', label: '待执行', count: allTodos.value.pending.length, tone: 'primary' },
-  { value: 'rectify', label: '待整改', count: allTodos.value.rectify.length, tone: 'warning' },
-  { value: 'review', label: '待审核', count: allTodos.value.review.length, tone: 'danger' },
-  { value: 'completed', label: '已完成', count: allTodos.value.completed.length, tone: 'success' }
-])
-
 const tabMetaMap = {
-  pending: { label: '待执行任务', note: '优先处理时间临近的巡检计划' },
-  rectify: { label: '待整改问题', note: '尽快闭环已识别的问题事项' },
-  review: { label: '待审核事项', note: '核对整改结果与提交内容' },
-  completed: { label: '已完成记录', note: '查看近期已处理的任务留痕' }
+  pending: { label: '待执行巡检', note: '按截止时间优先执行线下巡检任务' },
+  rectify: { label: '待整改问题', note: '逐项补充整改说明与整改截图，提交后进入审核' },
+  review: { label: '待审核事项', note: '核对整改结果，通过后问题单闭环归档' },
+  completed: { label: '已完成记录', note: '查看巡检、整改、审核的完整流转留痕' }
 }
 
-const currentTabMeta = computed(() => {
-  return tabMetaMap[activeTab.value] || tabMetaMap.pending
-})
+const tabList = computed(() => [
+  { value: 'pending', label: '待执行', count: todoStore.pendingTasks.length, tone: 'primary' },
+  { value: 'rectify', label: '待整改', count: todoStore.rectifyTickets.length, tone: 'warning' },
+  { value: 'review', label: '待审核', count: todoStore.reviewTickets.length, tone: 'success' },
+  { value: 'completed', label: '已完成', count: todoStore.completedTickets.length, tone: 'slate' }
+])
 
 const currentTodos = computed(() => {
-  return allTodos.value[activeTab.value] || []
+  if (activeTab.value === 'pending') return todoStore.pendingTasks
+  if (activeTab.value === 'rectify') return todoStore.rectifyTickets
+  if (activeTab.value === 'review') return todoStore.reviewTickets
+  return todoStore.completedTickets
 })
 
-const pendingTotal = computed(() => {
-  return allTodos.value.pending.length + allTodos.value.rectify.length + allTodos.value.review.length
-})
+const currentTabMeta = computed(() => tabMetaMap[activeTab.value] || tabMetaMap.pending)
 
-const highPriorityCount = computed(() => {
-  return [...allTodos.value.pending, ...allTodos.value.rectify, ...allTodos.value.review].filter(
-    item => item.priority === 'high'
-  ).length
-})
-
-const completedCount = computed(() => {
-  return allTodos.value.completed.length
-})
+const applyTabFromRoute = () => {
+  const tab = route.query.tab
+  if (tab && tabMetaMap[tab]) {
+    activeTab.value = tab
+  }
+}
 
 const onTabChange = (value) => {
   if (activeTab.value === value) {
     return
   }
-
   activeTab.value = value
   loading.value = true
   window.setTimeout(() => {
     loading.value = false
-  }, 320)
+  }, 280)
 }
 
 const onRefresh = () => {
   window.setTimeout(() => {
     refreshing.value = false
-    Toast.success('刷新成功')
-  }, 900)
+    Toast.success('任务已同步')
+  }, 800)
 }
 
 const refreshTodos = () => {
@@ -266,90 +229,100 @@ const refreshTodos = () => {
   window.setTimeout(() => {
     loading.value = false
     Toast.success('任务已同步')
-  }, 700)
+  }, 600)
 }
 
-const openTask = (todo) => {
-  Toast.info(`打开任务：${todo.title}`)
-}
-
-const editTask = (todo) => {
-  Toast.info(`编辑任务：${todo.title}`)
-}
-
-const handlePrimaryAction = (todo) => {
-  if (activeTab.value === 'completed') {
-    openTask(todo)
+const handlePrimary = (item) => {
+  if (activeTab.value === 'pending') {
+    router.push(`/todo/inspection/${item.id}`)
     return
   }
-
-  Toast.info(`处理任务：${todo.title}`)
-}
-
-const openDeleteDialog = (todo) => {
-  deleteDialog.value = {
-    visible: true,
-    task: todo
-  }
-}
-
-const closeDeleteDialog = () => {
-  deleteDialog.value = {
-    visible: false,
-    task: null
-  }
-}
-
-const confirmDeleteTask = () => {
-  const task = deleteDialog.value.task
-
-  if (!task) {
-    closeDeleteDialog()
+  if (activeTab.value === 'rectify') {
+    router.push(`/todo/rectify/${item.id}`)
     return
   }
-
-  const list = allTodos.value[activeTab.value] || []
-  const index = list.findIndex(item => item.id === task.id)
-
-  if (index > -1) {
-    list.splice(index, 1)
-    Toast.success('删除成功')
+  if (activeTab.value === 'review') {
+    router.push(`/todo/review/${item.id}`)
+    return
   }
-
-  closeDeleteDialog()
+  router.push(`/todo/detail/${item.id}`)
 }
 
-const getTodoIcon = (type) => {
+const getTimeLabel = (item) => {
+  if (activeTab.value === 'pending') return item.deadline
+  if (activeTab.value === 'review') return item.rectifiedAt || item.createdAt
+  if (activeTab.value === 'completed') return item.reviewedAt || item.createdAt
+  return item.createdAt
+}
+
+const getPersonLabel = () => {
+  if (activeTab.value === 'pending') return '执行人'
+  if (activeTab.value === 'rectify') return '整改人'
+  return '审核人'
+}
+
+const getPersonValue = (item) => {
+  if (activeTab.value === 'pending') return item.executors.join('、')
+  if (activeTab.value === 'rectify') return item.rectifier
+  return item.reviewer
+}
+
+const getExtraLabel = () => {
+  if (activeTab.value === 'pending') return '生成时间'
+  if (activeTab.value === 'rectify') return '提交人'
+  if (activeTab.value === 'review') return '整改时间'
+  return '完成时间'
+}
+
+const getExtraValue = (item) => {
+  if (activeTab.value === 'pending') return item.generatedAt
+  if (activeTab.value === 'rectify') return item.submitter
+  if (activeTab.value === 'review') return item.rectifiedAt || '—'
+  return item.reviewedAt || item.createdAt
+}
+
+const getTabIcon = (tab) => {
   const icons = {
-    inspection: 'search',
-    check: 'check-circle',
-    safety: 'error-circle',
+    pending: 'task',
     rectify: 'tools',
     review: 'file-copy',
-    training: 'book'
+    completed: 'task-checked'
   }
-  return icons[type] || 'task'
+  return icons[tab] || 'task'
 }
 
-const getTypeText = (type) => {
-  const texts = {
-    inspection: '巡检',
-    check: '点检',
-    safety: '安全',
-    rectify: '整改',
-    review: '审核',
-    training: '培训'
-  }
-  return texts[type] || '任务'
+const getStatusText = (item) => {
+  if (activeTab.value === 'pending') return '待执行'
+  if (activeTab.value === 'rectify') return item.rejectReason ? '驳回待整改' : '待整改'
+  if (activeTab.value === 'review') return '待审核'
+  return item.issueCount ? '已闭环' : '巡检合格'
 }
 
-const getPriorityText = (priority) => {
-  const texts = {
-    high: '高优先',
-    medium: '中优先',
-    low: '低优先'
+const getStatusTone = (item) => {
+  if (activeTab.value === 'pending') return 'primary'
+  if (activeTab.value === 'rectify') return 'warning'
+  if (activeTab.value === 'review') return 'success'
+  return item.issueCount ? 'success' : 'calm'
+}
+
+const getActionLabel = () => {
+  const labels = {
+    pending: '立即执行',
+    rectify: '整改处理',
+    review: '整改审核',
+    completed: '查看详情'
   }
-  return texts[priority] || '普通'
+  return labels[activeTab.value]
+}
+
+const getActionTone = () => {
+  const tones = {
+    pending: 'primary',
+    rectify: 'warning',
+    review: 'success',
+    completed: 'slate'
+  }
+  return tones[activeTab.value]
 }
 
 const getEmptyText = () => {
@@ -362,10 +335,16 @@ const getEmptyText = () => {
   return texts[activeTab.value] || '暂无数据'
 }
 
+watch(
+  () => route.query.tab,
+  () => applyTabFromRoute()
+)
+
 onMounted(() => {
+  applyTabFromRoute()
   window.setTimeout(() => {
     loading.value = false
-  }, 600)
+  }, 500)
 })
 </script>
 
@@ -388,7 +367,7 @@ onMounted(() => {
 .todo-header-glow {
   position: absolute;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
   filter: blur(10px);
 }
 
@@ -462,7 +441,7 @@ onMounted(() => {
 
 .todo-header-subtitle {
   margin: 8px 0 0;
-  max-width: 280px;
+  max-width: 300px;
   font-size: 14px;
   line-height: 1.5;
   color: rgba(23, 49, 83, 0.72);
@@ -482,50 +461,6 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(10px);
 }
 
-.todo-overview {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.todo-overview-card {
-  padding: 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.34);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.todo-overview-card--focus {
-  background: rgba(255, 255, 255, 0.42);
-}
-
-.todo-overview-label {
-  display: block;
-  font-size: 12px;
-  color: rgba(23, 49, 83, 0.64);
-}
-
-.todo-overview-value {
-  display: block;
-  margin-top: 10px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-  color: #173153;
-}
-
-.todo-overview-value.warning {
-  color: #ffe1ad;
-}
-
-.todo-overview-value.success {
-  color: #b4ffd1;
-}
-
 .todo-filter-section {
   padding-top: 10px;
 }
@@ -535,8 +470,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
-  background:
-    linear-gradient(180deg, rgba(239, 244, 251, 0.98) 0%, rgba(234, 240, 248, 0.98) 100%);
+  background: linear-gradient(180deg, rgba(239, 244, 251, 0.98) 0%, rgba(234, 240, 248, 0.98) 100%);
   border-radius: 999px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
@@ -569,12 +503,12 @@ onMounted(() => {
   color: #d97706;
 }
 
-.todo-segment-item.danger.active {
-  color: #d54941;
-}
-
 .todo-segment-item.success.active {
   color: #16a34a;
+}
+
+.todo-segment-item.slate.active {
+  color: #475569;
 }
 
 .todo-segment-label {
@@ -609,14 +543,14 @@ onMounted(() => {
   color: #d97706;
 }
 
-.todo-segment-item.danger .todo-segment-count-pill {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
-}
-
 .todo-segment-item.success .todo-segment-count-pill {
   background: rgba(22, 163, 74, 0.1);
   color: #16a34a;
+}
+
+.todo-segment-item.slate .todo-segment-count-pill {
+  background: rgba(71, 85, 105, 0.1);
+  color: #475569;
 }
 
 .todo-segment-item.active .todo-segment-label {
@@ -628,7 +562,7 @@ onMounted(() => {
 }
 
 .todo-stream-section {
-  padding-top: 10px;
+  padding-top: 14px;
 }
 
 .todo-stream-head {
@@ -640,7 +574,7 @@ onMounted(() => {
 }
 
 .todo-stream-title {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   color: #173153;
 }
@@ -701,60 +635,98 @@ onMounted(() => {
 }
 
 .todo-card {
-  padding: 18px;
+  position: relative;
+  padding: 16px;
   border: 1px solid rgba(229, 235, 244, 0.96);
-  box-shadow: 0 18px 36px rgba(11, 31, 68, 0.08);
+  box-shadow: 0 16px 32px rgba(11, 31, 68, 0.07);
+  overflow: hidden;
 }
 
-.todo-card.priority-high {
+.todo-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.todo-card--pending::before {
+  background: linear-gradient(180deg, var(--theme-primary) 0%, var(--theme-primary-strong) 100%);
+}
+
+.todo-card--rectify::before {
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+}
+
+.todo-card--review::before {
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+}
+
+.todo-card--completed::before {
+  background: linear-gradient(180deg, #a5b4fc 0%, #6366f1 100%);
+}
+
+.todo-card--rectify {
   background:
-    radial-gradient(circle at top right, rgba(213, 73, 65, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(255, 251, 250, 0.98) 0%, #ffffff 100%);
+    radial-gradient(circle at top right, rgba(217, 119, 6, 0.06), transparent 34%),
+    linear-gradient(180deg, #fffcf7 0%, #ffffff 100%);
 }
 
-.todo-card.priority-medium {
+.todo-card--review {
   background:
-    radial-gradient(circle at top right, rgba(217, 119, 6, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(255, 252, 248, 0.98) 0%, #ffffff 100%);
+    radial-gradient(circle at top right, rgba(22, 163, 74, 0.06), transparent 34%),
+    linear-gradient(180deg, #f8fffb 0%, #ffffff 100%);
 }
 
-.todo-card.priority-low,
 .todo-card--completed {
   background:
-    radial-gradient(circle at top right, rgba(var(--theme-primary-rgb), 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(248, 250, 255, 0.98) 0%, #ffffff 100%);
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.06), transparent 34%),
+    linear-gradient(180deg, #f9f9ff 0%, #ffffff 100%);
+}
+
+.todo-card--pending {
+  background:
+    radial-gradient(circle at top right, rgba(var(--theme-primary-rgb), 0.08), transparent 34%),
+    linear-gradient(180deg, #f8fcff 0%, #ffffff 100%);
 }
 
 .todo-card-head {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: flex-start;
 }
 
 .todo-card-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  flex: 0 0 44px;
+  font-size: 18px;
+  flex: 0 0 40px;
 }
 
-.todo-card-badge.high {
-  background: rgba(227, 77, 89, 0.12);
-  color: #d54941;
+.todo-card-badge.pending {
+  background: rgba(var(--theme-primary-rgb), 0.12);
+  color: var(--theme-primary-strong);
 }
 
-.todo-card-badge.medium {
-  background: rgba(227, 115, 24, 0.12);
+.todo-card-badge.rectify {
+  background: rgba(217, 119, 6, 0.12);
   color: #d97706;
 }
 
-.todo-card-badge.low {
-  background: rgba(43, 164, 113, 0.12);
+.todo-card-badge.review {
+  background: rgba(22, 163, 74, 0.12);
   color: #16a34a;
+}
+
+.todo-card-badge.completed {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
 }
 
 .todo-card-copy {
@@ -777,22 +749,140 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.todo-card-deadline {
+.todo-card-time {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: 11px;
   color: #6e7f95;
+  white-space: nowrap;
+  background: rgba(241, 245, 251, 0.96);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.todo-card-chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.todo-chip {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(236, 241, 248, 0.92);
+  color: #5b7290;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.todo-chip--issue {
+  background: rgba(213, 73, 65, 0.1);
+  color: #d54941;
+}
+
+.todo-chip--ai {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.todo-meta-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(247, 250, 254, 0.92);
+}
+
+.todo-meta-item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.todo-meta-label {
+  font-size: 11px;
+  color: #93a0b2;
+}
+
+.todo-meta-value {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #3f5877;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.todo-card-desc {
-  margin: 8px 0 0;
-  font-size: 13px;
+.todo-reject {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(213, 73, 65, 0.08);
+  border: 1px solid rgba(213, 73, 65, 0.16);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.todo-reject-icon {
+  color: #d54941;
+  font-size: 15px;
+  margin-top: 1px;
+  flex: 0 0 15px;
+}
+
+.todo-reject-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.todo-reject-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b9382f;
+}
+
+.todo-reject-text {
+  font-size: 12px;
   line-height: 1.55;
-  color: #708197;
+  color: #a34a45;
+}
+
+.todo-opinion {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.07);
+  border: 1px solid rgba(99, 102, 241, 0.14);
+  color: #4f46e5;
+  font-size: 12px;
+  line-height: 1.55;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.todo-opinion--calm {
+  background: rgba(22, 163, 74, 0.07);
+  border-color: rgba(22, 163, 74, 0.16);
+  color: #15803d;
+}
+
+.todo-opinion-icon {
+  font-size: 15px;
+  flex: 0 0 15px;
+  margin-top: 1px;
 }
 
 .todo-card-foot {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -802,41 +892,47 @@ onMounted(() => {
 .todo-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
-.todo-type-pill,
-.todo-priority-pill {
-  padding: 6px 10px;
+.todo-status-pill,
+.todo-type-pill {
+  padding: 5px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
 }
 
-.todo-type-pill {
-  background: rgba(var(--theme-primary-rgb), 0.08);
+.todo-status-pill.primary {
+  background: rgba(var(--theme-primary-rgb), 0.1);
   color: var(--theme-primary-strong);
 }
 
-.todo-priority-pill.high {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
-}
-
-.todo-priority-pill.medium {
+.todo-status-pill.warning {
   background: rgba(217, 119, 6, 0.1);
   color: #d97706;
 }
 
-.todo-priority-pill.low {
-  background: rgba(43, 164, 113, 0.1);
+.todo-status-pill.success {
+  background: rgba(22, 163, 74, 0.1);
   color: #16a34a;
+}
+
+.todo-status-pill.calm {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+}
+
+.todo-type-pill {
+  background: rgba(236, 241, 248, 0.92);
+  color: #5b7290;
 }
 
 .todo-card-actions {
   display: flex;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
 .todo-action {
@@ -850,18 +946,20 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.todo-action--ghost {
-  background: rgba(236, 241, 248, 0.96);
-  color: #56708f;
+.todo-action--warning {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
 }
 
-.todo-action--light-danger {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+.todo-action--success {
+  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
 }
 
-.todo-action--danger {
-  background: var(--theme-primary-strong);
+.todo-action--slate {
+  background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+}
+
+.todo-action:active {
+  transform: scale(0.97);
 }
 
 .todo-empty {
@@ -893,79 +991,6 @@ onMounted(() => {
   margin-top: 8px;
   font-size: 13px;
   color: #7d8b9f;
-}
-
-.todo-dialog-overlay {
-  position: fixed;
-  left: var(--preview-overlay-left, 0);
-  top: var(--preview-overlay-top, 0);
-  width: var(--preview-overlay-width, 100vw);
-  height: var(--preview-overlay-height, 100vh);
-  background: rgba(13, 23, 43, 0.42);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  z-index: 1600;
-}
-
-.todo-dialog {
-  width: 100%;
-  max-width: 320px;
-  padding: 22px 20px 18px;
-  text-align: center;
-}
-
-.todo-dialog-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto;
-  border-radius: 18px;
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-}
-
-.todo-dialog-title {
-  margin-top: 14px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #173153;
-}
-
-.todo-dialog-content {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #6f8199;
-}
-
-.todo-dialog-actions {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-.todo-dialog-btn {
-  height: 42px;
-  border: 0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.todo-dialog-btn--ghost {
-  background: rgba(239, 244, 251, 0.96);
-  color: #59718f;
-}
-
-.todo-dialog-btn--danger {
-  background: #d54941;
-  color: #fff;
 }
 
 @keyframes todo-skeleton-flow {

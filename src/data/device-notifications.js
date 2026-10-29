@@ -1,16 +1,78 @@
+import { buildImageUrl } from '../utils/media'
+
+const pad = (value) => String(value).padStart(2, '0')
+
+const formatFullTime = (date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(
+    date.getMinutes()
+  )}`
+
+const formatDisplayTime = (date) => {
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const targetStart = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diffDays = Math.round((todayStart.getTime() - targetStart.getTime()) / 86400000)
+  const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+
+  if (diffDays === 0) return `今天 ${clock}`
+  if (diffDays === 1) return `昨天 ${clock}`
+  return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${clock}`
+}
+
+const minutesAgo = (minutes) => new Date(Date.now() - minutes * 60000)
+
+const createAlert = (payload) => {
+  const time = minutesAgo(payload.minutesAgo)
+  return {
+    ...payload,
+    timestamp: formatFullTime(time),
+    time: formatDisplayTime(time),
+    eventImage: buildImageUrl(payload.imagePrompt)
+  }
+}
+
+export const alertEventTypes = [
+  { value: 'device_offline', label: '设备离线', tone: 'danger' },
+  { value: 'video_loss', label: '视频丢失', tone: 'danger' },
+  { value: 'record_abnormal', label: '录像异常', tone: 'warning' },
+  { value: 'area_intrusion', label: '区域入侵', tone: 'warning' },
+  { value: 'fire_smoke', label: '烟火检测', tone: 'danger' },
+  { value: 'leave_post', label: '离岗检测', tone: 'warning' },
+  { value: 'lens_block', label: '镜头遮挡', tone: 'warning' },
+  { value: 'blur_image', label: '画面模糊', tone: 'normal' },
+  { value: 'storage_shortage', label: '存储不足', tone: 'warning' },
+  { value: 'temp_high', label: '温度过高', tone: 'warning' },
+  { value: 'motion_detect', label: '移动侦测', tone: 'normal' },
+  { value: 'sound_abnormal', label: '声音异常', tone: 'normal' },
+  { value: 'low_battery', label: '设备低电量', tone: 'warning' },
+  { value: 'recovered', label: '恢复通知', tone: 'normal' }
+]
+
+export const eventTypeMap = alertEventTypes.reduce((map, item) => {
+  map[item.value] = item
+  return map
+}, {})
+
 export const deviceNotifications = [
-  {
+  createAlert({
     id: 'alarm-1001',
     level: 'critical',
+    eventType: 'device_offline',
     title: '车间1入口摄像头离线',
     summary: '设备连续 12 分钟未上报心跳，请尽快核查供电与网络状态。',
     deviceName: '摄像头-车间1入口',
     deviceId: 1,
+    license: 'LIC-A1B2-C3D4-E5F6',
     location: '上海工厂 / 生产车间 / A线',
+    orgPath: '华东区 / 上海工厂 / 生产车间',
     storeName: '上海工厂',
     category: '设备离线',
     status: 'unread',
-    time: '今天 09:18',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 12,
     reportedBy: '设备监测中心',
     handler: '张磊',
     impact: '当前区域实时画面中断，影响入口巡检与异常追溯。',
@@ -18,97 +80,332 @@ export const deviceNotifications = [
       '检查摄像头电源与交换机供电状态',
       '确认网络链路与 IPC 在线情况',
       '恢复后重新校验视频流与抓拍能力'
-    ]
-  },
-  {
+    ],
+    imagePrompt: 'security camera offline, dark entrance of factory workshop, CCTV still frame'
+  }),
+  createAlert({
     id: 'alarm-1002',
     level: 'warning',
+    eventType: 'record_abnormal',
     title: '仓库区域摄像头存储异常',
     summary: '录像计划执行失败，近 30 分钟未写入存储卡。',
     deviceName: '摄像头-仓库区域',
     deviceId: 4,
+    license: 'LIC-B2C3-D4E5-F6G7',
     location: '上海工厂 / 仓库区域',
+    orgPath: '华东区 / 上海工厂 / 仓库区域',
     storeName: '上海工厂',
     category: '录像异常',
     status: 'unread',
-    time: '今天 08:42',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 48,
     reportedBy: '录像服务',
     handler: '王敏',
     impact: '仓储出入库画面可能无法完整回溯。',
-    suggestions: [
-      '检查存储卡剩余空间与健康状态',
-      '确认录像计划与时间同步配置',
-      '必要时切换到云端录像策略'
-    ]
-  },
-  {
+    suggestions: ['检查存储卡剩余空间与健康状态', '确认录像计划与时间同步配置', '必要时切换到云端录像策略'],
+    imagePrompt: 'warehouse storage rack with camera equipment, CCTV still frame'
+  }),
+  createAlert({
     id: 'alarm-1003',
     level: 'warning',
-    title: '停车场摄像头检测到异常移动',
-    summary: '夜间非作业时段触发连续移动告警，请确认是否为误报。',
+    eventType: 'area_intrusion',
+    title: '停车场检测到区域入侵',
+    summary: '夜间非作业时段触发连续闯入告警，请确认是否为误报。',
     deviceName: '摄像头-停车场',
     deviceId: 6,
+    license: 'LIC-C3D4-E5F6-G7H8',
     location: '北京工厂 / 停车场',
+    orgPath: '华北区 / 北京工厂 / 停车场',
     storeName: '北京工厂',
     category: '智能告警',
-    status: 'read',
-    time: '今天 02:16',
+    status: 'unread',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 190,
     reportedBy: 'AI 识别引擎',
     handler: '李晨',
     impact: '存在夜间异常活动风险，需要核查现场安全情况。',
-    suggestions: [
-      '调取告警前后 5 分钟录像进行复核',
-      '确认现场保安巡逻记录',
-      '如为误报可优化检测区域与灵敏度'
-    ]
-  },
-  {
+    suggestions: ['调取告警前后 5 分钟录像进行复核', '确认现场保安巡逻记录', '如为误报可优化检测区域与灵敏度'],
+    imagePrompt: 'empty parking lot at night with a person walking, security camera still frame'
+  }),
+  createAlert({
     id: 'alarm-1004',
     level: 'normal',
+    eventType: 'recovered',
     title: '办公区域摄像头恢复在线',
     summary: '设备已自动恢复连接，视频流与心跳均正常。',
     deviceName: '摄像头-办公区域',
     deviceId: 5,
+    license: 'LIC-D4E5-F6G7-H8I9',
     location: '北京工厂 / 办公区域',
+    orgPath: '华北区 / 北京工厂 / 办公区域',
     storeName: '北京工厂',
     category: '恢复通知',
     status: 'read',
-    time: '昨天 18:26',
+    handleStatus: 'handled',
+    handleMethod: 'handled',
+    handleRemark: '设备自动恢复，已复核视频流正常。',
+    handleTime: '昨天 18:40',
+    minutesAgo: 900,
     reportedBy: '设备监测中心',
     handler: '系统自动恢复',
     impact: '设备状态恢复，当前不影响正常巡检。',
-    suggestions: [
-      '继续观察 24 小时在线稳定性',
-      '复盘离线原因避免重复发生'
-    ]
-  }
+    suggestions: ['继续观察 24 小时在线稳定性', '复盘离线原因避免重复发生'],
+    imagePrompt: 'office area with camera view, bright and normal, CCTV still frame'
+  }),
+  createAlert({
+    id: 'alarm-1005',
+    level: 'critical',
+    eventType: 'fire_smoke',
+    title: '仓储中心检测到烟雾',
+    summary: 'AI 识别到出库口附近出现疑似烟雾，请立即核实现场情况。',
+    deviceName: '烟感摄像机-出库口',
+    deviceId: 7,
+    license: 'LIC-E5F6-G7H8-I9J0',
+    location: '深圳园区 / 仓储中心 / 出库口',
+    orgPath: '华南区 / 深圳园区 / 仓储中心',
+    storeName: '深圳园区',
+    category: '智能告警',
+    status: 'unread',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 4,
+    reportedBy: 'AI 识别引擎',
+    handler: '王鹏',
+    impact: '存在消防安全风险，可能影响仓储货物与人员安全。',
+    suggestions: ['立即联系现场人员核查出库口区域', '确认消防喷淋与报警联动状态', '必要时启动应急处置流程'],
+    imagePrompt: 'warehouse loading dock with light smoke detected, security camera still frame'
+  }),
+  createAlert({
+    id: 'alarm-1006',
+    level: 'warning',
+    eventType: 'lens_block',
+    title: '生产车间B摄像头镜头被遮挡',
+    summary: '画面中心区域持续 20 分钟被物体遮挡，识别结果不可用。',
+    deviceName: '摄像头-车间B设备区',
+    deviceId: 3,
+    license: 'LIC-F6G7-H8I9-J0K1',
+    location: '上海工厂 / 生产车间 / B线',
+    orgPath: '华东区 / 上海工厂 / 生产车间',
+    storeName: '上海工厂',
+    category: '画面异常',
+    status: 'read',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 260,
+    reportedBy: '设备监测中心',
+    handler: '张磊',
+    impact: '该区域 AI 识别与视频巡检结果暂时不可用。',
+    suggestions: ['安排现场人员清理镜头遮挡物', '核查摄像头安装角度是否偏移', '恢复后重新执行巡检任务'],
+    imagePrompt: 'security camera lens blocked by an object, partially dark frame, CCTV still'
+  }),
+  createAlert({
+    id: 'alarm-1007',
+    level: 'warning',
+    eventType: 'leave_post',
+    title: '南京新街口店收银台离岗告警',
+    summary: '收银岗位连续 15 分钟无人值守，且未安排替岗人员。',
+    deviceName: '摄像头-收银台',
+    deviceId: 8,
+    license: 'LIC-G7H8-I9J0-K1L2',
+    location: '京东电器 / 南京新街口店 / 收银区',
+    orgPath: '华东区 / 京东电器 / 南京新街口店',
+    storeName: '京东电器',
+    category: '智能告警',
+    status: 'unread',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 36,
+    reportedBy: 'AI 识别引擎',
+    handler: '张三',
+    impact: '影响顾客结账体验，可能造成客诉与销售流失。',
+    suggestions: ['联系店长确认收银员去向', '核实是否已安排替岗人员', '对离岗行为进行记录与考核'],
+    imagePrompt: 'empty checkout counter with no cashier in electronics store, CCTV still frame'
+  }),
+  createAlert({
+    id: 'alarm-1008',
+    level: 'normal',
+    eventType: 'low_battery',
+    title: '移动布控球电量低于 20%',
+    summary: '设备剩余电量 18%，预计 2 小时后自动关机。',
+    deviceName: '移动布控球-3F',
+    deviceId: 9,
+    license: 'LIC-H8I9-J0K1-L2M3',
+    location: '深圳园区 / 仓储中心 / 3F',
+    orgPath: '华南区 / 深圳园区 / 仓储中心',
+    storeName: '深圳园区',
+    category: '设备状态',
+    status: 'read',
+    handleStatus: 'ignored',
+    handleMethod: 'ignored',
+    handleRemark: '设备即将更换电池，无需处理。',
+    handleTime: '昨天 16:12',
+    minutesAgo: 1560,
+    reportedBy: '设备监测中心',
+    handler: '王鹏',
+    impact: '电量耗尽后将无法移动布控与实时回传画面。',
+    suggestions: ['尽快更换电池或接入充电设备', '低电量期间减少频繁调阅', '更换后确认设备重新上线'],
+    imagePrompt: 'portable battery powered security camera with low battery indicator, product photo'
+  }),
+  createAlert({
+    id: 'alarm-1009',
+    level: 'critical',
+    eventType: 'video_loss',
+    title: '车间2监控视频丢失',
+    summary: 'NVR 通道 3 视频流中断，最近一次录像停留在 42 分钟前。',
+    deviceName: 'NVR-车间2-通道3',
+    deviceId: 2,
+    license: 'LIC-I9J0-K1L2-M3N4',
+    location: '上海工厂 / 生产车间 / 车间2',
+    orgPath: '华东区 / 上海工厂 / 生产车间',
+    storeName: '上海工厂',
+    category: '视频异常',
+    status: 'read',
+    handleStatus: 'handled',
+    handleMethod: 'handled',
+    handleRemark: '已更换 NVR 网线并重启通道，视频流恢复。',
+    handleTime: '今天 07:52',
+    minutesAgo: 720,
+    reportedBy: '设备监测中心',
+    handler: '张磊',
+    impact: '车间2区域录像缺失，无法满足追溯要求。',
+    suggestions: ['检查 NVR 通道状态与网线连接', '重启通道并确认录像计划恢复', '补齐缺失时段的说明记录'],
+    imagePrompt: 'video loss blue screen on security monitor, NVR interface, still frame'
+  }),
+  createAlert({
+    id: 'alarm-1010',
+    level: 'warning',
+    eventType: 'storage_shortage',
+    title: '收银区存储空间不足',
+    summary: '存储卡剩余空间不足 10%，新录像将自动覆盖历史文件。',
+    deviceName: '摄像头-收银区',
+    deviceId: 10,
+    license: 'LIC-J0K1-L2M3-N4O5',
+    location: '北京工厂 / 办公区域 / 收银区',
+    orgPath: '华北区 / 北京工厂 / 办公区域',
+    storeName: '北京工厂',
+    category: '录像异常',
+    status: 'unread',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 75,
+    reportedBy: '录像服务',
+    handler: '李晨',
+    impact: '历史录像可能被覆盖，影响纠纷追溯与审计。',
+    suggestions: ['清理无效录像或扩容存储', '调整录像码率与保存天数', '开启云端备份策略'],
+    imagePrompt: 'security camera storage card warning screen, NVR storage management, still frame'
+  }),
+  createAlert({
+    id: 'alarm-1011',
+    level: 'warning',
+    eventType: 'temp_high',
+    title: '配电房温度过高',
+    summary: '设备温度达到 68℃，超过告警阈值 60℃，请尽快排查散热。',
+    deviceName: '温湿度感应器-配电房',
+    deviceId: 11,
+    license: 'LIC-K1L2-M3N4-O5P6',
+    location: '深圳园区 / 仓储中心 / 配电房',
+    orgPath: '华南区 / 深圳园区 / 仓储中心',
+    storeName: '深圳园区',
+    category: '环境告警',
+    status: 'unread',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 20,
+    reportedBy: '环境监测服务',
+    handler: '王鹏',
+    impact: '持续高温可能导致设备降频、断电甚至引发安全事故。',
+    suggestions: ['检查空调与排风设备运行状态', '确认配电柜负载是否过高', '温度恢复正常后复核设备运行'],
+    imagePrompt: 'electrical distribution room with high temperature warning, industrial equipment, photo'
+  }),
+  createAlert({
+    id: 'alarm-1012',
+    level: 'warning',
+    eventType: 'leave_post',
+    title: '北京工厂收银区离岗告警',
+    summary: '收银岗位连续 20 分钟无人值守，请核实替岗安排。',
+    deviceName: '摄像头-收银区',
+    deviceId: 10,
+    license: 'LIC-J0K1-L2M3-N4O5',
+    location: '北京工厂 / 办公区域 / 收银区',
+    orgPath: '华北区 / 北京工厂 / 办公区域',
+    storeName: '北京工厂',
+    category: '智能告警',
+    status: 'read',
+    handleStatus: 'handled',
+    handleMethod: 'handled',
+    handleRemark: '已安排替岗人员，岗位恢复正常。',
+    handleTime: '昨天 10:30',
+    minutesAgo: 2900,
+    reportedBy: 'AI 识别引擎',
+    handler: '李晨',
+    impact: '影响顾客结账体验，存在服务空档。',
+    suggestions: ['核实替岗安排', '完善离岗登记', '加强高峰时段巡场'],
+    imagePrompt: 'empty checkout counter in office store area, CCTV still frame'
+  }),
+  createAlert({
+    id: 'alarm-1013',
+    level: 'normal',
+    eventType: 'blur_image',
+    title: '仓储中心画面模糊',
+    summary: '摄像头画面清晰度持续偏低，识别置信度下降。',
+    deviceName: '摄像头-仓储西侧',
+    deviceId: 12,
+    license: 'LIC-L2M3-N4O5-P6Q7',
+    location: '深圳园区 / 仓储中心 / 西侧',
+    orgPath: '华南区 / 深圳园区 / 仓储中心',
+    storeName: '深圳园区',
+    category: '画面异常',
+    status: 'read',
+    handleStatus: 'pending',
+    handleMethod: '',
+    handleRemark: '',
+    handleTime: '',
+    minutesAgo: 4400,
+    reportedBy: '设备监测中心',
+    handler: '王鹏',
+    impact: 'AI 识别准确率下降，可能产生漏报。',
+    suggestions: ['清洁镜头并重新对焦', '检查网络带宽是否不足', '必要时更换摄像头'],
+    imagePrompt: 'blurry warehouse camera view, out of focus, CCTV still frame'
+  }),
+  createAlert({
+    id: 'alarm-1014',
+    level: 'critical',
+    eventType: 'device_offline',
+    title: '深圳园区大门摄像头离线',
+    summary: '设备心跳中断超过 30 分钟，需现场确认供电与网络。',
+    deviceName: '摄像头-园区大门',
+    deviceId: 13,
+    license: 'LIC-M3N4-O5P6-Q7R8',
+    location: '深圳园区 / 园区大门',
+    orgPath: '华南区 / 深圳园区 / 园区大门',
+    storeName: '深圳园区',
+    category: '设备离线',
+    status: 'read',
+    handleStatus: 'handled',
+    handleMethod: 'handled',
+    handleRemark: '已重启交换机，设备恢复在线。',
+    handleTime: '前天 16:20',
+    minutesAgo: 5800,
+    reportedBy: '设备监测中心',
+    handler: '王鹏',
+    impact: '园区出入口画面缺失，影响人员与车辆进出管理。',
+    suggestions: ['检查交换机供电与端口状态', '确认光纤链路正常', '恢复后复核录像完整性'],
+    imagePrompt: 'factory park entrance gate at night with camera offline, still frame'
+  })
 ]
-
-export const notificationLevelMap = {
-  critical: {
-    label: '紧急',
-    theme: 'danger',
-    accent: '#d54941',
-    bg: 'linear-gradient(135deg, #fff1f0 0%, #ffe0db 100%)',
-    icon: 'error-circle-filled'
-  },
-  warning: {
-    label: '重要',
-    theme: 'warning',
-    accent: '#d97706',
-    bg: 'linear-gradient(135deg, #fff8e8 0%, #ffe8bf 100%)',
-    icon: 'notification-filled'
-  },
-  normal: {
-    label: '提示',
-    theme: 'primary',
-    accent: 'var(--theme-primary-strong)',
-    bg: 'linear-gradient(135deg, #f4fbff 0%, #d8efff 100%)',
-    icon: 'info-circle-filled'
-  }
-}
-
-export const notificationStatusMap = {
-  unread: '未读',
-  read: '已读'
-}

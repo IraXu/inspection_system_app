@@ -24,6 +24,30 @@ const routes = [
     meta: { title: '待办' }
   },
   {
+    path: '/todo/inspection/:taskId',
+    name: 'todo-inspection',
+    component: () => import('../views/todo-inspection/index.vue'),
+    meta: { title: '线下巡检' }
+  },
+  {
+    path: '/todo/rectify/:ticketId',
+    name: 'todo-rectify',
+    component: () => import('../views/todo-rectify/index.vue'),
+    meta: { title: '整改处理' }
+  },
+  {
+    path: '/todo/review/:ticketId',
+    name: 'todo-review',
+    component: () => import('../views/todo-review/index.vue'),
+    meta: { title: '整改审核' }
+  },
+  {
+    path: '/todo/detail/:ticketId',
+    name: 'todo-detail',
+    component: () => import('../views/todo-detail/index.vue'),
+    meta: { title: '流程详情' }
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../views/profile/index.vue'),
