@@ -3,6 +3,12 @@
     <div class="page-glow glow-left"></div>
     <div class="page-glow glow-right"></div>
 
+    <button type="button" class="server-switch" @click="serverSheetVisible = true">
+      <t-icon name="server" size="14px" />
+      <span class="server-switch-label">{{ currentServer.label }}</span>
+      <t-icon name="chevron-down" size="14px" />
+    </button>
+
     <div class="header-bg">
       <div class="header-content">
         <div class="logo-wrapper">
@@ -88,15 +94,62 @@
       <span class="agreement-text">和</span>
       <t-link theme="primary">《隐私政策》</t-link>
     </div>
+
+    <transition name="server-sheet">
+      <div v-if="serverSheetVisible" class="server-sheet-layer" @click.self="serverSheetVisible = false">
+        <div class="server-sheet">
+          <div class="server-sheet-handle"></div>
+          <div class="server-sheet-head">
+            <div class="server-sheet-title">切换服务器</div>
+            <div class="server-sheet-desc">中国大陆与亚太服务器数据相互独立，请选择账号所属区域</div>
+          </div>
+
+          <div class="server-options">
+            <button
+              v-for="server in servers"
+              :key="server.value"
+              type="button"
+              class="server-option"
+              :class="{ 'is-active': server.value === currentServerValue }"
+              @click="selectServer(server)"
+            >
+              <div class="server-option-icon">
+                <t-icon :name="server.icon" />
+              </div>
+              <div class="server-option-copy">
+                <div class="server-option-title">
+                  <span>{{ server.label }}</span>
+                  <span class="server-option-tag">{{ server.region }}</span>
+                </div>
+                <div class="server-option-host">{{ server.host }}</div>
+              </div>
+              <t-icon v-if="server.value === currentServerValue" name="check" class="server-option-check" />
+            </button>
+          </div>
+
+          <div class="server-sheet-tip">
+            <t-icon name="info-circle" />
+            <span>切换服务器后需要使用对应区域的账号重新登录</span>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 
 const router = useRouter()
+
+// 巡检系统分中国大陆、亚太两台独立服务器
+const SERVER_STORAGE_KEY = 'inspection-server-node'
+const servers = [
+  { value: 'cn', label: '中国大陆', region: '华东节点', host: 'cn-api.inspection.com', icon: 'location' },
+  { value: 'ap', label: '亚太', region: '新加坡节点', host: 'ap-api.inspection.com', icon: 'cloud' }
+]
 
 const formData = ref({
   account: '',
@@ -106,6 +159,21 @@ const formData = ref({
 
 const showPassword = ref(false)
 const loading = ref(false)
+const serverSheetVisible = ref(false)
+const currentServerValue = ref(window.localStorage.getItem(SERVER_STORAGE_KEY) || 'cn')
+
+const currentServer = computed(() => {
+  return servers.find(server => server.value === currentServerValue.value) || servers[0]
+})
+
+const selectServer = (server) => {
+  serverSheetVisible.value = false
+  if (server.value === currentServerValue.value) return
+
+  currentServerValue.value = server.value
+  window.localStorage.setItem(SERVER_STORAGE_KEY, server.value)
+  Toast.success(`已切换至${server.label}服务器`)
+}
 
 const onSubmit = () => {
   if (!formData.value.account) {
@@ -168,6 +236,192 @@ const goToRegister = () => {
   top: 120px;
   right: -100px;
   background: rgba(var(--theme-primary-rgb), 0.38);
+}
+
+.server-switch {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 6;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--theme-primary-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(58, 96, 130, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.server-switch:active {
+  transform: scale(0.97);
+}
+
+.server-switch-label {
+  white-space: nowrap;
+}
+
+.server-sheet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(13, 23, 38, 0.26);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.server-sheet {
+  width: 100%;
+  padding: 10px 18px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 22px 44px rgba(64, 104, 135, 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.server-sheet-handle {
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: rgba(148, 165, 187, 0.42);
+}
+
+.server-sheet-title {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.server-sheet-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 19px;
+  color: #7c889c;
+}
+
+.server-options {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.server-option {
+  width: 100%;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(219, 231, 244, 0.94);
+  background: rgba(248, 251, 255, 0.96);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.server-option.is-active {
+  border-color: rgba(var(--theme-primary-rgb), 0.56);
+  background: rgba(238, 249, 255, 0.98);
+  box-shadow: 0 10px 22px rgba(var(--theme-primary-rgb), 0.16);
+}
+
+.server-option-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(232, 246, 255, 0.98);
+  color: var(--theme-primary-ink);
+}
+
+.server-option.is-active .server-option-icon {
+  background: linear-gradient(145deg, var(--theme-glass-4) 0%, var(--theme-primary) 100%);
+  color: #173153;
+}
+
+.server-option-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.server-option-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.server-option-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(232, 240, 250, 0.96);
+  color: #6b7f98;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.server-option-host {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #8794a7;
+  word-break: break-all;
+}
+
+.server-option-check {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--theme-primary-strong);
+}
+
+.server-sheet-tip {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 18px;
+  color: #7b8794;
+}
+
+.server-sheet-enter-active,
+.server-sheet-leave-active {
+  transition: opacity 0.24s ease;
+}
+
+.server-sheet-enter-active .server-sheet,
+.server-sheet-leave-active .server-sheet {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+}
+
+.server-sheet-enter-from,
+.server-sheet-leave-to {
+  opacity: 0;
+}
+
+.server-sheet-enter-from .server-sheet,
+.server-sheet-leave-to .server-sheet {
+  transform: translate3d(0, 18px, 0);
+  opacity: 0.9;
 }
 
 .header-bg {

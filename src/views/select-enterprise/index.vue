@@ -1,6 +1,27 @@
 <template>
   <div class="select-enterprise-page app-page app-page--navbar">
-    <t-navbar title="选择企业" left-arrow @left-click="goBack" class="page-navbar" />
+    <t-navbar title="选择企业" left-arrow @left-click="goBack" class="page-navbar">
+      <template #right>
+        <div class="demo-switch">
+          <button
+            type="button"
+            class="demo-switch-item"
+            :class="{ 'is-active': !hasEnterprise }"
+            @click="hasEnterprise = false"
+          >
+            无企业
+          </button>
+          <button
+            type="button"
+            class="demo-switch-item"
+            :class="{ 'is-active': hasEnterprise }"
+            @click="hasEnterprise = true"
+          >
+            已有企业
+          </button>
+        </div>
+      </template>
+    </t-navbar>
 
     <section class="hero-section">
       <div class="hero-card">
@@ -14,7 +35,17 @@
       </div>
     </section>
 
-    <section class="content-section">
+    <section v-if="!hasEnterprise" class="content-section">
+      <div class="empty-card">
+        <div class="empty-visual">
+          <span class="empty-ring"></span>
+          <t-icon name="building" size="30px" />
+        </div>
+        <div class="empty-title">当前账号暂未加入任何企业</div>
+      </div>
+    </section>
+
+    <section v-if="hasEnterprise" class="content-section">
       <div class="section-head">
         <div class="section-title">企业列表</div>
         <div class="section-note">点击可切换当前工作企业</div>
@@ -46,7 +77,7 @@
 
     <section class="content-section">
       <div class="section-head">
-        <div class="section-title">加入新企业</div>
+        <div class="section-title">{{ hasEnterprise ? '加入新企业' : '加入企业' }}</div>
         <div class="section-note">输入企业管理员提供的企业码</div>
       </div>
 
@@ -107,6 +138,9 @@ const userInfo = ref({
 })
 
 const enterpriseCode = ref('')
+
+// 原型演示开关：默认展示“登录后无任何企业归属”的状态
+const hasEnterprise = ref(false)
 
 const enterprises = ref([
   {
@@ -184,6 +218,70 @@ const joinEnterprise = () => {
 .page-navbar :deep(.t-navbar__left),
 .page-navbar :deep(.t-navbar__right) {
   color: #101828;
+}
+
+.demo-switch {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(238, 244, 251, 0.96);
+  border: 1px solid rgba(224, 233, 243, 0.96);
+}
+
+.demo-switch-item {
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #7b8794;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.demo-switch-item.is-active {
+  background: #ffffff;
+  color: var(--theme-primary-ink);
+  box-shadow: 0 4px 10px rgba(73, 114, 145, 0.12);
+}
+
+.empty-card {
+  padding: 24px 20px 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow: 0 14px 30px rgba(73, 114, 145, 0.09);
+  text-align: center;
+}
+
+.empty-visual {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  border-radius: 20px;
+  background: linear-gradient(145deg, var(--theme-glass-4) 0%, var(--theme-primary) 100%);
+  color: var(--theme-primary-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(var(--theme-primary-rgb), 0.22);
+}
+
+.empty-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 26px;
+  border: 1px dashed rgba(var(--theme-primary-rgb), 0.42);
+}
+
+.empty-title {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 25px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .hero-section,
