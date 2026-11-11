@@ -1,0 +1,462 @@
+/* 登录 / 注册 / 忘记密码 / 进入企业 统一视觉（依据 UI 设计稿） */
+:root {
+  --auth-primary: #3d4ef5;
+  --auth-primary-strong: #2f3fd6;
+  --auth-primary-soft: #eef1ff;
+  --auth-ink: #16181d;
+  --auth-sub: #8b93a7;
+  --auth-line: #e8ecf5;
+  --auth-placeholder: #aab2c4;
+  --auth-icon: #9aa3b8;
+}
+
+.auth-page {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--auth-ink);
+  background:
+    radial-gradient(circle at 84% 6%, rgba(61, 78, 245, 0.1), transparent 34%),
+    linear-gradient(180deg, #e9eefc 0%, #f2f5fe 26%, #fbfcff 58%, #ffffff 100%);
+}
+
+/* 顶部城市剪影装饰 */
+.auth-skyline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-skyline::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(240, 243, 253, 0) 18%,
+    rgba(242, 245, 254, 0.5) 54%,
+    #f5f7fe 88%,
+    #f9fbff 100%
+  );
+}
+
+.auth-tower {
+  position: absolute;
+  bottom: -6px;
+  background: linear-gradient(
+    180deg,
+    rgba(202, 214, 246, 0.92) 0%,
+    rgba(216, 226, 250, 0.62) 58%,
+    rgba(232, 238, 252, 0.2) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.auth-tower::before {
+  content: '';
+  position: absolute;
+  inset: 28px 18px auto;
+  height: 60%;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0 2px,
+    transparent 2px 14px
+  );
+  opacity: 0.6;
+}
+
+.auth-tower.tower-a {
+  left: -30px;
+  width: 104px;
+  height: 250px;
+  border-radius: 999px 999px 0 0;
+}
+
+.auth-tower.tower-b {
+  left: 58px;
+  width: 62px;
+  height: 166px;
+  border-radius: 14px 14px 0 0;
+  opacity: 0.78;
+}
+
+.auth-tower.tower-b::before {
+  inset: 22px 14px auto;
+}
+
+.auth-tower.tower-c {
+  right: 56px;
+  width: 104px;
+  height: 208px;
+  border-radius: 16px 16px 0 0;
+}
+
+.auth-tower.tower-d {
+  right: -26px;
+  width: 76px;
+  height: 264px;
+  border-radius: 16px 16px 0 0;
+  opacity: 0.86;
+}
+
+/* 内容区 */
+.auth-body {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 76px 24px 40px;
+}
+
+.auth-title {
+  font-size: 26px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--auth-ink);
+}
+
+.auth-subtitle {
+  margin-top: 10px;
+  max-width: 292px;
+  font-size: 13px;
+  line-height: 22px;
+  color: var(--auth-sub);
+}
+
+.auth-subtitle--narrow {
+  max-width: 226px;
+}
+
+/* 区域切换胶囊 */
+.auth-region {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  height: 32px;
+  margin-top: 18px;
+  padding: 0 14px;
+  border: 1px solid var(--auth-primary);
+  border-radius: 999px;
+  background: var(--auth-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  box-shadow: 0 8px 18px rgba(61, 78, 245, 0.24);
+}
+
+.auth-region .t-icon {
+  font-size: 14px;
+}
+
+.auth-region:active {
+  transform: scale(0.97);
+}
+
+/* 表单 */
+.auth-form {
+  margin-top: 44px;
+}
+
+.auth-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  border-bottom: 1px solid var(--auth-line);
+  transition: border-color 0.2s ease;
+}
+
+.auth-field + .auth-field {
+  margin-top: 8px;
+}
+
+.auth-field.is-focused {
+  border-bottom-color: rgba(61, 78, 245, 0.5);
+}
+
+.auth-field-icon {
+  flex-shrink: 0;
+  font-size: 19px;
+  color: var(--auth-icon);
+}
+
+.auth-field-input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--auth-ink);
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  outline: none;
+}
+
+.auth-field-input::placeholder {
+  color: var(--auth-placeholder);
+  letter-spacing: 0;
+}
+
+.auth-field-clear,
+.auth-field-eye {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.auth-field-clear .t-icon {
+  font-size: 18px;
+  color: #c6cddb;
+}
+
+.auth-field-eye .t-icon {
+  font-size: 19px;
+  color: #4b5364;
+}
+
+.auth-field-clear:active,
+.auth-field-eye:active {
+  opacity: 0.6;
+}
+
+/* 验证码按钮 */
+.auth-code {
+  flex-shrink: 0;
+  padding: 8px 0 8px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--auth-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.auth-code:disabled {
+  color: var(--auth-placeholder);
+  font-weight: 500;
+}
+
+/* 记住账号 / 忘记密码 */
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22px;
+}
+
+.auth-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5b6478;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.auth-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #c7cede;
+  border-radius: 50%;
+  background: transparent;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.auth-tick .t-icon {
+  font-size: 10px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.auth-tick.is-checked {
+  border-color: var(--auth-primary);
+  background: var(--auth-primary);
+}
+
+.auth-tick.is-checked .t-icon {
+  opacity: 1;
+}
+
+.auth-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--auth-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.auth-link:active,
+.auth-check:active {
+  opacity: 0.7;
+}
+
+/* 主按钮 */
+.auth-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  margin-top: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--auth-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 14px 26px rgba(61, 78, 245, 0.24);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(1px) scale(0.996);
+  box-shadow: 0 8px 18px rgba(61, 78, 245, 0.2);
+}
+
+.auth-submit:disabled {
+  opacity: 0.62;
+  box-shadow: none;
+}
+
+.auth-submit .t-icon {
+  font-size: 18px;
+}
+
+.auth-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 底部切换 */
+.auth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 40px;
+  font-size: 13px;
+  color: var(--auth-sub);
+}
+
+/* 标题行（返回按钮与标题同行） */
+.auth-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-left: -6px;
+}
+
+.auth-heading-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.66);
+  color: #343b4d;
+  box-shadow: 0 6px 16px rgba(38, 52, 96, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.auth-back .t-icon {
+  font-size: 20px;
+}
+
+.auth-back:active {
+  transform: scale(0.94);
+  background: #ffffff;
+}
+
+/* 注册协议 */
+.auth-agreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.auth-agreement .auth-tick {
+  margin-top: 1px;
+}
+
+.auth-agreement-text {
+  font-size: 13px;
+  line-height: 20px;
+  color: #5b6478;
+}
+
+.auth-link-text {
+  color: var(--auth-primary);
+}
+
+/* 认证页底部弹层：预览壳内填满手机屏幕，画布模式按预览区定位 */
+.auth-sheet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(17, 23, 41, 0.36);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.prototype-preview-canvas .auth-sheet-layer {
+  top: var(--preview-overlay-top, 0px);
+  left: var(--preview-overlay-left, 0px);
+  width: var(--preview-overlay-width, 100vw);
+  height: var(--preview-overlay-height, 100dvh);
+}

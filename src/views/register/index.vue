@@ -1,109 +1,86 @@
 <template>
-  <div class="register-page app-page app-page--navbar">
-    <div class="page-glow glow-top"></div>
-    <div class="page-glow glow-side"></div>
-
-    <t-navbar title="注册" left-arrow @left-click="goBack" class="auth-navbar" />
-
-    <div class="hero-section">
-      <div class="hero-eyebrow">新账号创建</div>
-      <div class="hero-title">加入智慧巡检</div>
-      <div class="hero-desc">创建巡检账号后即可进入企业工作台，接收任务与设备告警。</div>
+  <div class="auth-page">
+    <div class="auth-skyline" aria-hidden="true">
+      <span class="auth-tower tower-a"></span>
+      <span class="auth-tower tower-b"></span>
+      <span class="auth-tower tower-c"></span>
+      <span class="auth-tower tower-d"></span>
     </div>
 
-    <div class="form-card">
-      <div class="glass-orb orb-a"></div>
-      <div class="glass-orb orb-b"></div>
+    <div class="auth-body">
+      <h1 class="auth-title">加入智慧巡检</h1>
+      <p class="auth-subtitle auth-subtitle--narrow">创建巡检账号后即可进入企业工作台，接收任务与设备告警</p>
 
-      <div class="form-section">
-        <div class="input-group">
-          <t-input
-            v-model="formData.phone"
-            placeholder="请输入手机号"
-            clearable
-            borderless
+      <div class="auth-form">
+        <AuthField
+          v-model="formData.phone"
+          icon="user"
+          placeholder="请输入手机号"
+          type="tel"
+          inputmode="tel"
+          :maxlength="11"
+          clearable
+        />
+        <AuthField
+          v-model="formData.code"
+          icon="secured"
+          placeholder="请输入验证码"
+          type="tel"
+          inputmode="numeric"
+          :maxlength="6"
+        >
+          <template #suffix>
+            <button
+              type="button"
+              class="auth-code"
+              :disabled="countdown > 0"
+              @click.prevent="sendCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+            </button>
+          </template>
+        </AuthField>
+        <AuthField
+          v-model="formData.password"
+          icon="lock-on"
+          placeholder="请设置密码（6-20位）"
+          revealable
+        />
+        <AuthField
+          v-model="formData.confirmPassword"
+          icon="lock-on"
+          placeholder="请确认密码"
+          revealable
+        />
+
+        <div class="auth-agreement">
+          <button
+            type="button"
+            class="auth-tick-btn"
+            aria-label="同意协议"
+            @click="formData.agreement = !formData.agreement"
           >
-            <template #prefixIcon>
-              <t-icon name="mobile" />
-            </template>
-          </t-input>
+            <span class="auth-tick" :class="{ 'is-checked': formData.agreement }">
+              <t-icon name="check" />
+            </span>
+          </button>
+          <span class="auth-agreement-text">
+            我已阅读并同意
+            <span class="auth-link-text">《用户协议》</span>
+            和
+            <span class="auth-link-text">《隐私政策》</span>
+          </span>
         </div>
 
-        <div class="input-group">
-          <t-input
-            v-model="formData.code"
-            placeholder="请输入验证码"
-            clearable
-            borderless
-          >
-            <template #prefixIcon>
-              <t-icon name="verified" />
-            </template>
-            <template #suffix>
-              <t-button
-                size="small"
-                variant="outline"
-                theme="primary"
-                :disabled="countdown > 0"
-                @click.prevent="sendCode"
-              >
-                {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-              </t-button>
-            </template>
-          </t-input>
-        </div>
+        <button type="button" class="auth-submit" :disabled="loading" @click="onSubmit">
+          <span>{{ loading ? '注册中' : '注册' }}</span>
+          <t-icon v-if="!loading" name="arrow-right" />
+          <span v-else class="auth-spinner"></span>
+        </button>
 
-        <div class="input-group">
-          <t-input
-            v-model="formData.password"
-            :type="passwordInputType"
-            placeholder="请设置密码（6-20位）"
-            clearable
-            borderless
-          >
-            <template #prefixIcon>
-              <t-icon name="secured" />
-            </template>
-            <template #suffixIcon>
-              <t-icon
-                :name="showPassword ? 'browse-off' : 'browse'"
-                @click="showPassword = !showPassword"
-              />
-            </template>
-          </t-input>
-        </div>
-
-        <div class="input-group">
-          <t-input
-            v-model="formData.confirmPassword"
-            :type="confirmPasswordInputType"
-            placeholder="请确认密码"
-            clearable
-            borderless
-          >
-            <template #prefixIcon>
-              <t-icon name="secured" />
-            </template>
-            <template #suffixIcon>
-              <t-icon
-                :name="showConfirmPassword ? 'browse-off' : 'browse'"
-                @click="showConfirmPassword = !showConfirmPassword"
-              />
-            </template>
-          </t-input>
-        </div>
-
-        <div class="agreement">
-          <t-checkbox v-model="formData.agreement">我已阅读并同意《用户协议》和《隐私政策》</t-checkbox>
-        </div>
-
-        <t-button block theme="primary" size="large" :loading="loading" @click="onSubmit">
-          注册
-        </t-button>
-
-        <div class="form-footer">
-          <span class="footer-text">已有账号？</span>
-          <t-link theme="primary" @click="goToLogin">立即登录</t-link>
+        <div class="auth-footer">
+          <span>已有账号？</span>
+          <button type="button" class="auth-link" @click="goToLogin">立即登录</button>
         </div>
       </div>
     </div>
@@ -111,9 +88,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
+import AuthField from '../../components/AuthField.vue'
 
 const router = useRouter()
 
@@ -125,20 +103,8 @@ const formData = ref({
   agreement: false
 })
 
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
 const loading = ref(false)
 const countdown = ref(0)
-
-const passwordInputType = computed(() => {
-  if (showPassword.value) return 'text'
-  return formData.value.password ? 'password' : 'text'
-})
-
-const confirmPasswordInputType = computed(() => {
-  if (showConfirmPassword.value) return 'text'
-  return formData.value.confirmPassword ? 'password' : 'text'
-})
 
 const sendCode = () => {
   if (!formData.value.phone) {
@@ -174,13 +140,12 @@ const onSubmit = () => {
     Toast.warning('请确认密码')
     return
   }
-  if (!formData.value.agreement) {
-    Toast.warning('请阅读并同意用户协议')
-    return
-  }
-
   if (formData.value.password !== formData.value.confirmPassword) {
     Toast.warning('两次密码输入不一致')
+    return
+  }
+  if (!formData.value.agreement) {
+    Toast.warning('请阅读并同意用户协议')
     return
   }
 
@@ -193,181 +158,25 @@ const onSubmit = () => {
   }, 1500)
 }
 
-const goBack = () => {
-  router.back()
-}
-
 const goToLogin = () => {
   router.push('/login')
 }
 </script>
 
 <style scoped>
-.register-page {
-  background:
-    radial-gradient(circle at top left, rgba(var(--theme-primary-rgb), 0.22), transparent 24%),
-    radial-gradient(circle at top right, rgba(var(--theme-primary-rgb), 0.16), transparent 26%),
-    linear-gradient(180deg, var(--theme-glass-1) 0%, #f7fafc 24%, #f4f7fa 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.page-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(58px);
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.glow-top {
-  width: 220px;
-  height: 220px;
-  top: -80px;
-  left: -60px;
-  background: rgba(188, 228, 255, 0.92);
-}
-
-.glow-side {
-  width: 180px;
-  height: 180px;
-  top: 120px;
-  right: -70px;
-  background: rgba(var(--theme-primary-rgb), 0.32);
-}
-
-.auth-navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.78) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.68);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.auth-navbar :deep(.t-navbar__content),
-.auth-navbar :deep(.t-navbar__title),
-.auth-navbar :deep(.t-navbar__left),
-.auth-navbar :deep(.t-navbar__right) {
-  color: #101828;
-}
-
-.hero-section {
-  padding: 12px 24px 8px;
-}
-
-.hero-eyebrow {
-  font-size: 12px;
-  line-height: 18px;
-  color: #7991ad;
-}
-
-.hero-title {
-  margin-top: 4px;
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.hero-desc {
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 20px;
-  color: #6f8096;
-}
-
-.form-card {
-  position: relative;
-  margin: 10px 16px 0;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  box-shadow: 0 20px 42px rgba(76, 118, 150, 0.12);
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.glass-orb {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.orb-a {
-  width: 96px;
-  height: 96px;
-  top: -28px;
-  right: -24px;
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.orb-b {
-  width: 72px;
-  height: 72px;
-  left: -18px;
-  bottom: -18px;
-  background: rgba(var(--theme-primary-rgb), 0.16);
-}
-
-.form-section {
-  position: relative;
-  z-index: 1;
-  padding: 20px 20px 22px;
-}
-
-.input-group {
-  margin-bottom: 16px;
-}
-
-.input-group :deep(.t-input) {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(216, 231, 243, 0.94);
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
-}
-
-.input-group :deep(.t-input__wrap),
-.input-group :deep(.t-input__content) {
+.auth-tick-btn {
+  display: inline-flex;
   padding: 0;
+  border: 0;
+  background: transparent;
 }
 
-.agreement {
-  margin: 18px 0 20px;
+.auth-tick-btn .auth-tick {
+  width: 19px;
+  height: 19px;
 }
 
-.agreement :deep(.t-checkbox) {
-  align-items: flex-start;
-}
-
-.agreement :deep(.t-checkbox__content) {
-  font-size: 14px;
-  color: #334155;
-  line-height: 1.5;
-}
-
-.form-section :deep(.t-button--theme-primary) {
-  height: 48px;
-  border-radius: 16px;
-  box-shadow: 0 10px 22px rgba(var(--theme-primary-rgb), 0.18);
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-}
-
-.footer-text {
-  font-size: 14px;
-  color: #7b8794;
+.auth-tick-btn:active {
+  opacity: 0.7;
 }
 </style>

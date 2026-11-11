@@ -7,6 +7,7 @@ import router from './router'
 // 引入 TDesign 样式
 import 'tdesign-mobile-vue/es/style/index.css'
 import './styles/index.css'
+import './styles/auth.css'
 
 const app = createApp(App)
 
