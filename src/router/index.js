@@ -60,6 +60,24 @@ const routes = [
     meta: { title: '设置' }
   },
   {
+    path: '/agreement',
+    name: 'agreement',
+    component: () => import('../views/agreement/index.vue'),
+    meta: { title: '用户协议' }
+  },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: () => import('../views/privacy/index.vue'),
+    meta: { title: '用户隐私' }
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('../views/about/index.vue'),
+    meta: { title: '关于我们' }
+  },
+  {
     path: '/device-notifications',
     name: 'device-notifications',
     component: () => import('../views/device-notifications/index.vue'),

@@ -1,9 +1,14 @@
 <template>
-  <div class="settings-page app-page app-page--navbar">
-    <t-navbar title="设置" left-arrow @left-click="goBack" class="settings-navbar" />
+  <div class="settings-page app-page">
+    <header class="settings-top">
+      <button type="button" class="back-entry" aria-label="返回" @click="goBack">
+        <t-icon name="chevron-left" />
+      </button>
+      <h1 class="settings-title">设置</h1>
+    </header>
 
-    <div class="settings-body app-section app-stack">
-      <section class="settings-menu app-card">
+    <section class="app-section settings-main">
+      <div class="settings-card">
         <button
           v-for="item in menuItems"
           :key="item.id"
@@ -11,45 +16,31 @@
           class="menu-item"
           @click="handleMenu(item)"
         >
-          <div class="menu-left">
-            <div class="menu-icon" :class="item.type">
-              <t-icon :name="item.icon" />
-            </div>
-            <div class="menu-copy">
-              <div class="menu-title">{{ item.title }}</div>
-              <div class="menu-desc">{{ item.desc }}</div>
-            </div>
-          </div>
+          <t-icon :name="item.icon" class="menu-icon" />
+          <span class="menu-title">{{ item.title }}</span>
           <t-icon name="chevron-right" class="menu-arrow" />
         </button>
-      </section>
+      </div>
+    </section>
 
-      <section class="logout-wrap">
-        <t-button class="logout-btn" variant="outline" theme="danger" block @click="logout">
-          退出登录
-        </t-button>
-      </section>
-    </div>
+    <div class="settings-spacer"></div>
 
-    <transition name="logout-dialog">
-      <div v-if="showLogoutDialog" class="logout-dialog-layer" @click.self="closeLogoutDialog">
-        <div class="logout-dialog">
-          <div class="logout-dialog-icon">
-            <t-icon name="logout" />
-          </div>
-          <div class="logout-dialog-title">退出当前账号？</div>
-          <div class="logout-dialog-desc">退出后将返回登录页，当前企业与巡检数据展示会结束。</div>
-          <div class="logout-dialog-actions">
-            <button type="button" class="dialog-btn dialog-btn--ghost" @click="closeLogoutDialog">取消</button>
-            <button type="button" class="dialog-btn dialog-btn--danger" @click="confirmLogout">退出登录</button>
-          </div>
+    <section class="app-section settings-footer">
+      <button type="button" class="logout-btn" @click="logout">退出登录</button>
+      <p class="version-info">智慧巡检 APP · 版本 1.0.0</p>
+    </section>
+
+    <transition name="sheet">
+      <div v-if="showLogoutDialog" class="sheet-layer" @click.self="closeLogoutDialog">
+        <div class="logout-sheet">
+          <span class="sheet-handle"></span>
+          <div class="sheet-title">退出当前账号?</div>
+          <div class="sheet-desc">退出后将返回登录页，当前企业与巡检数据展示会结束。</div>
+          <button type="button" class="sheet-primary" @click="confirmLogout">退出登录</button>
+          <button type="button" class="sheet-cancel" @click="closeLogoutDialog">取消</button>
         </div>
       </div>
     </transition>
-
-    <div class="version-info">
-      <p>智慧巡检 APP · 版本 1.0.0</p>
-    </div>
   </div>
 </template>
 
@@ -62,8 +53,8 @@ const router = useRouter()
 const showLogoutDialog = ref(false)
 
 const menuItems = ref([
-  { id: 'agreement', title: '用户协议', desc: '查看平台服务条款与使用说明', icon: 'file', type: 'violet' },
-  { id: 'privacy', title: '隐私政策', desc: '了解数据采集范围与处理方式', icon: 'lock-on', type: 'emerald' }
+  { id: 'agreement', title: '用户协议', icon: 'file', path: '/agreement' },
+  { id: 'privacy', title: '用户隐私', icon: 'secured', path: '/privacy' }
 ])
 
 const goBack = () => {
@@ -71,11 +62,7 @@ const goBack = () => {
 }
 
 const handleMenu = (item) => {
-  const handlers = {
-    agreement: () => Toast.info('用户协议'),
-    privacy: () => Toast.info('隐私政策')
-  }
-  handlers[item.id]?.()
+  router.push(item.path)
 }
 
 const logout = () => {
@@ -97,242 +84,217 @@ const confirmLogout = () => {
 
 <style scoped>
 .settings-page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   background:
-    radial-gradient(circle at top right, rgba(var(--theme-primary-rgb), 0.18), transparent 28%),
-    linear-gradient(180deg, var(--theme-glass-1) 0%, #f7f9fc 24%, #f4f7fa 100%);
+    radial-gradient(120% 48% at 6% 0%, rgba(224, 212, 250, 0.9) 0%, rgba(224, 212, 250, 0) 62%),
+    radial-gradient(120% 46% at 100% 100%, rgba(206, 240, 235, 0.95) 0%, rgba(206, 240, 235, 0) 60%),
+    linear-gradient(170deg, #f2edfb 0%, #edf2fb 44%, #e9f5f3 100%);
+  padding-bottom: calc(16px + var(--prototype-safe-bottom));
 }
 
-.settings-navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+.settings-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: calc(var(--prototype-safe-top) + 10px) 16px 0 14px;
 }
 
-.settings-navbar :deep(.t-navbar__content),
-.settings-navbar :deep(.t-navbar__title),
-.settings-navbar :deep(.t-navbar__left),
-.settings-navbar :deep(.t-navbar__right) {
-  color: #101828;
+.back-entry {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border: 0;
+  background: transparent;
+  color: #16171d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-left: -2px;
 }
 
-.settings-body {
-  padding-top: 12px;
-  padding-bottom: 18px;
+.back-entry:active {
+  opacity: 0.6;
 }
 
-.settings-menu {
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.66);
-  box-shadow: 0 14px 30px rgba(73, 114, 145, 0.08);
+.settings-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #16171d;
+  letter-spacing: 0.01em;
+}
+
+.settings-main {
+  padding-top: 18px;
+}
+
+.settings-card {
+  padding: 2px 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
 }
 
 .menu-item {
   width: 100%;
-  border: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 18px;
-  text-align: left;
-}
-
-.menu-item + .menu-item {
-  border-top: 1px solid rgba(236, 240, 246, 0.96);
-}
-
-.menu-item:active {
-  background: rgba(246, 249, 253, 0.96);
-}
-
-.menu-left {
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: 14px;
+  padding: 19px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.menu-item:active {
+  opacity: 0.6;
 }
 
 .menu-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 0 0 auto;
   font-size: 24px;
-  flex-shrink: 0;
-}
-
-.menu-icon.violet {
-  background: linear-gradient(145deg, rgba(244, 251, 255, 0.98) 0%, rgba(215, 236, 249, 0.96) 100%);
-  color: var(--theme-primary-strong);
-}
-
-.menu-icon.emerald {
-  background: linear-gradient(145deg, #eefcf5 0%, #d8f5e6 100%);
-  color: #16935c;
-}
-
-.menu-copy {
-  min-width: 0;
+  color: #1c1d22;
 }
 
 .menu-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #202b3c;
-}
-
-.menu-desc {
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #7c889c;
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 500;
+  color: #1c1d22;
 }
 
 .menu-arrow {
-  color: #a0acbc;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  font-size: 20px;
+  color: #1c1d22;
 }
 
-.logout-wrap {
-  padding-top: 6px;
+.settings-spacer {
+  flex: 1;
+  min-height: 24px;
+}
+
+.settings-footer {
+  padding-top: 8px;
 }
 
 .logout-btn {
-  height: 52px;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(229, 95, 106, 0.54);
-  box-shadow: 0 10px 20px rgba(229, 95, 106, 0.08);
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #e5372b;
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: 0 12px 28px rgba(112, 120, 170, 0.09);
 }
 
-.logout-dialog-layer {
+.logout-btn:active {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.version-info {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: #9d9ea7;
+}
+
+.sheet-layer {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 1600;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 16px;
-  background: rgba(13, 23, 38, 0.26);
+  background: rgba(18, 22, 38, 0.26);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-.logout-dialog {
+.logout-sheet {
   width: 100%;
-  padding: 22px 18px 18px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow: 0 22px 42px rgba(73, 114, 145, 0.16);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.logout-dialog-icon {
-  width: 54px;
-  height: 54px;
-  margin: 0 auto;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fff1f0 0%, #ffe1de 100%);
-  color: #d54941;
-  font-size: 28px;
-}
-
-.logout-dialog-title {
-  margin-top: 16px;
+  padding: 10px 22px calc(12px + var(--prototype-safe-bottom));
+  border-radius: 26px 26px 0 0;
+  background: #ffffff;
+  box-shadow: 0 -18px 40px rgba(30, 40, 80, 0.14);
   text-align: center;
-  font-size: 20px;
+}
+
+.sheet-handle {
+  display: block;
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 26px;
+  border-radius: 999px;
+  background: #e5e5e8;
+}
+
+.sheet-title {
+  font-size: 21px;
   font-weight: 700;
-  color: #1f2937;
+  color: #16171d;
 }
 
-.logout-dialog-desc {
-  margin-top: 8px;
-  text-align: center;
+.sheet-desc {
+  margin-top: 12px;
   font-size: 13px;
   line-height: 1.6;
-  color: #7c889c;
+  color: #9a9ba3;
 }
 
-.logout-dialog-actions {
-  margin-top: 18px;
-  display: grid;
-  gap: 10px;
+.sheet-primary {
+  width: 100%;
+  height: 54px;
+  margin-top: 26px;
+  border: 0;
+  border-radius: 27px;
+  background: linear-gradient(135deg, #ff6a5f 0%, #e5372b 100%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 12px 24px rgba(229, 55, 43, 0.22);
 }
 
-.dialog-btn {
+.sheet-primary:active {
+  background: linear-gradient(135deg, #f2564a 0%, #d62c20 100%);
+}
+
+.sheet-cancel {
   width: 100%;
   height: 48px;
-  border-radius: 14px;
+  margin-top: 6px;
   border: 0;
-  font-size: 15px;
-  font-weight: 600;
+  background: transparent;
+  color: #6b6c76;
+  font-size: 17px;
+  font-weight: 500;
 }
 
-.dialog-btn--ghost {
-  background: rgba(241, 245, 251, 0.96);
-  color: #52637c;
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 0.22s ease;
 }
 
-.dialog-btn--danger {
-  background: linear-gradient(135deg, #e34d59 0%, #f16d77 100%);
-  color: #fff;
-  box-shadow: 0 12px 22px rgba(227, 77, 89, 0.18);
+.sheet-enter-active .logout-sheet,
+.sheet-leave-active .logout-sheet {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.version-info {
-  padding: 18px var(--prototype-page-padding-x) calc(8px + var(--prototype-safe-bottom));
-  text-align: center;
-  color: #9aa7ba;
-  font-size: 12px;
-}
-
-.logout-dialog-enter-active,
-.logout-dialog-leave-active {
-  transition: opacity 0.24s ease;
-}
-
-.logout-dialog-enter-active .logout-dialog,
-.logout-dialog-leave-active .logout-dialog {
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
-}
-
-.logout-dialog-enter-from,
-.logout-dialog-leave-to {
+.sheet-enter-from,
+.sheet-leave-to {
   opacity: 0;
 }
 
-.logout-dialog-enter-from .logout-dialog,
-.logout-dialog-leave-to .logout-dialog {
-  transform: translate3d(0, 18px, 0);
-  opacity: 0.9;
-}
-
-@media (max-width: 360px) {
-  .menu-item {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .menu-icon {
-    width: 48px;
-    height: 48px;
-  }
+.sheet-enter-from .logout-sheet,
+.sheet-leave-to .logout-sheet {
+  transform: translate3d(0, 100%, 0);
 }
 </style>

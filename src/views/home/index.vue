@@ -1,66 +1,51 @@
 <template>
   <div class="home-page app-page">
-    <div class="home-header gradient-bg">
-      <div class="header-glow header-glow-left"></div>
-      <div class="header-glow header-glow-right"></div>
-      <div class="header-content">
-        <div class="header-top">
-          <div>
-            <h1 class="header-title">视频广场</h1>
-            <p class="header-subtitle">统一查看各区域实时监控画面</p>
-          </div>
-          <button type="button" class="header-action" @click="openMultiViewSettings" aria-label="多画面设置">
-            <t-icon name="grid-view" />
-          </button>
-        </div>
+    <span class="home-decor" aria-hidden="true"></span>
 
-        <div class="region-selector" @click="openRegionPicker">
-          <div class="region-info">
-            <div class="enterprise-name">{{ currentEnterprise.name }}</div>
-            <div class="region-path">
-              <t-icon name="location" />
-              <span class="region-path-track">
-                <template v-for="(segment, index) in selectedRegionSegments" :key="`${segment}-${index}`">
-                  <span
-                    class="region-path-segment"
-                    :class="{ 'region-path-segment--current': index === selectedRegionSegments.length - 1 }"
-                  >
-                    {{ segment }}
-                  </span>
-                  <span
-                    v-if="index < selectedRegionSegments.length - 1"
-                    class="region-path-separator"
-                  >
-                    /
-                  </span>
-                </template>
-              </span>
-              <t-icon name="caret-down-small" />
-            </div>
-          </div>
-        </div>
+    <header class="home-top">
+      <div class="home-title-row">
+        <h1 class="home-title">视频广场</h1>
+        <button type="button" class="grid-entry" @click="openMultiViewSettings" aria-label="多画面设置">
+          <t-icon name="grid-view" />
+        </button>
       </div>
-    </div>
 
-    <div class="search-bar app-section">
+      <div class="enterprise-row">
+        <button type="button" class="enterprise-trigger" @click="openRegionPicker">
+          <t-icon name="location" class="enterprise-pin" />
+          <span class="enterprise-owner">当前所属</span>
+          <span class="enterprise-name">{{ currentRegionLabel }}</span>
+        </button>
+        <button type="button" class="switch-chip" @click="openRegionPicker">
+          <t-icon name="swap" />
+          切换
+        </button>
+      </div>
+    </header>
+
+    <div class="search-wrap">
       <div class="search-shell">
-        <t-search
+        <t-icon name="search" class="search-icon" />
+        <input
           v-model="searchText"
+          class="search-input"
+          type="text"
           placeholder="搜索摄像头、区域名称"
-          @change="onSearchChange"
         />
+        <button
+          v-if="searchText"
+          type="button"
+          class="search-clear"
+          aria-label="清空搜索"
+          @click="searchText = ''"
+        >
+          <t-icon name="close-circle-filled" />
+        </button>
       </div>
     </div>
 
-    <t-notice-bar
-      v-if="announcement"
-      :content="announcement"
-      prefix-icon="sound"
-      class="notice-bar"
-    />
-
-    <div class="filter-segmented app-section">
-      <div class="filter-bar app-card">
+    <div class="filter-wrap">
+      <div class="filter-bar">
         <button
           v-for="tab in filterTabs"
           :key="tab.value"
@@ -81,14 +66,14 @@
       :loading-texts="['下拉刷新设备', '松开同步设备', '设备同步中', '设备已更新']"
       @refresh="onDeviceRefresh"
     >
-      <div class="device-grid app-section app-stack">
+      <div class="device-grid">
         <div v-if="loading" class="skeleton-container">
           <div v-for="i in 4" :key="i" class="skeleton-card">
             <t-skeleton :row-col="[{ height: '118px' }, 1, { width: '60%' }]" />
           </div>
         </div>
 
-        <div v-else-if="filteredDevices.length > 0" class="device-list">
+        <template v-else>
           <div
             v-for="device in filteredDevices"
             :key="device.id"
@@ -96,29 +81,20 @@
             :class="device.status"
             @click="openDevice(device)"
           >
-            <div class="device-thumbnail" :class="device.status">
-              <div class="thumbnail-overlay"></div>
-              <div class="device-camera-icon">
-                <t-icon name="video" size="34px" />
-              </div>
-              <t-tag
-                :theme="getStatusTheme(device.status)"
-                size="small"
-                class="status-tag"
-              >
-                {{ getStatusText(device.status) }}
-              </t-tag>
+            <div class="device-thumbnail">
+              <img :src="device.thumbnail" :alt="device.name" />
+              <span class="status-tag" :class="device.status">{{ getStatusText(device.status) }}</span>
             </div>
             <div class="device-info">
               <div class="device-name">{{ device.name }}</div>
-              <div class="device-meta">
-                <span class="device-store">{{ device.storeName }}</span>
-              </div>
+              <div class="device-store">{{ device.storeName }}</div>
             </div>
           </div>
-        </div>
 
-        <t-empty v-else description="暂无设备" />
+          <div v-if="filteredDevices.length === 0" class="device-empty">
+            <t-empty description="暂无设备" />
+          </div>
+        </template>
       </div>
     </t-pull-down-refresh>
 
@@ -132,7 +108,7 @@
               aria-label="关闭区域选择"
               @pointerdown.stop.prevent="onPickerDragStart"
             ></button>
-            <h3>选择区域</h3>
+            <h3>切换所属区域</h3>
           </div>
 
           <div class="region-panel-body">
@@ -209,13 +185,9 @@
           </div>
 
           <div class="picker-footer">
-            <t-button
-              block
-              theme="primary"
-              @click="confirmRegion"
-            >
+            <button type="button" class="picker-confirm" @click="confirmRegion">
               {{ confirmButtonText }}
-            </t-button>
+            </button>
           </div>
         </div>
       </div>
@@ -229,10 +201,11 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
+import { buildImageUrl } from '../../utils/media'
+
 const router = useRouter()
 
 const searchText = ref('')
-const announcement = ref('系统维护通知：本周六凌晨2:00-4:00进行系统升级，届时部分功能可能无法使用')
 const loading = ref(true)
 const deviceRefreshing = ref(false)
 const treeRefreshing = ref(false)
@@ -266,12 +239,12 @@ let pickerPointerId = null
 
 const currentEnterprise = ref({
   id: 'ent-001',
-  name: 'XX科技有限公司'
+  name: '南京鹤梦科技有限公司'
 })
 
 const regionTree = ref([
   {
-    label: 'XX科技有限公司',
+    label: '南京鹤梦科技有限公司',
     value: 'ent-001',
     level: 0,
     deviceCount: 9,
@@ -329,16 +302,21 @@ const regionTree = ref([
   }
 ])
 
+const thumbnailUrl = buildImageUrl(
+  'wide angle surveillance camera still of a large modern factory warehouse interior, tall steel storage racks, overhead industrial lights, workers in yellow safety vests walking on a glossy reflective floor, bright daylight, realistic CCTV footage',
+  'landscape_4_3'
+)
+
 const devices = ref([
-  { id: 1, name: '摄像头-车间1入口', type: 'camera', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂' },
-  { id: 2, name: '摄像头-车间1出口', type: 'camera', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂' },
-  { id: 3, name: '摄像头-车间2入口', type: 'camera', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂' },
-  { id: 4, name: '摄像头-仓库区域', type: 'camera', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂' },
-  { id: 5, name: '摄像头-办公区域', type: 'camera', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂' },
-  { id: 6, name: '摄像头-停车场', type: 'camera', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂' },
-  { id: 7, name: '摄像头-厂区大门', type: 'camera', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂' },
-  { id: 8, name: '摄像头-生产车间', type: 'camera', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂' },
-  { id: 9, name: '摄像头-质检区域', type: 'camera', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂' }
+  { id: 1, name: '摄像头-车间1入口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
+  { id: 2, name: '摄像头-车间1出口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
+  { id: 3, name: '摄像头-车间2入口', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
+  { id: 4, name: '摄像头-仓库区域', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
+  { id: 5, name: '摄像头-办公区域', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
+  { id: 6, name: '摄像头-停车场', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
+  { id: 7, name: '摄像头-厂区大门', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
+  { id: 8, name: '摄像头-生产车间', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂', thumbnail: thumbnailUrl },
+  { id: 9, name: '摄像头-质检区域', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂', thumbnail: thumbnailUrl }
 ])
 
 const confirmButtonText = computed(() => {
@@ -393,7 +371,13 @@ const buildRegionPath = (value) => {
 
 const selectedRegionFullPath = computed(() => buildRegionPath(selectedStoreId.value))
 const pendingRegionFullPath = computed(() => buildRegionPath(pendingStoreId.value))
-const selectedRegionSegments = computed(() => selectedRegionFullPath.value.split(' / '))
+
+const currentRegionLabel = computed(() => {
+  if (!selectedStoreId.value) {
+    return currentEnterprise.value.name
+  }
+  return selectedRegionFullPath.value
+})
 
 const visibleRegionNodes = computed(() => {
   const result = []
@@ -455,9 +439,10 @@ const filteredDevices = computed(() => {
   }
 
   if (searchText.value) {
+    const keyword = searchText.value.toLowerCase()
     result = result.filter(d =>
-      d.name.toLowerCase().includes(searchText.value.toLowerCase()) ||
-      d.storeName.toLowerCase().includes(searchText.value.toLowerCase())
+      d.name.toLowerCase().includes(keyword) ||
+      d.storeName.toLowerCase().includes(keyword)
     )
   }
 
@@ -610,23 +595,12 @@ const onPickerDragEnd = (event) => {
   pickerDragOffset.value = 0
 }
 
-const getStatusTheme = (status) => {
-  const themes = {
-    online: 'success',
-    offline: 'default'
-  }
-  return themes[status] || 'default'
-}
-
 const getStatusText = (status) => {
   const texts = {
     online: '在线',
     offline: '离线'
   }
   return texts[status] || '未知'
-}
-
-const onSearchChange = () => {
 }
 
 const openDevice = (device) => {
@@ -641,420 +615,361 @@ const getFilterCount = (value) => {
   if (value === 'all') return devices.value.length
   return devices.value.filter(device => device.status === value).length
 }
-
 </script>
 
 <style scoped>
 .home-page {
+  position: relative;
   background:
-    radial-gradient(circle at top, rgba(var(--theme-primary-rgb), 0.08), transparent 24%),
-    #f5f7fb;
+    radial-gradient(120% 44% at 4% 0%, rgba(224, 212, 250, 0.85) 0%, rgba(224, 212, 250, 0) 62%),
+    radial-gradient(120% 40% at 100% 100%, rgba(206, 240, 235, 0.9) 0%, rgba(206, 240, 235, 0) 60%),
+    linear-gradient(170deg, #f4f0fc 0%, #eef3fc 45%, #eaf6f4 100%);
+  padding-bottom: calc(var(--app-tabbar-space, 92px) + 8px);
 }
 
-.home-header {
-  position: relative;
-  overflow: hidden;
-  padding: calc(var(--prototype-safe-top) + 8px) var(--prototype-page-padding-x) 18px;
-  color: #173153;
-  border-radius: 0 0 28px 28px;
-  box-shadow: 0 18px 40px rgba(var(--theme-primary-rgb), 0.14);
-}
-
-.header-glow {
+.home-decor {
   position: absolute;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  filter: blur(10px);
+  top: -40px;
+  right: -40px;
+  width: 210px;
+  height: 210px;
+  border-radius: 36px;
+  transform: rotate(16deg);
+  background:
+    linear-gradient(122deg, rgba(150, 184, 255, 0.16) 0 22%, rgba(150, 184, 255, 0) 22% 40%, rgba(172, 202, 255, 0.14) 40% 64%, rgba(172, 202, 255, 0) 64% 78%, rgba(190, 214, 255, 0.14) 78% 94%, rgba(190, 214, 255, 0) 94%);
+  pointer-events: none;
 }
 
-.header-glow-left {
-  width: 140px;
-  height: 140px;
-  top: -36px;
-  left: -24px;
-}
-
-.header-glow-right {
-  width: 180px;
-  height: 180px;
-  right: -60px;
-  top: 18px;
-}
-
-.header-content {
+.home-top {
   position: relative;
-  z-index: 2;
+  padding: calc(var(--prototype-safe-top) + 10px) 16px 0 20px;
 }
 
-.header-top {
+.home-title-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 16px;
 }
 
-.header-title {
+.home-title {
   margin: 0;
-  font-size: 26px;
+  font-size: 30px;
+  line-height: 1.2;
   font-weight: 700;
+  color: #16171d;
   letter-spacing: 0.01em;
-  color: #173153;
 }
 
-.header-subtitle {
-  margin-top: 6px;
-  font-size: 13px;
-  color: rgba(23, 49, 83, 0.7);
-}
-
-.header-action {
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
+.grid-entry {
+  width: 44px;
+  height: 44px;
+  margin-right: -2px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.34);
-  color: #1f5a7b;
+  background: rgba(255, 255, 255, 0.72);
+  color: #16171d;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  font-size: 22px;
+  box-shadow: 0 8px 18px rgba(112, 120, 170, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.region-selector {
+.grid-entry:active {
+  transform: scale(0.94);
+}
+
+.enterprise-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  margin-top: 20px;
+  min-width: 0;
 }
 
-.region-selector:active {
-  transform: scale(0.98);
-}
-
-.region-info {
+.enterprise-trigger {
+  min-width: 0;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.enterprise-trigger:active {
+  opacity: 0.7;
+}
+
+.enterprise-pin {
+  flex: 0 0 auto;
+  font-size: 17px;
+  color: #16171d;
+}
+
+.enterprise-owner {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #5f6068;
 }
 
 .enterprise-name {
-  font-size: 12px;
-  color: rgba(23, 49, 83, 0.62);
-  margin-bottom: 4px;
-}
-
-.region-path {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.45;
-}
-
-.region-path-track {
-  flex: 1;
   min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: 4px;
-  row-gap: 2px;
-}
-
-.region-path-segment {
-  max-width: 100%;
-  color: rgba(23, 49, 83, 0.7);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
+  color: #16171d;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.region-path-segment--current {
-  color: #173153;
-  font-weight: 700;
+.switch-chip {
+  flex: 0 0 auto;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #5b6cfb 0%, #4454ef 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 8px 16px rgba(74, 92, 255, 0.22);
 }
 
-.region-path-separator {
-  color: rgba(23, 49, 83, 0.34);
-  font-size: 12px;
-  line-height: 1;
+.switch-chip:active {
+  background: linear-gradient(135deg, #4d5ef0 0%, #3848e6 100%);
 }
 
-.search-bar {
-  padding-top: 16px;
-  padding-bottom: 12px;
-  position: relative;
-  z-index: 3;
+.search-wrap {
+  padding: 16px 16px 0;
 }
 
 .search-shell {
-  padding: 10px 12px;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(224, 232, 242, 0.96);
-  box-shadow: 0 10px 24px rgba(11, 31, 68, 0.06);
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(250, 251, 255, 0.82) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(112, 120, 170, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.search-shell :deep(.t-search) {
+.search-icon {
+  flex: 0 0 auto;
+  font-size: 24px;
+  color: #1c1d22;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
   background: transparent;
+  font-size: 15px;
+  color: #1c1d22;
+  font-family: inherit;
 }
 
-.search-shell :deep(.t-search__form) {
+.search-input::placeholder {
+  color: #8f9098;
+}
+
+.search-clear {
+  flex: 0 0 auto;
   padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b6b7bf;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
 }
 
-.search-shell :deep(.t-search__box) {
-  height: 40px;
-  border-radius: 12px;
-  background: #f4f7fb;
-  border: 1px solid rgba(224, 232, 242, 0.9);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-}
-
-.search-shell :deep(.t-search__icon-search) {
-  color: #7f90a6;
-  font-size: 17px;
-}
-
-.search-shell :deep(.t-input__inner),
-.search-shell :deep(.t-search__input) {
-  color: #22344c;
-  font-size: 14px;
-}
-
-.search-shell :deep(.t-input__inner::placeholder),
-.search-shell :deep(.t-search__input::placeholder) {
-  color: #94a3b8;
-}
-
-.search-shell :deep(.t-search__clear) {
-  color: #8ea0b6;
-}
-
-.notice-bar {
-  margin: 0 var(--prototype-page-padding-x) 14px;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 24px rgba(11, 31, 68, 0.05);
-}
-
-.filter-segmented {
-  margin-bottom: 12px;
+.filter-wrap {
+  padding: 20px 16px 14px;
 }
 
 .filter-bar {
-  padding: 6px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  background: linear-gradient(180deg, rgba(240, 245, 251, 0.98) 0%, rgba(234, 240, 248, 0.98) 100%);
-  border-radius: 999px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.device-refresh {
-  min-height: 420px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 5px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .segment-item {
-  min-height: 40px;
+  height: 42px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 12px;
   background: transparent;
-  color: #6f7d93;
-  font-size: 13px;
-  font-weight: 700;
+  color: #6f7078;
+  font-size: 16px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .segment-item.active {
-  background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
-  color: #173153;
-  box-shadow: 0 10px 20px rgba(11, 31, 68, 0.08);
+  background: #ffffff;
+  color: #4a5cff;
+  box-shadow: 0 6px 16px rgba(90, 105, 180, 0.12);
 }
 
 .segment-count {
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.16);
-  color: #5f728d;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: #a9aab2;
+  color: #fff;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .segment-item.active .segment-count {
-  background: rgba(var(--theme-primary-rgb), 0.1);
-  color: var(--theme-primary-strong);
+  background: #4a5cff;
+}
+
+.device-refresh {
+  min-height: 420px;
 }
 
 .device-grid {
-  padding-top: 4px;
-  padding-bottom: 8px;
-  gap: 12px;
+  padding: 0 16px;
 }
 
 .skeleton-container,
-.device-list {
+.device-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+}
+
+.skeleton-container {
+  grid-column: 1 / -1;
 }
 
 .skeleton-card {
-  background: #fff;
-  border-radius: 18px;
   padding: 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .device-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(224, 231, 242, 0.9);
-  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 16px 34px rgba(11, 31, 68, 0.07);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.device-card:hover {
-  box-shadow: 0 18px 38px rgba(11, 31, 68, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 28px rgba(112, 120, 170, 0.09);
+  transition: transform 0.2s ease;
 }
 
 .device-card:active {
   transform: scale(0.985);
 }
 
-.device-card.online {
-  box-shadow: 0 12px 30px rgba(var(--theme-primary-rgb), 0.08);
-}
-
 .device-thumbnail {
-  height: 124px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
+  aspect-ratio: 1.12;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.26), transparent 24%),
-    linear-gradient(135deg, var(--theme-primary-strong) 0%, var(--theme-primary) 100%);
-  color: #fff;
-  padding: 0 18px;
+  border-radius: 16px;
+  background: #dfe4ee;
 }
 
-.device-thumbnail.offline {
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), transparent 24%),
-    linear-gradient(135deg, #99a4b5 0%, #748095 100%);
+.device-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.thumbnail-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 18px 18px;
-  opacity: 0.34;
-}
-
-.device-camera-icon {
-  position: relative;
-  z-index: 1;
-  width: 58px;
-  height: 58px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+.device-card.offline .device-thumbnail img {
+  filter: grayscale(1) brightness(0.86) contrast(1.04);
 }
 
 .status-tag {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #12a594;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.status-tag.offline {
+  background: #8b8e97;
 }
 
 .device-info {
-  padding: 13px 14px 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #ffffff 100%);
+  padding: 12px 14px 14px;
 }
 
 .device-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #25324a;
-  line-height: 1.45;
-  min-height: 40px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: 16px;
+  font-weight: 700;
+  color: #17181d;
+  white-space: nowrap;
   overflow: hidden;
-}
-
-.device-meta {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  flex-wrap: wrap;
-  font-size: 11px;
-  color: #728096;
-  margin-top: 7px;
+  text-overflow: ellipsis;
 }
 
 .device-store {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  margin-top: 7px;
+  font-size: 13px;
+  color: #a2a3ac;
+}
+
+.device-empty {
+  grid-column: 1 / -1;
+  padding: 32px 0;
 }
 
 .region-layer {
   position: fixed;
   inset: 0;
   z-index: 1300;
-  background: rgba(12, 21, 34, 0.28);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(18, 22, 38, 0.26);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-end;
 }
 
-
 .region-panel {
   position: relative;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  width: calc(100% - 32px);
-  height: min(68%, 620px);
+  width: 100%;
+  height: min(72%, 640px);
   min-height: 420px;
   display: flex;
   flex-direction: column;
-  border-radius: 28px;
-  background: linear-gradient(180deg, #f8fbff 0%, #f3f7fc 100%);
-  box-shadow: 0 24px 50px rgba(16, 33, 68, 0.16);
+  border-radius: 26px 26px 0 0;
+  background: #ffffff;
+  box-shadow: 0 -18px 40px rgba(30, 40, 80, 0.14);
   overflow: hidden;
   transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
   transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1068,13 +983,8 @@ const getFilterCount = (value) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 10px 16px 12px;
-  background: rgba(255, 255, 255, 0.82);
-  border-bottom: 1px solid rgba(229, 236, 244, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  gap: 14px;
+  padding: 10px 22px 6px;
 }
 
 .picker-grabber {
@@ -1082,16 +992,15 @@ const getFilterCount = (value) => {
   height: 5px;
   border: 0;
   border-radius: 999px;
-  background: rgba(134, 149, 171, 0.36);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: #e5e5e8;
   touch-action: none;
 }
 
 .picker-header h3 {
   margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: #1c2f4e;
+  font-size: 21px;
+  font-weight: 700;
+  color: #16171d;
 }
 
 .region-panel-body {
@@ -1102,9 +1011,9 @@ const getFilterCount = (value) => {
 }
 
 .tree-toolbar {
-  padding: 10px 16px 8px;
+  padding: 12px 22px 8px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .tree-refresh {
@@ -1115,10 +1024,10 @@ const getFilterCount = (value) => {
 
 .tree-root-action {
   min-width: 0;
-  padding: 0 0 10px;
-  border: 0;
-  border-bottom: 1px solid rgba(222, 231, 243, 0.92);
-  background: transparent;
+  padding: 12px 14px;
+  border: 1px solid rgba(74, 92, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(74, 92, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1136,41 +1045,46 @@ const getFilterCount = (value) => {
 .tree-root-title {
   font-size: 15px;
   font-weight: 700;
-  color: #16315b;
+  color: #17181d;
 }
 
 .tree-root-desc {
   font-size: 12px;
   line-height: 1.4;
-  color: #7b89a0;
+  color: #a2a3ac;
 }
 
 .tree-root-count {
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(var(--theme-primary-rgb), 0.06);
-  color: #607896;
+  background: #ffffff;
+  color: #4a5cff;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
+.tree-root-action.active {
+  background: #eef1ff;
+  border-color: transparent;
+}
+
 .tree-root-action.active .tree-root-title {
-  color: var(--theme-primary-strong);
+  color: #3f55f0;
 }
 
 .tree-root-action.active .tree-root-count {
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
+  background: #4a5cff;
+  color: #ffffff;
 }
 
 .tree-summary {
   min-width: 0;
-  padding: 0;
+  padding: 0 4px;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #7c8ca3;
+  color: #a2a3ac;
   font-size: 12px;
 }
 
@@ -1183,7 +1097,7 @@ const getFilterCount = (value) => {
   flex: 1;
   font-size: 12px;
   font-weight: 600;
-  color: #23406b;
+  color: #3f55f0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1192,21 +1106,21 @@ const getFilterCount = (value) => {
 .tree-summary-divider {
   width: 1px;
   height: 12px;
-  background: rgba(203, 214, 228, 0.92);
+  background: #e6e7ee;
 }
 
 .tree-summary-count {
   flex: 0 0 auto;
-  color: #5e7493;
+  color: #6f7078;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .region-tree {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 16px 2px;
+  padding: 0 16px 6px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1217,43 +1131,27 @@ const getFilterCount = (value) => {
 
 .tree-node {
   position: relative;
-  margin-bottom: 0;
-}
-
-.tree-node::before {
-  content: '';
-  position: absolute;
-  left: calc(18px + var(--tree-depth) * 18px);
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, rgba(203, 214, 228, 0.88) 0%, rgba(203, 214, 228, 0.24) 100%);
-  pointer-events: none;
-}
-
-.tree-node:last-child::before {
-  bottom: 20px;
+  margin-bottom: 2px;
 }
 
 .tree-node-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .tree-toggle {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
-  color: #7c8ba1;
+  color: #b0b1b9;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 1;
+  font-size: 14px;
 }
 
 .tree-toggle--placeholder {
@@ -1263,53 +1161,42 @@ const getFilterCount = (value) => {
 .tree-node-main {
   min-width: 0;
   width: 100%;
-  padding: 8px 0;
+  padding: 8px 10px;
   border: 0;
-  border-radius: 0;
+  border-radius: 12px;
   background: transparent;
   display: flex;
   align-items: center;
   gap: 8px;
   text-align: left;
-  transition: opacity 0.2s ease;
-  position: relative;
+  transition: background 0.2s ease;
 }
 
 .tree-node-main:active {
-  opacity: 0.72;
+  background: rgba(74, 92, 255, 0.06);
 }
 
 .tree-indent {
   width: calc(var(--tree-depth) * 12px);
   flex: 0 0 calc(var(--tree-depth) * 12px);
-  position: relative;
-}
-
-.tree-indent::after {
-  content: '';
-  position: absolute;
-  left: calc(100% + 2px);
-  top: 50%;
-  width: 10px;
-  height: 1px;
-  background: rgba(203, 214, 228, 0.92);
 }
 
 .tree-node-icon {
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  border-radius: 7px;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(var(--theme-primary-rgb), 0.06);
-  color: #4b79c9;
+  font-size: 14px;
+  background: #eef1ff;
+  color: #5b6cfb;
 }
 
 .tree-node-icon.leaf {
-  background: rgba(var(--theme-primary-rgb), 0.05);
-  color: var(--theme-primary);
+  background: #f2f3f7;
+  color: #8a8b94;
 }
 
 .tree-node-copy {
@@ -1317,97 +1204,74 @@ const getFilterCount = (value) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .tree-node-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1d2c44;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1c1d22;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tree-node-hint {
-  font-size: 10px;
-  color: #8b98ac;
+  font-size: 11px;
+  color: #b0b1b9;
 }
 
 .tree-node-count {
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: rgba(var(--theme-primary-rgb), 0.06);
-  color: #5d7393;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #f4f5f9;
+  color: #8a8b94;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .tree-node[data-depth='0'] .tree-node-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: #15345f;
-}
-
-.tree-node[data-depth='0'] .tree-node-hint {
-  color: #71829b;
+  color: #16171d;
 }
 
 .tree-node[data-depth='1'] .tree-node-label {
-  font-weight: 650;
-  color: #1c3d6c;
-}
-
-.tree-node[data-depth='2'] .tree-node-label {
   font-weight: 600;
-  color: #274871;
 }
 
 .tree-node[data-depth='3'] .tree-node-label,
 .tree-node[data-depth='4'] .tree-node-label,
 .tree-node[data-depth='5'] .tree-node-label {
-  font-weight: 500;
-  color: #50627d;
-}
-
-.tree-node[data-depth='3'] .tree-node-icon,
-.tree-node[data-depth='4'] .tree-node-icon,
-.tree-node[data-depth='5'] .tree-node-icon {
-  color: #6f89b8;
+  color: #4a4b55;
 }
 
 .tree-node.selected .tree-node-main {
-  padding-left: 8px;
-}
-
-.tree-node.selected .tree-node-main::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--theme-primary-strong) 0%, var(--theme-primary) 100%);
+  background: #eef1ff;
 }
 
 .tree-node.selected .tree-node-icon {
-  background: linear-gradient(135deg, var(--theme-primary-strong) 0%, var(--theme-primary) 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #5b6cfb 0%, #4454ef 100%);
+  color: #ffffff;
 }
 
 .tree-node.selected .tree-node-label {
-  color: #0f4ccf;
+  color: #3f55f0;
+  font-weight: 600;
+}
+
+.tree-node.selected .tree-node-hint {
+  color: #8d96d8;
 }
 
 .tree-node.selected .tree-node-count {
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
+  background: #ffffff;
+  color: #4a5cff;
 }
 
 .tree-node.expanded > .tree-node-row > .tree-toggle {
-  color: var(--theme-primary-strong);
+  color: #4a5cff;
 }
 
 .empty-region {
@@ -1425,11 +1289,24 @@ const getFilterCount = (value) => {
 }
 
 .picker-footer {
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(229, 236, 244, 0.92);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  padding: 12px 22px calc(14px + var(--prototype-safe-bottom));
+  background: #ffffff;
+}
+
+.picker-confirm {
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 27px;
+  background: linear-gradient(135deg, #5b6cfb 0%, #4454ef 100%);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  box-shadow: 0 12px 24px rgba(74, 92, 255, 0.22);
+}
+
+.picker-confirm:active {
+  background: linear-gradient(135deg, #4d5ef0 0%, #3848e6 100%);
 }
 
 :deep(.t-pull-down-refresh__track) {
@@ -1463,23 +1340,17 @@ const getFilterCount = (value) => {
 
 .region-sheet-enter-from .region-panel,
 .region-sheet-leave-to .region-panel {
-  transform: translate3d(0, 32px, 0);
-  opacity: 0.88;
+  transform: translate3d(0, 100%, 0);
 }
 
 @media (max-width: 360px) {
   .skeleton-container,
-  .device-list {
-    gap: 12px;
-  }
-
-  .device-thumbnail {
-    height: 112px;
+  .device-grid {
+    gap: 12px 10px;
   }
 
   .device-name {
-    font-size: 14px;
-    min-height: 42px;
+    font-size: 15px;
   }
 }
 </style>

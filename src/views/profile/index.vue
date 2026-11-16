@@ -1,126 +1,111 @@
 <template>
   <div class="profile-page app-page">
-    <header class="profile-header gradient-bg">
-      <div class="profile-header-glow profile-header-glow-left"></div>
-      <div class="profile-header-glow profile-header-glow-right"></div>
-      <div class="profile-header-grid"></div>
-
-      <div class="profile-header-content">
-        <div class="profile-hero app-card">
-          <div class="profile-user">
-            <div class="user-avatar">U</div>
-            <div class="user-info">
-              <div class="user-name-row">
-                <h1 class="user-name">{{ userInfo.name }}</h1>
-                <span class="user-role">{{ userInfo.role }}</span>
-              </div>
-              <div class="user-phone">{{ userInfo.phone }}</div>
-            </div>
-          </div>
-
-          <button type="button" class="settings-entry" @click="goToSettings" aria-label="打开设置">
-            <t-icon name="setting" />
-          </button>
-        </div>
-      </div>
+    <header class="profile-top">
+      <h1 class="profile-title">我的</h1>
+      <button type="button" class="settings-entry" @click="goToSettings" aria-label="打开设置">
+        <t-icon name="setting" />
+      </button>
     </header>
 
-    <section class="app-section profile-section">
-      <div class="profile-card app-card">
-        <div class="section-head">
-          <div>
-
-            <div class="section-title">企业信息</div>
+    <section class="app-section">
+      <div class="profile-hero">
+        <span class="hero-shape"></span>
+        <img class="user-avatar" :src="avatarUrl" alt="用户头像" />
+        <div class="user-info">
+          <div class="user-name-row">
+            <h2 class="user-name">{{ userInfo.name }}</h2>
+            <span class="user-role">{{ userInfo.role }}</span>
           </div>
-          <button type="button" class="section-action" @click="switchEnterprise">切换企业</button>
+          <div class="user-phone">{{ userInfo.phone }}</div>
         </div>
+      </div>
+    </section>
 
+    <section class="app-section profile-section">
+      <div class="section-head">
+        <h3 class="section-title">企业信息</h3>
+        <button type="button" class="section-action" @click="switchEnterprise">
+          <span class="section-action-icon">
+            <t-icon name="swap" />
+          </span>
+          切换企业
+        </button>
+      </div>
+
+      <div class="enterprise-card">
         <div class="enterprise-summary">
-          <div class="enterprise-icon">{{ enterpriseInfo.logo }}</div>
+          <img class="enterprise-logo" :src="logoUrl" alt="企业标识" />
           <div class="enterprise-copy">
             <div class="enterprise-name">{{ enterpriseInfo.name }}</div>
             <div class="enterprise-contact">{{ enterpriseInfo.contact }} · {{ enterpriseInfo.phone }}</div>
           </div>
         </div>
 
-        <div class="enterprise-panels">
-          <div class="info-panel">
-            <div class="info-panel-head">
-              <div class="info-panel-icon">
-                <t-icon name="location" />
-              </div>
-              <span class="info-panel-label">企业地址</span>
-            </div>
-            <div class="info-panel-value">{{ enterpriseInfo.address }}</div>
-          </div>
+        <div class="enterprise-field">
+          <div class="field-label">企业地址</div>
+          <div class="field-value">{{ enterpriseInfo.address }}</div>
+        </div>
 
-          <div class="info-panel info-panel--row">
-            <div>
-              <div class="info-panel-label">企业码</div>
-              <div class="info-panel-value info-panel-value--code">{{ enterpriseInfo.code }}</div>
-            </div>
-            <button type="button" class="copy-action" @click="copyEnterpriseCode">复制</button>
+        <div class="enterprise-field">
+          <div class="field-label">企业码</div>
+          <div class="field-value field-value--row">
+            <span class="code-value">{{ enterpriseInfo.code }}</span>
+            <button type="button" class="copy-chip" @click="copyEnterpriseCode">复制</button>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="app-section profile-section profile-section--tools">
-      <div class="profile-card profile-card--tools app-card">
-        <div class="shortcut-grid">
-          <button
-            v-for="item in shortcuts"
-            :key="item.title"
-            type="button"
-            class="shortcut-item"
-            @click="item.action"
-          >
-            <div class="shortcut-icon" :class="item.type">
-              <t-icon :name="item.icon" />
-            </div>
-            <div class="shortcut-title">{{ item.title }}</div>
-            <div class="shortcut-desc">{{ item.desc }}</div>
-          </button>
-        </div>
+    <section class="app-section profile-section">
+      <div class="section-head">
+        <h3 class="section-title">常用功能</h3>
+      </div>
+
+      <div class="shortcut-grid">
+        <button
+          v-for="item in shortcuts"
+          :key="item.title"
+          type="button"
+          class="shortcut-item"
+          @click="item.action"
+        >
+          <div class="shortcut-head">
+            <t-icon :name="item.icon" class="shortcut-icon" />
+            <span class="shortcut-title">{{ item.title }}</span>
+          </div>
+          <div class="shortcut-desc">{{ item.desc }}</div>
+        </button>
       </div>
     </section>
 
-    <section class="app-section profile-section profile-section--support">
-      <div class="profile-card profile-card--support">
-        <div class="service-list">
-          <button
-            v-for="item in serviceItems"
-            :key="item.title"
-            type="button"
-            class="service-item"
-            @click="item.action"
-          >
-            <div class="service-item-left">
-              <div class="service-icon" :class="item.type">
-                <t-icon :name="item.icon" />
-              </div>
-              <div class="service-copy">
-                <div class="service-title">{{ item.title }}</div>
-                <div class="service-desc">{{ item.desc }}</div>
-              </div>
-            </div>
-            <t-icon name="chevron-right" class="service-arrow" />
-          </button>
-        </div>
+    <section class="app-section profile-section">
+      <div class="section-head">
+        <h3 class="section-title">帮助与支持</h3>
+      </div>
+
+      <div class="service-card">
+        <button
+          v-for="item in serviceItems"
+          :key="item.title"
+          type="button"
+          class="service-item"
+          @click="item.action"
+        >
+          <t-icon :name="item.icon" class="service-icon" />
+          <span class="service-title">{{ item.title }}</span>
+          <span v-if="item.value" class="service-value">{{ item.value }}</span>
+          <t-icon v-else name="chevron-right" class="service-arrow" />
+        </button>
       </div>
     </section>
 
-    <div v-if="cacheDialogVisible" class="profile-dialog-overlay" @click="closeCacheDialog">
-      <div class="profile-dialog" @click.stop>
-        <div class="profile-dialog-title">清理缓存</div>
-        <div class="profile-dialog-content">确认清理当前设备上的临时缓存文件吗？</div>
-        <div class="profile-dialog-actions">
-          <button type="button" class="profile-dialog-btn profile-dialog-btn--ghost" @click="closeCacheDialog">
-            取消
-          </button>
-          <button type="button" class="profile-dialog-btn profile-dialog-btn--primary" @click="confirmClearCache">
-            清理
-          </button>
+    <div v-if="cacheDialogVisible" class="cache-layer" @click.self="closeCacheDialog">
+      <div class="cache-dialog">
+        <div class="cache-dialog-title">清理缓存</div>
+        <div class="cache-dialog-content">确认清理当前设备的临时缓存文件</div>
+        <div class="cache-dialog-actions">
+          <button type="button" class="cache-btn cache-btn--ghost" @click="closeCacheDialog">取消</button>
+          <button type="button" class="cache-btn cache-btn--primary" @click="confirmClearCache">确认</button>
         </div>
       </div>
     </div>
@@ -131,30 +116,40 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
+import { buildImageUrl } from '../../utils/media'
 
 const router = useRouter()
 
 const cacheDialogVisible = ref(false)
 
 const userInfo = ref({
-  name: '张三',
-  phone: '138****8888',
-  role: '巡检主管'
+  name: '王发财心想事成',
+  phone: '135***51239',
+  role: '巡检专员'
 })
 
 const enterpriseInfo = ref({
-  logo: 'XX',
-  name: 'XX科技有限公司',
+  name: '鹤梦科技有限公司',
   contact: '李经理',
-  phone: '400-888-8888',
-  address: 'XX省XX市XX区XX路XX号XX大厦A座18层',
-  code: 'ENT20240115001'
+  phone: '400-666-6666',
+  address: '江苏省南京市江宁区智慧园 3 号楼 A 座 18 层',
+  code: 'HM20260115001'
 })
 
 const galleryStats = ref({
   images: 12,
   videos: 5
 })
+
+const avatarUrl = buildImageUrl(
+  '3D cartoon avatar portrait of a friendly young asian man with short brown hair, big eyes, wearing a light gray jacket, soft Pixar style, clean light lavender background, centered head and shoulders, mobile app profile avatar',
+  'square'
+)
+
+const logoUrl = buildImageUrl(
+  '3D isometric miniature city of glossy translucent blue glass skyscrapers on a small rounded base, soft studio lighting, clean white background, mobile app enterprise logo icon',
+  'square'
+)
 
 const goToSettings = () => {
   router.push('/settings')
@@ -218,22 +213,20 @@ const confirmClearCache = () => {
 }
 
 const handleAbout = () => {
-  Toast.info('关于APP')
+  router.push('/about')
 }
 
 const shortcuts = computed(() => [
   {
     title: '图库管理',
-    desc: `${galleryStats.value.images} 张图片 · ${galleryStats.value.videos} 个视频`,
+    desc: `${galleryStats.value.images}张图片 · ${galleryStats.value.videos}个视频`,
     icon: 'image',
-    type: 'blue',
     action: goToGallery
   },
   {
     title: '企业切换',
     desc: '管理账号归属企业',
     icon: 'swap',
-    type: 'green',
     action: switchEnterprise
   }
 ])
@@ -241,23 +234,18 @@ const shortcuts = computed(() => [
 const serviceItems = [
   {
     title: '帮助与反馈',
-    desc: '提交问题与使用建议',
     icon: 'help-circle',
-    type: 'orange',
     action: handleHelp
   },
   {
     title: '清理缓存',
-    desc: '释放本地临时文件占用',
     icon: 'delete',
-    type: 'cyan',
+    value: '1.24 MB',
     action: openCacheDialog
   },
   {
-    title: '关于 APP',
-    desc: '查看版本信息与产品说明',
+    title: '关于我们',
     icon: 'info-circle',
-    type: 'purple',
     action: handleAbout
   }
 ]
@@ -267,214 +255,189 @@ const serviceItems = [
 .profile-page {
   position: relative;
   background:
-    radial-gradient(circle at top, rgba(var(--theme-primary-rgb), 0.12), transparent 24%),
-    linear-gradient(180deg, var(--theme-glass-1) 0%, #f5f8fb 100%);
+    radial-gradient(120% 48% at 6% 0%, rgba(224, 212, 250, 0.9) 0%, rgba(224, 212, 250, 0) 62%),
+    radial-gradient(120% 46% at 100% 100%, rgba(206, 240, 235, 0.95) 0%, rgba(206, 240, 235, 0) 60%),
+    linear-gradient(170deg, #f2edfb 0%, #edf2fb 44%, #e9f5f3 100%);
+  padding-bottom: calc(var(--app-tabbar-space, 92px) + 8px);
 }
 
-.profile-header {
-  position: relative;
-  overflow: hidden;
-  padding: calc(var(--prototype-safe-top) + 10px) var(--prototype-page-padding-x) 18px;
-  border-radius: 0 0 34px 34px;
-  box-shadow: 0 22px 42px rgba(var(--theme-primary-rgb), 0.14);
-}
-
-.profile-header-glow {
-  position: absolute;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  filter: blur(10px);
-}
-
-.profile-header-glow-left {
-  width: 140px;
-  height: 140px;
-  top: -36px;
-  left: -24px;
-}
-
-.profile-header-glow-right {
-  width: 180px;
-  height: 180px;
-  right: -60px;
-  top: 18px;
-}
-
-.profile-header-grid {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.2;
-}
-
-.profile-header-content {
-  position: relative;
-  z-index: 1;
-}
-
-.profile-hero {
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.56);
-  box-shadow: 0 16px 34px rgba(72, 110, 140, 0.12);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+.profile-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: calc(var(--prototype-safe-top) + 10px) 16px 0 20px;
 }
 
-.profile-user {
-  min-width: 0;
-  flex: 1;
+.profile-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #16171d;
+  letter-spacing: 0.01em;
+}
+
+.settings-entry {
+  width: 34px;
+  height: 34px;
+  margin-right: -4px;
+  border: 0;
+  background: transparent;
+  color: #16171d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.settings-entry:active {
+  opacity: 0.6;
+}
+
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 249, 255, 0.88) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
+.hero-shape {
+  position: absolute;
+  top: -34px;
+  right: -26px;
+  width: 168px;
+  height: 168px;
+  border-radius: 26px;
+  transform: rotate(12deg);
+  background:
+    linear-gradient(118deg, rgba(140, 176, 255, 0.24) 0 22%, rgba(140, 176, 255, 0) 22% 36%, rgba(160, 192, 255, 0.2) 36% 58%, rgba(160, 192, 255, 0) 58% 70%, rgba(180, 206, 255, 0.22) 70% 88%, rgba(180, 206, 255, 0) 88%);
+  pointer-events: none;
+}
+
 .user-avatar {
-  width: 76px;
-  height: 76px;
-  border-radius: 24px;
-  background: linear-gradient(145deg, rgba(240, 250, 255, 0.98) 0%, rgba(208, 234, 250, 0.94) 100%);
-  color: var(--theme-primary-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;
-  font-weight: 700;
-  flex: 0 0 76px;
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e9edf8;
 }
 
 .user-info {
+  position: relative;
   min-width: 0;
 }
 
 .user-name-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .user-name {
   margin: 0;
-  font-size: 24px;
-  line-height: 1.2;
-  color: #1f2f46;
+  min-width: 0;
+  font-size: 19px;
+  line-height: 1.25;
   font-weight: 700;
+  color: #17181d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-role {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #edf4ff;
-  color: var(--theme-primary-strong);
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #ff7a6b 0%, #ef3f45 100%);
+  color: #fff;
   font-size: 12px;
-  line-height: 1;
-  font-weight: 700;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .user-phone {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #7d8ba1;
-}
-
-.settings-entry {
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(230, 237, 248, 0.9);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.58);
-  color: #4a5d7a;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 40px;
+  margin-top: 7px;
+  font-size: 14px;
+  color: #9c9da6;
 }
 
 .profile-section {
-  padding-top: 14px;
-}
-
-.profile-section--support {
-  padding-top: 8px;
-}
-
-.profile-card {
-  padding: 18px;
-}
-
-.profile-card--tools {
-  box-shadow: 0 14px 28px rgba(73, 114, 145, 0.08);
-}
-
-.profile-card--support {
-  padding: 0 4px 0;
-  background: transparent;
-  box-shadow: none;
+  padding-top: 24px;
 }
 
 .section-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.section-head--compact {
-  margin-bottom: 14px;
-}
-
-.section-eyebrow {
-  font-size: 12px;
-  color: #94a3b8;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 4px;
 }
 
 .section-title {
-  margin-top: 4px;
-  font-size: 17px;
-  line-height: 1.35;
-  color: #1f2f46;
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.3;
   font-weight: 700;
+  color: #17181d;
 }
 
 .section-action {
-  height: 34px;
-  padding: 0 14px;
-  border: 1.5px solid var(--theme-primary-strong);
-  border-radius: 14px;
-  background: rgba(242, 247, 255, 0.92);
-  color: var(--theme-primary-strong);
-  font-size: 14px;
-  font-weight: 700;
-  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3f6cf5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.section-action-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  background: #e7efff;
+  color: #3f6cf5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.enterprise-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
 }
 
 .enterprise-summary {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-.enterprise-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--theme-primary-strong) 0%, var(--theme-primary) 100%);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  flex: 0 0 56px;
+.enterprise-logo {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  object-fit: contain;
+  border-radius: 12px;
 }
 
 .enterprise-copy {
@@ -484,79 +447,60 @@ const serviceItems = [
 .enterprise-name {
   font-size: 17px;
   line-height: 1.35;
-  color: #1f2f46;
   font-weight: 700;
+  color: #17181d;
 }
 
 .enterprise-contact {
   margin-top: 6px;
   font-size: 13px;
-  color: #7d8ba1;
+  color: #9c9da6;
 }
 
-.enterprise-panels {
+.enterprise-field {
+  margin-top: 18px;
+}
+
+.enterprise-field + .enterprise-field {
   margin-top: 16px;
-  display: grid;
-  gap: 12px;
 }
 
-.info-panel {
-  padding: 14px;
-  border-radius: 16px;
-  background:
-    linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(242, 247, 252, 0.98) 100%);
-  border: 1px solid rgba(231, 239, 247, 0.92);
-}
-
-.info-panel--row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.info-panel-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.info-panel-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: rgba(var(--theme-primary-rgb), 0.08);
-  color: var(--theme-primary-strong);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 28px;
-}
-
-.info-panel-label {
+.field-label {
   font-size: 12px;
-  color: #94a3b8;
+  line-height: 1.3;
+  color: #b4b5bd;
 }
 
-.info-panel-value {
+.field-value {
   margin-top: 8px;
   font-size: 14px;
-  line-height: 1.55;
-  color: #334155;
+  line-height: 1.5;
+  color: #23242b;
 }
 
-.info-panel-value--code {
-  color: var(--theme-primary-strong);
-  font-weight: 700;
-  letter-spacing: 0.01em;
+.field-value--row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.copy-action {
+.code-value {
+  font-weight: 500;
+}
+
+.copy-chip {
   border: 0;
-  background: transparent;
-  color: var(--theme-primary-strong);
-  font-size: 14px;
-  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: #e7f0ff;
+  color: #3f6cf5;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.copy-chip:active {
+  background: #d9e7ff;
 }
 
 .shortcut-grid {
@@ -566,180 +510,153 @@ const serviceItems = [
 }
 
 .shortcut-item {
-  border: 0;
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(242, 247, 252, 0.98) 100%);
-  border: 1px solid rgba(231, 239, 247, 0.92);
   padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow: 0 10px 24px rgba(112, 120, 170, 0.06);
   text-align: left;
 }
 
-.shortcut-icon,
-.service-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+.shortcut-item:active {
+  transform: scale(0.985);
+}
+
+.shortcut-head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 22px;
+  gap: 9px;
 }
 
-.shortcut-icon.blue,
-.service-icon.blue {
-  background: linear-gradient(135deg, #e8f3ff 0%, #cde4ff 100%);
-  color: var(--theme-primary-strong);
-}
-
-.shortcut-icon.green,
-.service-icon.green {
-  background: linear-gradient(135deg, #edfdf4 0%, #cff7de 100%);
-  color: #159957;
-}
-
-.service-icon.orange {
-  background: linear-gradient(135deg, #fff4e8 0%, #ffe0bc 100%);
-  color: #dd6b20;
-}
-
-.service-icon.cyan {
-  background: linear-gradient(135deg, #e9fcfb 0%, #c7f5f2 100%);
-  color: #0f9da2;
-}
-
-.service-icon.purple {
-  background: linear-gradient(135deg, #f7efff 0%, #ead9ff 100%);
-  color: #7c3aed;
+.shortcut-icon {
+  font-size: 24px;
+  color: #1c1d22;
 }
 
 .shortcut-title {
-  margin-top: 14px;
-  font-size: 15px;
-  color: #1f2f46;
+  font-size: 16px;
   font-weight: 700;
+  color: #17181d;
 }
 
 .shortcut-desc {
-  margin-top: 6px;
+  margin-top: 9px;
   font-size: 12px;
-  line-height: 1.5;
-  color: #7d8ba1;
+  line-height: 1.45;
+  color: #a2a3ac;
 }
 
-.service-list {
-  display: grid;
-  gap: 8px;
+.service-card {
+  padding: 4px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
 }
 
 .service-item {
-  border: 0;
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(242, 247, 252, 0.98) 100%);
-  border: 1px solid rgba(231, 239, 247, 0.92);
-  padding: 13px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  text-align: left;
-  box-shadow: 0 10px 20px rgba(73, 114, 145, 0.05);
-}
-
-.service-item-left {
-  min-width: 0;
-  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 17px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
-.service-copy {
-  min-width: 0;
+.service-item:active {
+  opacity: 0.65;
+}
+
+.service-icon {
+  flex: 0 0 auto;
+  font-size: 24px;
+  color: #1c1d22;
 }
 
 .service-title {
-  font-size: 15px;
-  color: #1f2f46;
-  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1c1d22;
 }
 
-.service-desc {
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.45;
-  color: #7d8ba1;
+.service-value {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #a2a3ac;
 }
 
 .service-arrow {
-  color: #9aa8bc;
   flex: 0 0 auto;
+  font-size: 20px;
+  color: #1c1d22;
 }
 
-.profile-dialog-overlay {
-  position: absolute;
+.cache-layer {
+  position: fixed;
   inset: 0;
-  background: rgba(13, 23, 43, 0.34);
+  z-index: 1600;
+  padding: 0 24px calc(var(--app-tabbar-space, 92px) + 8px);
+  background: rgba(18, 22, 38, 0.26);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 20px calc(var(--app-tabbar-space, 92px) + 12px);
-  z-index: 1600;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 
-.profile-dialog {
+.cache-dialog {
   width: 100%;
-  max-width: 288px;
-  padding: 22px 18px 16px;
+  max-width: 306px;
+  padding: 24px 20px 18px;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 24px 48px rgba(30, 40, 80, 0.16);
   text-align: center;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  box-shadow:
-    0 18px 36px rgba(73, 114, 145, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 }
 
-.profile-dialog-title {
-  font-size: 18px;
+.cache-dialog-title {
+  font-size: 20px;
   font-weight: 700;
-  color: #173153;
+  color: #16171d;
 }
 
-.profile-dialog-content {
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #70829a;
+.cache-dialog-content {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #2c2d34;
 }
 
-.profile-dialog-actions {
-  margin-top: 16px;
+.cache-dialog-actions {
+  margin-top: 22px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.profile-dialog-btn {
-  height: 40px;
+.cache-btn {
+  height: 52px;
   border: 0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
+  border-radius: 26px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
-.profile-dialog-btn--ghost {
-  background: rgba(241, 246, 252, 0.96);
-  color: #5f7490;
+.cache-btn--ghost {
+  background: #ececee;
+  color: #16171d;
 }
 
-.profile-dialog-btn--primary {
-  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-primary-strong) 100%);
+.cache-btn--primary {
+  background: #2f7dfa;
   color: #fff;
+}
+
+.cache-btn--primary:active {
+  background: #1f6ceb;
 }
 </style>

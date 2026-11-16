@@ -56,6 +56,13 @@
       </div>
     </div>
 
+    <p class="auth-agreement-note">
+      登录即同意
+      <button type="button" class="auth-agreement-link" @click="router.push('/agreement')">用户协议</button>
+      和
+      <button type="button" class="auth-agreement-link" @click="router.push('/privacy')">隐私协议</button>
+    </p>
+
     <transition name="server-sheet">
       <div v-if="serverSheetVisible" class="auth-sheet-layer" @click.self="closeServerSheet">
         <div class="server-sheet">
@@ -348,5 +355,33 @@ const goToRegister = () => {
 .server-sheet-enter-from .server-sheet,
 .server-sheet-leave-to .server-sheet {
   transform: translate3d(0, 24px, 0);
+}
+
+/* 登录即同意协议：固定页面底部居中 */
+.auth-agreement-note {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--auth-sub);
+}
+
+.auth-agreement-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--auth-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-agreement-link:active {
+  opacity: 0.7;
 }
 </style>

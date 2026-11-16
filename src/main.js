@@ -8,6 +8,7 @@ import router from './router'
 import 'tdesign-mobile-vue/es/style/index.css'
 import './styles/index.css'
 import './styles/auth.css'
+import './styles/device-actions.css'
 
 const app = createApp(App)
 

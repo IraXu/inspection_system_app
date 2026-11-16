@@ -539,49 +539,6 @@ const stopPtz = () => {
   color: #49566a;
 }
 
-.strip-action {
-  border: 1px solid rgba(216, 224, 236, 0.9);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.92);
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 78px;
-  padding: 10px 6px;
-  font-size: 12px;
-  font-weight: 500;
-  box-shadow: 0 10px 24px rgba(17, 37, 72, 0.06);
-}
-
-.strip-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, #f4f7fc 0%, #ecf1f8 100%);
-  color: #3e5068;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.strip-action.active .strip-icon {
-  background: linear-gradient(180deg, #e9f2ff 0%, #dfeaff 100%);
-  color: #2268e3;
-}
-
-.strip-action.record .strip-icon {
-  background: linear-gradient(180deg, #fff0ee 0%, #ffe3de 100%);
-  color: #df5548;
-}
-
-.strip-action:active .strip-icon {
-  transform: scale(0.95);
-}
-
 .page-content {
   flex: 1;
   display: flex;

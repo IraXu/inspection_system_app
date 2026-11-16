@@ -27,34 +27,7 @@
               </router-view>
             </div>
 
-            <div
-              v-if="showTabbar"
-              ref="shellTabbarRef"
-              class="app-tabbar"
-              :class="{ 'is-dragging': isDraggingTabbar }"
-              :style="tabbarIndicatorStyle"
-              @touchstart.passive="handleTabbarDragStart"
-              @touchmove.passive="handleTabbarDragMove"
-              @touchend="handleTabbarDragEnd"
-              @touchcancel="resetTabbarDrag"
-            >
-              <div class="app-tabbar-glow"></div>
-              <div class="app-tabbar-indicator"></div>
-              <button
-                v-for="item in tabbarItems"
-                :key="item.value"
-                type="button"
-                class="app-tabbar-item"
-                :class="{ 'is-active': activeTab === item.value }"
-                :style="getTabItemStyle(tabbarItems.findIndex(tab => tab.value === item.value))"
-                @click="onTabChange(item.value)"
-              >
-                <span class="app-tabbar-item-icon">
-                  <t-icon :name="item.icon" />
-                </span>
-                <span class="app-tabbar-item-text">{{ item.label }}</span>
-              </button>
-            </div>
+            <LiquidTabbar v-if="showTabbar" />
           </div>
         </div>
       </div>
@@ -71,34 +44,7 @@
           </router-view>
         </div>
 
-        <div
-          v-if="showTabbar"
-          ref="canvasTabbarRef"
-          class="app-tabbar app-tabbar--canvas"
-          :class="{ 'is-dragging': isDraggingTabbar }"
-          :style="tabbarIndicatorStyle"
-          @touchstart.passive="handleTabbarDragStart"
-          @touchmove.passive="handleTabbarDragMove"
-          @touchend="handleTabbarDragEnd"
-          @touchcancel="resetTabbarDrag"
-        >
-          <div class="app-tabbar-glow"></div>
-          <div class="app-tabbar-indicator"></div>
-          <button
-            v-for="item in tabbarItems"
-            :key="item.value"
-            type="button"
-            class="app-tabbar-item"
-            :class="{ 'is-active': activeTab === item.value }"
-            :style="getTabItemStyle(tabbarItems.findIndex(tab => tab.value === item.value))"
-            @click="onTabChange(item.value)"
-          >
-            <span class="app-tabbar-item-icon">
-              <t-icon :name="item.icon" />
-            </span>
-            <span class="app-tabbar-item-text">{{ item.label }}</span>
-          </button>
-        </div>
+        <LiquidTabbar v-if="showTabbar" wide />
       </div>
     </div>
   </div>
@@ -106,111 +52,22 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import LiquidTabbar from './components/LiquidTabbar.vue'
 
-const router = useRouter()
 const route = useRoute()
 
-const activeTab = ref('workbench')
 const previewEnabled = ref(true)
-const shellTabbarRef = ref(null)
-const canvasTabbarRef = ref(null)
-const tabbarMetrics = ref({
-  width: 0,
-  itemWidth: 0
-})
-const tabbarDragState = ref({
-  startX: 0,
-  currentX: 0,
-  tracking: false
-})
-
-const tabbarItems = [
-  { value: 'workbench', label: '工作台', icon: 'dashboard' },
-  { value: 'home', label: '视频广场', icon: 'video' },
-  { value: 'todo', label: '待办', icon: 'task' },
-  { value: 'profile', label: '我的', icon: 'user' }
-]
-const TABBAR_SWITCH_THRESHOLD = 0.18
-const TABBAR_SWITCH_BIAS = 0.16
 
 const showTabbar = computed(() => {
   return ['workbench', 'home', 'todo', 'profile'].includes(route.name)
 })
 
-const activeTabIndex = computed(() => {
-  const index = tabbarItems.findIndex(item => item.value === activeTab.value)
-  return index > -1 ? index : 0
-})
-
-const isDraggingTabbar = computed(() => tabbarDragState.value.tracking)
-
-const tabbarDragOffset = computed(() => {
-  if (!tabbarDragState.value.tracking || !tabbarMetrics.value.itemWidth) {
-    return activeTabIndex.value
-  }
-
-  const deltaX = tabbarDragState.value.currentX - tabbarDragState.value.startX
-  const normalizedDelta = deltaX / tabbarMetrics.value.itemWidth
-  const dampedDelta = normalizedDelta * 0.88
-  const rawOffset = activeTabIndex.value + dampedDelta
-  const minOffset = 0
-  const maxOffset = tabbarItems.length - 1
-
-  if (rawOffset < minOffset) {
-    return minOffset + ((rawOffset - minOffset) * 0.22)
-  }
-
-  if (rawOffset > maxOffset) {
-    return maxOffset + ((rawOffset - maxOffset) * 0.22)
-  }
-
-  return rawOffset
-})
-
-const tabbarIndicatorStyle = computed(() => ({
-  '--tab-count': String(tabbarItems.length),
-  '--active-index': String(tabbarDragOffset.value)
-}))
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
-
-const mixChannel = (from, to, progress) => Math.round(from + ((to - from) * progress))
-
-const getTabItemStyle = (index) => {
-  const progress = clamp(1 - Math.abs(index - tabbarDragOffset.value), 0, 1)
-  const isCurrentRoute = index === activeTabIndex.value
-  const visualProgress = isDraggingTabbar.value && isCurrentRoute
-    ? Math.max(progress, 0.24)
-    : progress
-  const color = [
-    mixChannel(126, 228, visualProgress),
-    mixChannel(142, 236, visualProgress),
-    mixChannel(163, 244, visualProgress)
-  ]
-  const inkColor = [
-    mixChannel(126, 48, visualProgress),
-    mixChannel(142, 104, visualProgress),
-    mixChannel(160, 144, visualProgress)
-  ]
-
-  return {
-    '--item-active-progress': progress.toFixed(3),
-    '--item-visual-progress': visualProgress.toFixed(3),
-    '--item-color': `rgb(${color.join(', ')})`,
-    '--item-ink-color': `rgb(${inkColor.join(', ')})`
-  }
-}
-
-watch(() => route.name, (name, previousName) => {
-  if (['workbench', 'home', 'todo', 'profile'].includes(name)) {
-    activeTab.value = name
-  }
+watch(() => route.name, () => {
   nextTick(() => {
-    updateTabbarMetrics()
     syncPreviewViewport()
   })
-}, { immediate: true })
+})
 
 onMounted(() => {
   const saved = window.localStorage.getItem('prototype-preview-enabled')
@@ -219,87 +76,16 @@ onMounted(() => {
   }
   syncBodyPreviewClass(previewEnabled.value)
   syncPreviewViewport()
-  updateTabbarMetrics()
   window.addEventListener('resize', syncPreviewViewport)
-  window.addEventListener('resize', updateTabbarMetrics)
 })
 
 watch(previewEnabled, (value) => {
   window.localStorage.setItem('prototype-preview-enabled', String(value))
   syncBodyPreviewClass(value)
   nextTick(() => {
-    updateTabbarMetrics()
     syncPreviewViewport()
   })
 })
-
-const onTabChange = (value) => {
-  if (value === activeTab.value) return
-  router.push({ name: value })
-}
-
-const updateTabbarMetrics = () => {
-  const element = previewEnabled.value ? shellTabbarRef.value : canvasTabbarRef.value
-  if (!element) return
-
-  const rect = element.getBoundingClientRect()
-  tabbarMetrics.value = {
-    width: rect.width,
-    itemWidth: rect.width / tabbarItems.length
-  }
-}
-
-const handleTabbarDragStart = (event) => {
-  if (!showTabbar.value) return
-  const touch = event.touches?.[0]
-  if (!touch) return
-
-  updateTabbarMetrics()
-
-  tabbarDragState.value = {
-    startX: touch.clientX,
-    currentX: touch.clientX,
-    tracking: true
-  }
-}
-
-const handleTabbarDragMove = (event) => {
-  if (!tabbarDragState.value.tracking) return
-  const touch = event.touches?.[0]
-  if (!touch) return
-
-  tabbarDragState.value.currentX = touch.clientX
-}
-
-const handleTabbarDragEnd = () => {
-  if (!tabbarDragState.value.tracking || !showTabbar.value) {
-    resetTabbarDrag()
-    return
-  }
-
-  const deltaOffset = tabbarDragOffset.value - activeTabIndex.value
-  let nextIndex = activeTabIndex.value
-
-  if (Math.abs(deltaOffset) >= TABBAR_SWITCH_THRESHOLD) {
-    const projectedOffset = activeTabIndex.value + deltaOffset + (Math.sign(deltaOffset) * TABBAR_SWITCH_BIAS)
-    nextIndex = clamp(Math.round(projectedOffset), 0, tabbarItems.length - 1)
-  }
-
-  const nextItem = tabbarItems[nextIndex]
-  if (nextItem && nextItem.value !== activeTab.value) {
-    onTabChange(nextItem.value)
-  }
-
-  resetTabbarDrag()
-}
-
-const resetTabbarDrag = () => {
-  tabbarDragState.value = {
-    startX: 0,
-    currentX: 0,
-    tracking: false
-  }
-}
 
 const syncBodyPreviewClass = (enabled) => {
   document.body.classList.toggle('prototype-preview-shell', enabled)
@@ -310,8 +96,8 @@ onBeforeUnmount(() => {
   document.body.classList.remove('prototype-preview-shell')
   document.body.classList.remove('prototype-preview-canvas')
   window.removeEventListener('resize', syncPreviewViewport)
-  window.removeEventListener('resize', updateTabbarMetrics)
 })
+
 
 const syncPreviewViewport = () => {
   const root = document.documentElement
@@ -340,7 +126,7 @@ const syncPreviewViewport = () => {
     calc((100vw - 32px) / calc(var(--phone-width) + var(--phone-frame-padding) * 2)),
     calc((100vh - 32px) / calc(var(--phone-height) + var(--phone-frame-padding) * 2))
   );
-  --app-tabbar-height: 56px;
+  --app-tabbar-height: 58px;
   --app-tabbar-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   --app-tabbar-space: calc(var(--app-tabbar-height) + var(--app-tabbar-bottom) + 16px);
   min-height: 100dvh;
@@ -515,13 +301,6 @@ const syncPreviewViewport = () => {
   min-height: calc(100dvh - 88px);
 }
 
-.app-tabbar--canvas {
-  left: 50%;
-  right: auto;
-  width: min(calc(var(--shell-live-width) - 28px), 420px);
-  transform: translateX(-50%);
-}
-
 .phone-screen::-webkit-scrollbar,
 .preview-stage::-webkit-scrollbar,
 .app-canvas::-webkit-scrollbar,
@@ -589,177 +368,12 @@ const syncPreviewViewport = () => {
   pointer-events: none;
 }
 
-.app-tabbar {
-  left: 50%;
-  right: auto;
-  bottom: var(--app-tabbar-bottom);
-  width: min(calc(var(--shell-live-width) - 64px), 334px);
-  min-height: 54px;
-  margin: 0;
-  padding: 7px 10px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(243, 249, 255, 0.68) 100%);
-  border-radius: 30px;
-  box-shadow:
-    0 10px 18px rgba(65, 102, 132, 0.07),
-    0 2px 6px rgba(var(--theme-primary-rgb), 0.035),
-    inset 0 1px 0 rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(24px) saturate(138%);
-  -webkit-backdrop-filter: blur(24px) saturate(138%);
-  display: grid;
-  grid-template-columns: repeat(var(--tab-count), minmax(0, 1fr));
-  align-items: stretch;
-  position: fixed;
-  overflow: hidden;
-  isolation: isolate;
-  transform: translateX(-50%);
-}
-
 .app-container :deep(.home-page),
 .app-container :deep(.todo-page),
 .app-container :deep(.profile-page),
 .app-container :deep(.page-container) {
   min-height: 100%;
   padding-bottom: var(--app-tabbar-space);
-}
-
-.app-tabbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 28%),
-    radial-gradient(circle at top center, rgba(255, 255, 255, 0.1), transparent 36%);
-  pointer-events: none;
-}
-
-.app-tabbar-glow {
-  position: absolute;
-  left: 18%;
-  right: 18%;
-  bottom: -10px;
-  height: 14px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at center, rgba(var(--theme-primary-rgb), 0.08) 0%, rgba(var(--theme-primary-rgb), 0.035) 48%, rgba(var(--theme-primary-rgb), 0) 82%);
-  filter: blur(12px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.app-tabbar-indicator {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 12px;
-  width: calc((100% - 24px) / var(--tab-count));
-  border-radius: 15px;
-  background:
-    linear-gradient(180deg, rgba(var(--theme-glass-3-rgb), 0.28) 0%, rgba(var(--theme-primary-rgb), 0.18) 24%, rgba(var(--theme-primary-rgb), 0.24) 56%, rgba(var(--theme-primary-strong-rgb), 0.3) 100%);
-  border: 0;
-  box-shadow:
-    0 4px 8px rgba(var(--theme-primary-rgb), 0.1),
-    0 1px 2px rgba(var(--theme-primary-strong-rgb), 0.035),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
-  transform: translate3d(calc(var(--active-index) * 100%), 0, 0);
-  transition: transform 0.32s cubic-bezier(0.2, 0.86, 0.24, 1.04), width 0.28s ease, box-shadow 0.28s ease;
-  z-index: 1;
-  will-change: transform;
-  backdrop-filter: blur(14px) saturate(144%);
-  -webkit-backdrop-filter: blur(14px) saturate(144%);
-  overflow: hidden;
-}
-
-.app-tabbar:active .app-tabbar-indicator {
-  box-shadow:
-    0 5px 10px rgba(var(--theme-primary-rgb), 0.11),
-    0 1px 3px rgba(var(--theme-primary-strong-rgb), 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.34);
-}
-
-.app-tabbar.is-dragging .app-tabbar-indicator {
-  transition-duration: 0.05s;
-  transition-timing-function: linear;
-}
-
-.app-tabbar-indicator::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.035) 22%, rgba(255, 255, 255, 0) 48%),
-    linear-gradient(180deg, rgba(var(--theme-glass-4-rgb), 0.06) 0%, rgba(var(--theme-primary-rgb), 0.04) 52%, rgba(var(--theme-primary-strong-rgb), 0.07) 100%);
-  pointer-events: none;
-}
-
-.app-tabbar-item {
-  position: relative;
-  z-index: 2;
-  min-width: 0;
-  min-height: 38px;
-  border: 0;
-  background: transparent;
-  border-radius: 20px;
-  color: var(--item-color, #6f8197);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  transition: color 0.2s ease, transform 0.26s ease;
-}
-
-.app-tabbar-item:active {
-  transform: scale(0.95);
-}
-
-.app-tabbar-item-icon {
-  height: 17px;
-  line-height: 17px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(calc(var(--item-active-progress, 0) * -1px));
-  color: var(--item-ink-color, currentColor);
-  opacity: calc(0.84 + var(--item-active-progress, 0) * 0.16);
-  text-shadow: 0 1px 1px rgba(255, 255, 255, calc(var(--item-visual-progress, 0) * 0.04));
-  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, text-shadow 0.24s ease;
-}
-
-.app-tabbar-item-icon .t-icon {
-  font-size: 17px;
-}
-
-.app-tabbar-item-text {
-  max-width: 100%;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 12px;
-  letter-spacing: 0;
-  white-space: nowrap;
-  transform: translateY(calc(var(--item-active-progress, 0) * -1px));
-  color: var(--item-ink-color, currentColor);
-  opacity: calc(0.94 + var(--item-active-progress, 0) * 0.06);
-  text-shadow: 0 1px 1px rgba(255, 255, 255, calc(var(--item-visual-progress, 0) * 0.03));
-  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease, text-shadow 0.24s ease;
-}
-
-.app-tabbar-item.is-active .app-tabbar-item-icon,
-.app-tabbar-item.is-active .app-tabbar-item-text {
-  transform: translateY(-1px);
-}
-
-.app-tabbar-item:active .app-tabbar-item-icon,
-.app-tabbar-item:active .app-tabbar-item-text {
-  transform: translateY(0.5px);
-}
-
-@media (min-width: 480px) {
-  .app-tabbar {
-    width: min(350px, calc(100vw - 52px));
-  }
 }
 
 @media (max-width: 480px) {
