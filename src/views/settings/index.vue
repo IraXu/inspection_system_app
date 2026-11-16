@@ -1,5 +1,44 @@
 <template>
   <div class="settings-page app-page">
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="pi-doc" viewBox="0 0 24 24">
+          <path
+            d="M7.1 3h6.2L19.1 8.7v10.1a2.1 2.1 0 0 1-2.1 2.1H7.1a2.1 2.1 0 0 1-2.1-2.1V5.1A2.1 2.1 0 0 1 7.1 3Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M13.3 3v5.7h5.8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M7.7 12h8.2M7.7 15h8.2M7.7 18h5"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.7"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="pi-shield" viewBox="0 0 24 24">
+          <path
+            d="M12 3.2 18.7 5.6v6c0 4.2-2.7 7.4-6.7 9.2-4-1.8-6.7-5-6.7-9.2v-6L12 3.2Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <circle cx="12" cy="10.3" r="1.5" fill="#3d43f2" />
+          <path d="M12 11.8v3.1" fill="none" stroke="#3d43f2" stroke-width="1.9" stroke-linecap="round" />
+        </symbol>
+      </defs>
+    </svg>
+
     <header class="settings-top">
       <button type="button" class="back-entry" aria-label="返回" @click="goBack">
         <t-icon name="chevron-left" />
@@ -16,7 +55,7 @@
           class="menu-item"
           @click="handleMenu(item)"
         >
-          <t-icon :name="item.icon" class="menu-icon" />
+          <svg class="ui-icon menu-icon" viewBox="0 0 24 24"><use :href="`#${item.icon}`" /></svg>
           <span class="menu-title">{{ item.title }}</span>
           <t-icon name="chevron-right" class="menu-arrow" />
         </button>
@@ -53,8 +92,8 @@ const router = useRouter()
 const showLogoutDialog = ref(false)
 
 const menuItems = ref([
-  { id: 'agreement', title: '用户协议', icon: 'file', path: '/agreement' },
-  { id: 'privacy', title: '用户隐私', icon: 'secured', path: '/privacy' }
+  { id: 'agreement', title: '用户协议', icon: 'pi-doc', path: '/agreement' },
+  { id: 'privacy', title: '用户隐私', icon: 'pi-shield', path: '/privacy' }
 ])
 
 const goBack = () => {
@@ -92,6 +131,20 @@ const confirmLogout = () => {
     radial-gradient(120% 46% at 100% 100%, rgba(206, 240, 235, 0.95) 0%, rgba(206, 240, 235, 0) 60%),
     linear-gradient(170deg, #f2edfb 0%, #edf2fb 44%, #e9f5f3 100%);
   padding-bottom: calc(16px + var(--prototype-safe-bottom));
+}
+
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.ui-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
 }
 
 .settings-top {
@@ -157,7 +210,6 @@ const confirmLogout = () => {
 
 .menu-icon {
   flex: 0 0 auto;
-  font-size: 24px;
   color: #1c1d22;
 }
 

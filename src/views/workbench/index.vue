@@ -1,29 +1,26 @@
 <template>
   <div class="workbench-page app-page">
-    <header class="workbench-header gradient-bg">
-      <div class="header-glow header-glow-left"></div>
-      <div class="header-glow header-glow-right"></div>
-      <div class="header-grid"></div>
-      <div class="header-content">
-        <div class="header-top">
-          <div class="header-copy">
-            <div class="header-kicker">
-              <span class="kicker-dot"></span>
-              <span>鹤梦云智慧巡检APP</span>
-            </div>
-            <h1 class="header-title">工作台</h1>
-            <p class="header-subtitle">{{ currentEnterprise.name }}</p>
+    <header class="workbench-hero">
+      <div class="hero-cubes" aria-hidden="true">
+        <span class="hero-cube hero-cube--a"><i></i><i></i><i></i></span>
+        <span class="hero-cube hero-cube--b"><i></i><i></i><i></i></span>
+        <span class="hero-cube hero-cube--c"><i></i><i></i><i></i></span>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-top">
+          <div class="hero-copy">
+            <h1 class="hero-title">工作台</h1>
+            <p class="hero-subtitle">{{ currentEnterprise.name }}</p>
           </div>
 
-          <div class="header-actions">
-            <div class="notification-entry">
-              <t-button theme="default" shape="circle" variant="outline" size="small" @click="openNotifications">
-                <template #icon><t-icon name="notification" /></template>
-              </t-button>
-              <span v-if="unreadNotificationCount > 0" class="notification-badge">
-                {{ unreadNotificationCount > 9 ? '9+' : unreadNotificationCount }}
-              </span>
-            </div>
+          <div class="notification-entry">
+            <button type="button" class="hero-bell" aria-label="消息通知" @click="openNotifications">
+              <t-icon name="notification" />
+            </button>
+            <span v-if="unreadNotificationCount > 0" class="notification-badge">
+              {{ unreadNotificationCount > 9 ? '9+' : unreadNotificationCount }}
+            </span>
           </div>
         </div>
 
@@ -34,17 +31,17 @@
           </div>
           <div class="hero-metric-card">
             <span class="hero-metric-label">在线设备</span>
-            <span class="hero-metric-value success">{{ deviceStats.online }}</span>
+            <span class="hero-metric-value">{{ deviceStats.online }}</span>
           </div>
           <div class="hero-metric-card">
             <span class="hero-metric-label">在线率</span>
-            <span class="hero-metric-value">{{ deviceStats.onlineRate }}</span>
+            <span class="hero-metric-value" :class="onlineRateTone">{{ onlineRateText }}</span>
           </div>
         </div>
       </div>
     </header>
 
-    <section v-if="showInspectionNotice" class="app-section dashboard-section dashboard-section--notice">
+    <section v-if="showInspectionNotice" class="app-section workbench-section workbench-section--notice">
       <div
         class="inspection-notice-stack"
         @touchstart.passive="handleInspectionTouchStart"
@@ -55,7 +52,7 @@
         <div
           v-for="(notice, index) in visibleInspectionNotices"
           :key="notice.id"
-          class="inspection-notice-layer app-card"
+          class="inspection-notice-layer"
           :class="[`inspection-notice-layer--${index}`, { 'is-active': index === 0 }]"
           :style="getInspectionNoticeLayerStyle(index)"
           @click="handleInspectionNoticeClick(index)"
@@ -94,7 +91,7 @@
             v-if="index === 0"
             type="button"
             class="inspection-notice-close"
-            @click="dismissInspectionNotice"
+            @click.stop="dismissInspectionNotice"
             aria-label="关闭任务通知"
           >
             <t-icon name="close" />
@@ -103,34 +100,59 @@
       </div>
     </section>
 
-    <section class="app-section dashboard-section">
-      <button type="button" class="task-card app-card" @click="goTodoPage">
-        <div class="card-head">
-          <div>
-            <div class="section-title">待我处理</div>
-          </div>
-          <span class="section-link">查看待办</span>
+    <section class="app-section workbench-section">
+      <div class="section-head">
+        <div class="section-head-main">
+          <h2 class="section-title">待我处理</h2>
+          <span class="section-count-pill">{{ pendingTotal }} 项</span>
         </div>
+        <button type="button" class="section-link" @click="goTodoPage">查看待办</button>
+      </div>
+      <p class="section-note">当前工作企业统计</p>
 
-        <div class="task-grid">
-          <div v-for="item in taskStats" :key="item.label" class="task-item" :class="item.tone">
-            <span class="task-label">{{ item.label }}</span>
-            <span class="task-value" :class="item.tone">{{ item.value }}</span>
-          </div>
-        </div>
-      </button>
+      <div class="task-grid">
+        <button
+          v-for="item in taskStats"
+          :key="item.label"
+          type="button"
+          class="task-item"
+          :class="item.tone"
+          @click="goTodoPage"
+        >
+          <span class="task-icon" aria-hidden="true">
+            <svg class="task-icon-doc" viewBox="0 0 44 54" fill="none">
+              <rect
+                x="1"
+                y="1"
+                width="39"
+                height="49"
+                rx="7"
+                fill="#ffffff"
+                fill-opacity="0.94"
+                stroke="currentColor"
+                stroke-opacity="0.22"
+                stroke-width="2"
+              />
+              <rect x="9" y="12" width="23" height="4" rx="2" fill="currentColor" fill-opacity="0.72" />
+              <rect x="9" y="21" width="15" height="4" rx="2" fill="currentColor" fill-opacity="0.34" />
+              <rect x="9" y="30" width="19" height="4" rx="2" fill="currentColor" fill-opacity="0.34" />
+            </svg>
+            <span class="task-icon-badge"><t-icon :name="item.icon" /></span>
+          </span>
+          <span class="task-label">{{ item.label }}</span>
+          <span class="task-value">{{ item.value }}</span>
+        </button>
+      </div>
     </section>
 
-    <section class="app-section dashboard-section dashboard-section--alerts">
-      <button type="button" class="alerts-card app-card" @click="openNotifications">
-        <div class="card-head">
-          <div>
-            <div class="section-title">设备告警</div>
-            <div class="section-note">实时关注现场异常、设备离线与智能识别结果</div>
-          </div>
-          <span class="section-link">查看消息</span>
-        </div>
+    <section class="app-section workbench-section workbench-section--alerts">
+      <div class="section-head">
+        <h2 class="section-title">设备告警</h2>
+        <button type="button" class="section-link" @click="openNotifications">查看消息</button>
+      </div>
+      <p class="section-note">实时关注现场异常、设备离线与智能识别结果</p>
 
+      <div class="alerts-card" @click="openNotifications">
         <div class="alerts-stream">
           <div class="alerts-stream-track">
             <div
@@ -150,10 +172,9 @@
         </div>
 
         <div class="alerts-foot">
-          <span>未读告警 {{ unreadNotificationCount }} 条</span>
-          <span>告警流持续更新</span>
+          <span>未读告警 {{ unreadNotificationCount }} 条 · 告警流持续更新</span>
         </div>
-      </button>
+      </div>
     </section>
   </div>
 </template>
@@ -212,16 +233,33 @@ const inspectionGesture = ref({
 
 const deviceStats = {
   total: 9,
-  online: 6,
-  onlineRate: '66.7%'
+  online: 6
 }
 
+const onlineRateValue = computed(() =>
+  deviceStats.total ? (deviceStats.online / deviceStats.total) * 100 : 0
+)
+
+const onlineRateText = computed(() => `${onlineRateValue.value.toFixed(1)}%`)
+
+const onlineRateTone = computed(() => {
+  if (onlineRateValue.value >= 90) return 'tone-good'
+  if (onlineRateValue.value >= 70) return 'tone-normal'
+  if (onlineRateValue.value >= 50) return 'tone-warning'
+  return 'tone-danger'
+})
+
 const taskStats = computed(() => [
-  { label: '待执行', value: todoStore.pendingTasks.length, tone: 'primary' },
-  { label: '待整改', value: todoStore.rectifyTickets.length, tone: 'warning' },
-  { label: '待审核', value: todoStore.reviewTickets.length, tone: 'danger' },
-  { label: '已完成', value: todoStore.completedTickets.length, tone: 'success' }
+  { label: '待执行', value: todoStore.pendingTasks.length, tone: 'primary', icon: 'task-time' },
+  { label: '待整改', value: todoStore.rectifyTickets.length, tone: 'warning', icon: 'tools' },
+  { label: '待审核', value: todoStore.reviewTickets.length, tone: 'mint', icon: 'user' },
+  { label: '已完成', value: todoStore.completedTickets.length, tone: 'rose', icon: 'check' }
 ])
+
+const pendingTotal = computed(
+  () =>
+    todoStore.pendingTasks.length + todoStore.rectifyTickets.length + todoStore.reviewTickets.length
+)
 
 const unreadNotificationCount = computed(() => notificationStore.unreadCount)
 
@@ -282,7 +320,7 @@ const goTodoPage = () => {
 }
 
 const getInspectionNoticeLayerStyle = (index) => {
-  const translateY = index * 9
+  const translateY = index * -8
   const insetX = index * 10
   const scale = 1 - index * 0.03
   const opacity = 1 - index * 0.2
@@ -376,120 +414,133 @@ const handleInspectionTouchCancel = () => {
 <style scoped>
 .workbench-page {
   background:
-    radial-gradient(circle at top, rgba(195, 231, 254, 0.52), transparent 26%),
-    linear-gradient(180deg, #f4fbff 0%, #f6f9fc 100%);
+    radial-gradient(130% 46% at 82% -6%, rgba(201, 212, 245, 0.7) 0%, rgba(226, 232, 250, 0.42) 44%, rgba(255, 255, 255, 0) 78%),
+    linear-gradient(180deg, #e9ecfa 0%, #f4f6fd 30%, #ffffff 58%);
 }
 
-.workbench-header {
+.workbench-hero {
   position: relative;
   overflow: hidden;
-  padding: calc(var(--prototype-safe-top) + 10px) var(--prototype-page-padding-x) 22px;
-  color: #163150;
-  border-radius: 0 0 34px 34px;
+  padding: calc(var(--prototype-safe-top) + 24px) var(--prototype-page-padding-x) 10px;
   background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.72), transparent 34%),
-    linear-gradient(180deg, #dff3ff 0%, #c3e7fe 58%, #b7def8 100%);
-  box-shadow: 0 22px 44px rgba(87, 136, 171, 0.16);
+    radial-gradient(120% 78% at 78% -18%, rgba(255, 255, 255, 0.5), transparent 56%),
+    linear-gradient(180deg, #e6e9f9 0%, #ebeefb 48%, rgba(247, 248, 253, 0) 100%);
 }
 
-.header-glow {
-  position: absolute;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.42);
-  filter: blur(14px);
-}
-
-.header-glow-left {
-  width: 140px;
-  height: 140px;
-  top: -36px;
-  left: -24px;
-}
-
-.header-glow-right {
-  width: 180px;
-  height: 180px;
-  right: -60px;
-  top: 18px;
-}
-
-.header-grid {
+.hero-cubes {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.24) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.32;
+  pointer-events: none;
 }
 
-.header-content {
+.hero-cube {
+  position: absolute;
+  display: block;
+}
+
+.hero-cube i {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.hero-cube i:nth-child(1) {
+  clip-path: polygon(50% 2%, 98% 26%, 50% 50%, 2% 26%);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(213, 221, 244, 0.66));
+}
+
+.hero-cube i:nth-child(2) {
+  clip-path: polygon(2% 26%, 50% 50%, 50% 98%, 2% 74%);
+  background: linear-gradient(180deg, rgba(206, 215, 241, 0.7), rgba(186, 198, 234, 0.56));
+}
+
+.hero-cube i:nth-child(3) {
+  clip-path: polygon(98% 26%, 50% 50%, 50% 98%, 98% 74%);
+  background: linear-gradient(180deg, rgba(231, 236, 251, 0.78), rgba(203, 214, 243, 0.62));
+}
+
+.hero-cube--a {
+  top: -74px;
+  right: -78px;
+  width: 296px;
+  height: 264px;
+}
+
+.hero-cube--b {
+  top: 156px;
+  right: -104px;
+  width: 224px;
+  height: 200px;
+  opacity: 0.9;
+}
+
+.hero-cube--c {
+  top: 14px;
+  left: -88px;
+  width: 156px;
+  height: 140px;
+  opacity: 0.5;
+}
+
+.hero-content {
   position: relative;
   z-index: 2;
 }
 
-.header-top {
+.hero-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
 
-.header-copy {
+.hero-copy {
   min-width: 0;
 }
 
-.header-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.46);
-  color: rgba(22, 49, 80, 0.72);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+.hero-title {
+  font-size: 35px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: #16181f;
 }
 
-.kicker-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #5cb6e8;
-  box-shadow: 0 0 0 5px rgba(92, 182, 232, 0.14);
-}
-
-.header-title {
-  margin: 12px 0 0;
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #173153;
-}
-
-.header-subtitle {
-  margin-top: 8px;
-  font-size: 14px;
-  color: rgba(23, 49, 83, 0.72);
-}
-
-.header-actions :deep(.t-button) {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: rgba(123, 183, 223, 0.3);
-  color: #1a4d72;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+.hero-subtitle {
+  margin-top: 12px;
+  font-size: 15px;
+  color: #666b7c;
 }
 
 .notification-entry {
   position: relative;
+  flex: 0 0 auto;
+}
+
+.hero-bell {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.62);
+  color: #3d4762;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  box-shadow: 0 6px 16px rgba(93, 110, 160, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.hero-bell:active {
+  transform: scale(0.94);
 }
 
 .notification-badge {
   position: absolute;
   top: -4px;
-  right: -2px;
+  right: -4px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -504,69 +555,115 @@ const handleInspectionTouchCancel = () => {
 }
 
 .hero-metrics {
-  margin-top: 18px;
+  margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
 .hero-metric-card {
-  padding: 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.46);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  min-width: 0;
+  min-height: 112px;
+  padding: 16px 13px 17px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  background:
+    radial-gradient(90% 72% at 16% 0%, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0) 62%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.74) 0%, rgba(236, 241, 253, 0.6) 56%, rgba(220, 228, 249, 0.54) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow:
+    0 0 0 5px rgba(255, 255, 255, 0.16),
+    0 16px 34px rgba(120, 134, 180, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  overflow: hidden;
+}
+
+.hero-metric-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 46%);
+  pointer-events: none;
+}
+
+.hero-metric-label,
+.hero-metric-value {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-metric-label {
-  display: block;
-  font-size: 12px;
-  color: rgba(23, 49, 83, 0.62);
+  font-size: 15px;
+  line-height: 1.2;
+  color: #5f6474;
+  white-space: nowrap;
 }
 
 .hero-metric-value {
   display: block;
-  margin-top: 10px;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 27px;
+  font-weight: 800;
   line-height: 1;
-  color: #173153;
+  color: #16181f;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: color 0.25s ease;
 }
 
-.hero-metric-value.success {
-  color: #1f8f66;
+.hero-metric-value.tone-good {
+  color: #12946a;
 }
 
-.dashboard-section {
-  padding-top: 8px;
+.hero-metric-value.tone-normal {
+  color: #3d6cf5;
 }
 
-.dashboard-section--notice {
-  padding-top: 6px;
-  padding-bottom: 0;
+.hero-metric-value.tone-warning {
+  color: #e08c2e;
 }
 
-.dashboard-section--alerts {
-  padding-bottom: 4px;
+.hero-metric-value.tone-danger {
+  color: #e5484d;
 }
 
+.workbench-section {
+  padding-top: 18px;
+}
+
+.workbench-section--notice {
+  padding-top: 14px;
+}
+
+.workbench-section--alerts {
+  padding-top: 22px;
+  padding-bottom: 10px;
+}
+
+/* 任务堆叠 */
 .inspection-notice-stack {
   position: relative;
-  min-height: 70px;
-  padding-bottom: 0;
+  min-height: 88px;
 }
 
 .inspection-notice-layer {
   position: absolute;
-  top: 0;
-  padding: 12px 14px;
+  top: 20px;
+  padding: 13px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(225, 232, 242, 0.96);
-  box-shadow: 0 14px 30px rgba(11, 31, 68, 0.07);
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(235, 239, 248, 0.94);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.08);
   transform-origin: top center;
   transition: transform 0.32s ease, opacity 0.32s ease, box-shadow 0.32s ease;
   cursor: pointer;
@@ -579,23 +676,22 @@ const handleInspectionTouchCancel = () => {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(241, 246, 253, 0.36) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(243, 247, 253, 0.28) 100%);
   pointer-events: none;
 }
 
 .inspection-notice-layer--1 {
-  box-shadow: 0 10px 20px rgba(11, 31, 68, 0.06);
+  box-shadow: 0 10px 20px rgba(24, 36, 72, 0.06);
   filter: saturate(0.9);
 }
 
 .inspection-notice-layer--2 {
-  box-shadow: 0 8px 16px rgba(11, 31, 68, 0.05);
+  box-shadow: 0 8px 16px rgba(24, 36, 72, 0.05);
   filter: saturate(0.82);
 }
 
 .inspection-notice-layer.is-active {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 255, 0.98) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
   animation: inspection-notice-breathe 3.8s ease-in-out infinite;
 }
 
@@ -610,7 +706,7 @@ const handleInspectionTouchCancel = () => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .inspection-notice-badge {
@@ -618,12 +714,17 @@ const handleInspectionTouchCancel = () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(195, 231, 254, 0.7);
-  color: #2d7eb0;
-  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff4e3;
+  color: #3d4459;
+  font-size: 13px;
   font-weight: 700;
+}
+
+.inspection-notice-badge :deep(.t-icon) {
+  font-size: 16px;
+  color: #f6a821;
 }
 
 .inspection-notice-content {
@@ -652,8 +753,9 @@ const handleInspectionTouchCancel = () => {
 }
 
 .inspection-notice-text {
-  color: #355071;
-  font-size: 13px;
+  color: #5b6479;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -668,24 +770,25 @@ const handleInspectionTouchCancel = () => {
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: #2d7eb0;
+  color: #3d6cf5;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .inspection-notice-close {
   position: relative;
   z-index: 1;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
   border: 0;
   border-radius: 999px;
-  background: rgba(241, 245, 251, 0.96);
-  color: #90a0b6;
+  background: #f4f6fb;
+  color: #b9c0cf;
+  font-size: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -696,15 +799,321 @@ const handleInspectionTouchCancel = () => {
   transform: scale(0.96);
 }
 
+/* 区块标题 */
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-head-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c2333;
+  letter-spacing: -0.01em;
+}
+
+.section-count-pill {
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #5c6cf8 0%, #4058ef 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(74, 92, 238, 0.22);
+}
+
+.section-link {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #3d6cf5;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.section-link:active {
+  opacity: 0.72;
+}
+
+.section-note {
+  margin-top: 9px;
+  font-size: 13px;
+  color: #949bac;
+  line-height: 1.5;
+}
+
+/* 待办统计 */
+.task-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.task-item {
+  position: relative;
+  min-height: 96px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.task-item:active {
+  transform: scale(0.98);
+}
+
+.task-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #232c3d;
+  line-height: 1.2;
+}
+
+.task-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: #1c2333;
+  letter-spacing: -0.01em;
+}
+
+.task-icon {
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  width: 52px;
+  height: 50px;
+  pointer-events: none;
+}
+
+.task-icon-doc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 39px;
+  height: 48px;
+}
+
+.task-icon-badge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+}
+
+.task-item.primary {
+  background: linear-gradient(150deg, #e3efff 0%, #f4f9ff 100%);
+  box-shadow: 0 12px 26px rgba(88, 137, 214, 0.1);
+}
+
+.task-item.primary .task-icon {
+  color: #5b9df6;
+}
+
+.task-item.primary .task-icon-badge {
+  background: linear-gradient(140deg, #74c4ff 0%, #3f83ee 100%);
+  box-shadow: 0 5px 12px rgba(63, 131, 238, 0.32);
+}
+
+.task-item.warning {
+  background: linear-gradient(150deg, #ffeede 0%, #fff9f3 100%);
+  box-shadow: 0 12px 26px rgba(224, 148, 73, 0.1);
+}
+
+.task-item.warning .task-icon {
+  color: #f3aa64;
+}
+
+.task-item.warning .task-icon-badge {
+  background: linear-gradient(140deg, #ffbe6d 0%, #f08a3c 100%);
+  box-shadow: 0 5px 12px rgba(240, 138, 60, 0.3);
+}
+
+.task-item.mint {
+  background: linear-gradient(150deg, #ddf8ef 0%, #f4fffb 100%);
+  box-shadow: 0 12px 26px rgba(64, 178, 147, 0.1);
+}
+
+.task-item.mint .task-icon {
+  color: #5fcdb1;
+}
+
+.task-item.mint .task-icon-badge {
+  background: linear-gradient(140deg, #6adcbd 0%, #2fb695 100%);
+  box-shadow: 0 5px 12px rgba(47, 182, 149, 0.3);
+}
+
+.task-item.rose {
+  background: linear-gradient(150deg, #ffe7e3 0%, #fff8f7 100%);
+  box-shadow: 0 12px 26px rgba(224, 112, 100, 0.1);
+}
+
+.task-item.rose .task-icon {
+  color: #ffa29a;
+}
+
+.task-item.rose .task-icon-badge {
+  background: linear-gradient(140deg, #ffa499 0%, #f56b60 100%);
+  box-shadow: 0 5px 12px rgba(245, 107, 96, 0.3);
+}
+
+/* 设备告警 */
+.alerts-card {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 22px;
+  background: linear-gradient(168deg, #fbfcff 0%, #f5fbfa 100%);
+  border: 1px solid rgba(235, 240, 248, 0.92);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
+  cursor: pointer;
+}
+
+.alerts-stream {
+  height: 236px;
+  overflow: hidden;
+  border-radius: 16px;
+  position: relative;
+}
+
+.alerts-stream::before,
+.alerts-stream::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.alerts-stream::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(251, 252, 255, 0.96) 0%, rgba(251, 252, 255, 0) 100%);
+}
+
+.alerts-stream::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(248, 252, 253, 0.96) 0%, rgba(248, 252, 253, 0) 100%);
+}
+
+.alerts-stream-track {
+  display: grid;
+  gap: 10px;
+  padding: 3px 2px;
+  animation: alert-stream 24s linear infinite;
+}
+
+.alert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(24, 36, 72, 0.05);
+}
+
+.alert-row-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6172f3;
+  flex: 0 0 9px;
+  margin-top: 7px;
+  box-shadow: 0 0 0 5px rgba(97, 114, 243, 0.1);
+}
+
+.alert-row.critical .alert-row-dot {
+  background: #f04438;
+  box-shadow: 0 0 0 5px rgba(240, 68, 56, 0.1);
+}
+
+.alert-row.warning .alert-row-dot {
+  background: #f79009;
+  box-shadow: 0 0 0 5px rgba(247, 144, 9, 0.1);
+}
+
+.alert-row-copy {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 5px;
+}
+
+.alert-row-title {
+  font-size: 15px;
+  line-height: 1.4;
+  color: #232c3d;
+  font-weight: 600;
+}
+
+.alert-row-meta {
+  font-size: 12px;
+  color: #9aa1b2;
+}
+
+.alert-row-tag {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #eceffe;
+  color: #5468dd;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.alert-row.critical .alert-row-tag {
+  background: #feecea;
+  color: #e5484d;
+}
+
+.alert-row.warning .alert-row-tag {
+  background: #fff2e2;
+  color: #e08c2e;
+}
+
+.alerts-foot {
+  padding: 12px 0 4px;
+  text-align: center;
+  font-size: 12px;
+  color: #9aa1b2;
+}
+
 @keyframes inspection-notice-breathe {
   0%,
   100% {
-    transform: translateY(0) scale(1);
-    box-shadow: 0 14px 30px rgba(11, 31, 68, 0.07);
+    box-shadow: 0 14px 30px rgba(24, 36, 72, 0.08);
   }
   50% {
-    transform: translateY(-2px) scale(1.006);
-    box-shadow: 0 18px 36px rgba(11, 31, 68, 0.1);
+    box-shadow: 0 18px 38px rgba(24, 36, 72, 0.12);
   }
 }
 
@@ -717,261 +1126,51 @@ const handleInspectionTouchCancel = () => {
   }
 }
 
-.task-card,
-.alerts-card {
-  width: 100%;
-  padding: 20px;
-  border: 0;
-  text-align: left;
-  box-shadow: 0 18px 36px rgba(11, 31, 68, 0.08);
-}
-
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.section-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #173153;
-}
-
-.section-note {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #7b8799;
-  line-height: 1.5;
-}
-
-.section-link {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(195, 231, 254, 0.6);
-  color: #2d7eb0;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.task-grid {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.task-item {
-  padding: 12px 12px 13px;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at top right, rgba(195, 231, 254, 0.7), transparent 42%),
-    linear-gradient(180deg, rgba(244, 247, 253, 0.98) 0%, #ffffff 100%);
-  border: 1px solid rgba(229, 235, 244, 0.96);
-  text-align: center;
-}
-
-.task-value {
-  display: block;
-  margin-top: 10px;
-  font-size: 24px;
-  font-weight: 700;
-  color: #173153;
-  line-height: 1;
-}
-
-.task-value.success {
-  color: #16a34a;
-}
-
-.task-value.primary {
-  color: var(--theme-primary-strong);
-}
-
-.task-value.warning {
-  color: #d97706;
-}
-
-.task-value.danger {
-  color: #d54941;
-}
-
-.task-label {
-  display: block;
-  font-size: 12px;
-  color: #7d899b;
-  text-align: center;
-}
-
-.alerts-stream {
-  margin-top: 16px;
-  height: 220px;
-  overflow: hidden;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(245, 248, 253, 0.92) 0%, #ffffff 100%);
-  border: 1px solid rgba(226, 234, 245, 0.96);
-  position: relative;
-}
-
-.alerts-stream::before,
-.alerts-stream::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 28px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.alerts-stream::before {
-  top: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.alerts-stream::after {
-  bottom: 0;
-  background: linear-gradient(0deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.alerts-stream-track {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  animation: alert-stream 18s linear infinite;
-}
-
-.alert-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(231, 237, 245, 0.96);
-  box-shadow: 0 8px 18px rgba(18, 37, 70, 0.04);
-}
-
-.alert-row.critical {
-  background: linear-gradient(135deg, #fff4f2 0%, #ffffff 100%);
-}
-
-.alert-row.warning {
-  background: linear-gradient(135deg, #fff9ef 0%, #ffffff 100%);
-}
-
-.alert-row-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--theme-primary);
-  flex: 0 0 9px;
-  margin-top: 6px;
-  box-shadow: 0 0 0 6px rgba(var(--theme-primary-rgb), 0.08);
-}
-
-.alert-row.critical .alert-row-dot {
-  background: #d54941;
-  box-shadow: 0 0 0 6px rgba(213, 73, 65, 0.08);
-}
-
-.alert-row.warning .alert-row-dot {
-  background: #d97706;
-  box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.08);
-}
-
-.alert-row-copy {
-  min-width: 0;
-  flex: 1;
-  display: grid;
-  gap: 4px;
-}
-
-.alert-row-title {
-  font-size: 14px;
-  line-height: 1.45;
-  color: #23406b;
-  font-weight: 600;
-}
-
-.alert-row-meta {
-  font-size: 12px;
-  color: #7e8ca1;
-}
-
-.alert-row-tag {
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: rgba(var(--theme-primary-rgb), 0.08);
-  color: var(--theme-primary-strong);
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.alert-row.critical .alert-row-tag {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
-}
-
-.alert-row.warning .alert-row-tag {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
-}
-
-.alerts-foot {
-  margin-top: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: #7d899b;
-}
-
 @keyframes alert-stream {
   0% {
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-50%);
-  }
-}
-
-@keyframes inspection-marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-50% - 18px));
+    transform: translateY(-33.3333%);
   }
 }
 
 @media (max-width: 360px) {
-  .hero-metrics {
-    grid-template-columns: 1fr;
+  .hero-title {
+    font-size: 30px;
   }
 
-  .inspection-notice {
-    padding: 12px;
+  .hero-metric-card {
+    min-height: 102px;
+    padding: 14px 11px 15px;
   }
 
-  .inspection-notice-main {
-    gap: 10px;
+  .hero-metric-label {
+    font-size: 13px;
   }
 
-  .task-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .hero-metric-value {
+    font-size: 24px;
   }
 
   .task-item {
-    padding: 12px;
+    min-height: 88px;
+    padding: 12px 14px;
+  }
+
+  .task-label {
+    font-size: 15px;
   }
 
   .task-value {
-    font-size: 22px;
+    font-size: 25px;
+  }
+
+  .task-icon {
+    right: 10px;
+    bottom: 11px;
+    transform: scale(0.86);
+    transform-origin: bottom right;
   }
 }
 </style>

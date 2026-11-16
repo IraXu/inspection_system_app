@@ -1,15 +1,192 @@
 <template>
   <div class="profile-page app-page">
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="pi-settings" viewBox="0 0 24 24">
+          <path
+            d="M12 3.5 19.3 7.7v8.6L12 20.5 4.7 16.3V7.7L12 3.5Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+          />
+          <circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.7" />
+        </symbol>
+        <symbol id="pi-swap" viewBox="0 0 24 24">
+          <path
+            d="M6.6 9.2h10.2m-2.6-2.6 2.6 2.6-2.6 2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M17.4 14.8H7.2m2.6-2.6-2.6 2.6 2.6 2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </symbol>
+        <symbol id="pi-image" viewBox="0 0 24 24">
+          <path
+            d="M7.6 7.4V6.2a2.1 2.1 0 0 1 2.1-2.1h9.2a2.1 2.1 0 0 1 2.1 2.1v9.2a2.1 2.1 0 0 1-2.1 2.1h-1.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <rect
+            x="3.2"
+            y="7.4"
+            width="14.1"
+            height="12.1"
+            rx="2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <circle cx="7.3" cy="10.9" r="0.95" fill="#3d43f2" />
+          <path
+            d="M5.9 16.4c1.9 0 2-3.4 3.9-3.4 1.5 0 1.6 2.2 3 2.2.9 0 1.5-.5 1.9-1.2"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="pi-switch" viewBox="0 0 24 24">
+          <path
+            d="M7.6 7.4V6.2a2.1 2.1 0 0 1 2.1-2.1h9.2a2.1 2.1 0 0 1 2.1 2.1v9.2a2.1 2.1 0 0 1-2.1 2.1h-1.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <rect
+            x="3.2"
+            y="7.4"
+            width="14.1"
+            height="12.1"
+            rx="2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path
+            d="M12.8 11.35H7m2-1.4L7 11.35l2 1.4"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M7.4 15.55h5.8m-2-1.4 2 1.4-2 1.4"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </symbol>
+        <symbol id="pi-help" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2.1" />
+          <path
+            d="M8.9 9.9c0-1.9 1.3-3.3 3.1-3.3s3.1 1.3 3.1 2.9c0 1.5-1 2.2-1.9 2.8-.7.5-1 1-1 1.8v.1"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="2.1"
+            stroke-linecap="round"
+          />
+          <circle cx="12.2" cy="17.3" r="1.2" fill="#3d43f2" />
+        </symbol>
+        <symbol id="pi-trash" viewBox="0 0 24 24">
+          <path
+            d="M9.3 6.8V5.1a2 2 0 0 1 2-2h1.4a2 2 0 0 1 2 2v1.7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <rect
+            x="3.3"
+            y="6.8"
+            width="17.4"
+            height="3.4"
+            rx="1.7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path
+            d="M5.3 10.2v8.3a2.4 2.4 0 0 0 2.4 2.4h8.6a2.4 2.4 0 0 0 2.4-2.4v-8.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8.7 13v5M12 13v5M15.3 13v5"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="pi-info" viewBox="0 0 24 24">
+          <path
+            d="M12 3.9C16.47 3.9 20.1 7.53 20.1 12 20.1 13.8 19.7 15.2 19.1 16.3L20.7 21.3 14.7 19.9C13.9 20.03 13 20.1 12 20.1 7.53 20.1 3.9 16.47 3.9 12 3.9 7.53 7.53 3.9 12 3.9Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="12.1" cy="7.85" r="1.15" fill="#3d43f2" />
+          <path
+            d="m12 10.65-.7 4.4c-.1.6.2 1 .7 1 .3 0 .6-.1.9-.4"
+            fill="none"
+            stroke="#3d43f2"
+            stroke-width="1.9"
+            stroke-linecap="round"
+          />
+        </symbol>
+        <symbol id="pi-chevron-right" viewBox="0 0 24 24">
+          <path
+            d="m9.4 6.2 5.8 5.8-5.8 5.8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </symbol>
+      </defs>
+    </svg>
+
+    <div class="profile-deco" aria-hidden="true">
+      <span class="deco-facet deco-facet--a"></span>
+      <span class="deco-facet deco-facet--b"></span>
+      <span class="deco-facet deco-facet--c"></span>
+      <span class="deco-facet deco-facet--d"></span>
+    </div>
+
     <header class="profile-top">
-      <h1 class="profile-title">我的</h1>
       <button type="button" class="settings-entry" @click="goToSettings" aria-label="打开设置">
-        <t-icon name="setting" />
+        <svg class="ui-icon ui-icon--settings" viewBox="0 0 24 24"><use href="#pi-settings" /></svg>
       </button>
     </header>
 
     <section class="app-section">
       <div class="profile-hero">
-        <span class="hero-shape"></span>
+        <span class="hero-facet hero-facet--one"></span>
+        <span class="hero-facet hero-facet--two"></span>
         <img class="user-avatar" :src="avatarUrl" alt="用户头像" />
         <div class="user-info">
           <div class="user-name-row">
@@ -25,10 +202,10 @@
       <div class="section-head">
         <h3 class="section-title">企业信息</h3>
         <button type="button" class="section-action" @click="switchEnterprise">
-          <span class="section-action-icon">
-            <t-icon name="swap" />
+          <span class="section-action-tag">
+            <svg class="ui-icon section-action-icon" viewBox="0 0 24 24"><use href="#pi-swap" /></svg>
+            <span class="section-action-text">切换企业</span>
           </span>
-          切换企业
         </button>
       </div>
 
@@ -70,7 +247,7 @@
           @click="item.action"
         >
           <div class="shortcut-head">
-            <t-icon :name="item.icon" class="shortcut-icon" />
+            <svg class="ui-icon shortcut-icon" viewBox="0 0 24 24"><use :href="`#${item.icon}`" /></svg>
             <span class="shortcut-title">{{ item.title }}</span>
           </div>
           <div class="shortcut-desc">{{ item.desc }}</div>
@@ -91,10 +268,10 @@
           class="service-item"
           @click="item.action"
         >
-          <t-icon :name="item.icon" class="service-icon" />
+          <svg class="ui-icon service-icon" viewBox="0 0 24 24"><use :href="`#${item.icon}`" /></svg>
           <span class="service-title">{{ item.title }}</span>
           <span v-if="item.value" class="service-value">{{ item.value }}</span>
-          <t-icon v-else name="chevron-right" class="service-arrow" />
+          <svg v-else class="ui-icon service-arrow" viewBox="0 0 24 24"><use href="#pi-chevron-right" /></svg>
         </button>
       </div>
     </section>
@@ -142,7 +319,7 @@ const galleryStats = ref({
 })
 
 const avatarUrl = buildImageUrl(
-  '3D cartoon avatar portrait of a friendly young asian man with short brown hair, big eyes, wearing a light gray jacket, soft Pixar style, clean light lavender background, centered head and shoulders, mobile app profile avatar',
+  '3D cartoon avatar portrait of a smiling young asian man with fluffy short brown hair, big friendly eyes, wearing a light gray shirt, soft clay render style, plain pale lavender background, head and shoulders, centered, mobile app profile avatar',
   'square'
 )
 
@@ -220,13 +397,13 @@ const shortcuts = computed(() => [
   {
     title: '图库管理',
     desc: `${galleryStats.value.images}张图片 · ${galleryStats.value.videos}个视频`,
-    icon: 'image',
+    icon: 'pi-image',
     action: goToGallery
   },
   {
     title: '企业切换',
     desc: '管理账号归属企业',
-    icon: 'swap',
+    icon: 'pi-switch',
     action: switchEnterprise
   }
 ])
@@ -234,18 +411,18 @@ const shortcuts = computed(() => [
 const serviceItems = [
   {
     title: '帮助与反馈',
-    icon: 'help-circle',
+    icon: 'pi-help',
     action: handleHelp
   },
   {
     title: '清理缓存',
-    icon: 'delete',
+    icon: 'pi-trash',
     value: '1.24 MB',
     action: openCacheDialog
   },
   {
     title: '关于我们',
-    icon: 'info-circle',
+    icon: 'pi-info',
     action: handleAbout
   }
 ]
@@ -254,84 +431,192 @@ const serviceItems = [
 <style scoped>
 .profile-page {
   position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(120% 48% at 6% 0%, rgba(224, 212, 250, 0.9) 0%, rgba(224, 212, 250, 0) 62%),
-    radial-gradient(120% 46% at 100% 100%, rgba(206, 240, 235, 0.95) 0%, rgba(206, 240, 235, 0) 60%),
-    linear-gradient(170deg, #f2edfb 0%, #edf2fb 44%, #e9f5f3 100%);
+    radial-gradient(120% 46% at 0% 0%, rgba(223, 216, 250, 0.95) 0%, rgba(223, 216, 250, 0) 62%),
+    radial-gradient(90% 30% at 82% 0%, rgba(197, 214, 252, 0.72) 0%, rgba(197, 214, 252, 0) 72%),
+    radial-gradient(120% 42% at 100% 100%, rgba(199, 240, 232, 0.95) 0%, rgba(199, 240, 232, 0) 62%),
+    linear-gradient(168deg, #f1eefc 0%, #eef3fc 46%, #e7f5f2 100%);
   padding-bottom: calc(var(--app-tabbar-space, 92px) + 8px);
 }
 
-.profile-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: calc(var(--prototype-safe-top) + 10px) 16px 0 20px;
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
-.profile-title {
-  margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #16171d;
-  letter-spacing: 0.01em;
+.ui-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+.ui-icon--sm {
+  width: 15px;
+  height: 15px;
+}
+
+/* 顶部背景的玻璃晶体装饰 */
+.profile-deco {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 380px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.deco-facet {
+  position: absolute;
+  border-radius: 24px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(196, 217, 255, 0.56) 46%,
+    rgba(152, 188, 247, 0.32) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  box-shadow: 0 24px 46px rgba(118, 148, 208, 0.14);
+}
+
+.deco-facet--a {
+  top: 44px;
+  right: 24px;
+  width: 92px;
+  height: 130px;
+  transform: rotate(16deg);
+  opacity: 0.9;
+}
+
+.deco-facet--b {
+  top: 0;
+  right: -30px;
+  width: 118px;
+  height: 164px;
+  transform: rotate(-12deg);
+  opacity: 0.68;
+}
+
+.deco-facet--c {
+  top: 132px;
+  right: 92px;
+  width: 148px;
+  height: 112px;
+  transform: rotate(26deg);
+  opacity: 0.5;
+}
+
+.deco-facet--d {
+  top: 8px;
+  left: -62px;
+  width: 172px;
+  height: 196px;
+  transform: rotate(-18deg);
+  opacity: 0.32;
+}
+
+.profile-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: calc(var(--prototype-safe-top) + 6px) 18px 0 20px;
 }
 
 .settings-entry {
-  width: 34px;
-  height: 34px;
-  margin-right: -4px;
+  width: 38px;
+  height: 38px;
+  margin-right: -2px;
   border: 0;
   background: transparent;
-  color: #16171d;
+  color: #191a20;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
 }
 
 .settings-entry:active {
   opacity: 0.6;
 }
 
+.ui-icon--settings {
+  width: 27px;
+  height: 27px;
+}
+
+.profile-page .app-section {
+  position: relative;
+  z-index: 1;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 .profile-hero {
   position: relative;
   overflow: hidden;
-  margin-top: 16px;
-  padding: 16px 18px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 249, 255, 0.88) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  margin-top: 10px;
+  min-height: 100px;
+  padding: 20px 18px;
+  border-radius: 22px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(247, 250, 255, 0.87) 55%,
+    rgba(240, 246, 255, 0.8) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16px 34px rgba(116, 132, 186, 0.1);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.hero-shape {
+.hero-facet {
   position: absolute;
-  top: -34px;
-  right: -26px;
-  width: 168px;
-  height: 168px;
-  border-radius: 26px;
-  transform: rotate(12deg);
-  background:
-    linear-gradient(118deg, rgba(140, 176, 255, 0.24) 0 22%, rgba(140, 176, 255, 0) 22% 36%, rgba(160, 192, 255, 0.2) 36% 58%, rgba(160, 192, 255, 0) 58% 70%, rgba(180, 206, 255, 0.22) 70% 88%, rgba(180, 206, 255, 0) 88%);
   pointer-events: none;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(174, 203, 255, 0.78) 44%,
+    rgba(132, 174, 244, 0.44) 100%
+  );
+  clip-path: polygon(42% 0%, 100% 16%, 86% 82%, 30% 100%, 0% 56%);
+}
+
+.hero-facet--one {
+  top: -46px;
+  right: 36px;
+  width: 104px;
+  height: 134px;
+  transform: rotate(-8deg);
+  opacity: 0.95;
+}
+
+.hero-facet--two {
+  top: 4px;
+  right: -26px;
+  width: 118px;
+  height: 152px;
+  transform: rotate(14deg);
+  opacity: 0.82;
 }
 
 .user-avatar {
   position: relative;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
   border-radius: 50%;
   object-fit: cover;
   background: #e9edf8;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
 .user-info {
@@ -361,7 +646,7 @@ const serviceItems = [
   flex: 0 0 auto;
   padding: 4px 8px;
   border-radius: 7px;
-  background: linear-gradient(135deg, #ff7a6b 0%, #ef3f45 100%);
+  background: linear-gradient(135deg, #ff8071 0%, #f0443f 100%);
   color: #fff;
   font-size: 12px;
   line-height: 1.2;
@@ -376,19 +661,19 @@ const serviceItems = [
 }
 
 .profile-section {
-  padding-top: 24px;
+  padding-top: 26px;
 }
 
 .section-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 12px 4px;
+  gap: 10px;
+  margin: 0 0 14px 2px;
 }
 
 .section-title {
   margin: 0;
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1.3;
   font-weight: 700;
   color: #17181d;
@@ -397,33 +682,44 @@ const serviceItems = [
 .section-action {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
   padding: 0;
   border: 0;
   background: transparent;
-  color: #3f6cf5;
+  color: #3e6df6;
+}
+
+.section-action:active {
+  opacity: 0.65;
+}
+
+.section-action-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px 4px 6px;
+  border-radius: 8px;
+  background: #e9f1ff;
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.section-action-text {
+  display: inline-block;
 }
 
 .section-action-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 7px;
-  background: #e7efff;
-  color: #3f6cf5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
+  width: 17px;
+  height: 17px;
 }
 
 .enterprise-card {
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.93);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 34px rgba(116, 132, 186, 0.07);
 }
 
 .enterprise-summary {
@@ -433,9 +729,9 @@ const serviceItems = [
 }
 
 .enterprise-logo {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
   object-fit: contain;
   border-radius: 12px;
 }
@@ -445,36 +741,36 @@ const serviceItems = [
 }
 
 .enterprise-name {
-  font-size: 17px;
+  font-size: 17.5px;
   line-height: 1.35;
   font-weight: 700;
   color: #17181d;
 }
 
 .enterprise-contact {
-  margin-top: 6px;
+  margin-top: 7px;
   font-size: 13px;
   color: #9c9da6;
 }
 
 .enterprise-field {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 .enterprise-field + .enterprise-field {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .field-label {
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.3;
-  color: #b4b5bd;
+  color: #b3b4bd;
 }
 
 .field-value {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.5;
+  margin-top: 7px;
+  font-size: 15px;
+  line-height: 1.45;
   color: #23242b;
 }
 
@@ -492,15 +788,15 @@ const serviceItems = [
   border: 0;
   padding: 3px 8px;
   border-radius: 7px;
-  background: #e7f0ff;
-  color: #3f6cf5;
-  font-size: 12px;
+  background: #e9f1ff;
+  color: #3e6df6;
+  font-size: 12.5px;
   line-height: 1.3;
   font-weight: 600;
 }
 
 .copy-chip:active {
-  background: #d9e7ff;
+  background: #dbe8ff;
 }
 
 .shortcut-grid {
@@ -510,11 +806,11 @@ const serviceItems = [
 }
 
 .shortcut-item {
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.93);
-  box-shadow: 0 10px 24px rgba(112, 120, 170, 0.06);
+  padding: 15px 15px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 26px rgba(112, 128, 180, 0.06);
   text-align: left;
 }
 
@@ -529,29 +825,30 @@ const serviceItems = [
 }
 
 .shortcut-icon {
-  font-size: 24px;
-  color: #1c1d22;
+  width: 27px;
+  height: 27px;
+  color: #17181d;
 }
 
 .shortcut-title {
-  font-size: 16px;
+  font-size: 16.5px;
   font-weight: 700;
   color: #17181d;
 }
 
 .shortcut-desc {
-  margin-top: 9px;
-  font-size: 12px;
+  margin-top: 8px;
+  font-size: 12.5px;
   line-height: 1.45;
-  color: #a2a3ac;
+  color: #a3a4ad;
 }
 
 .service-card {
-  padding: 4px 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.93);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
+  padding: 2px 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 34px rgba(116, 132, 186, 0.07);
 }
 
 .service-item {
@@ -559,7 +856,7 @@ const serviceItems = [
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 17px 0;
+  padding: 16px 0;
   border: 0;
   background: transparent;
   text-align: left;
@@ -570,9 +867,7 @@ const serviceItems = [
 }
 
 .service-icon {
-  flex: 0 0 auto;
-  font-size: 24px;
-  color: #1c1d22;
+  color: #1b1c22;
 }
 
 .service-title {
@@ -586,13 +881,13 @@ const serviceItems = [
 .service-value {
   flex: 0 0 auto;
   font-size: 14px;
-  color: #a2a3ac;
+  color: #a3a4ad;
 }
 
 .service-arrow {
-  flex: 0 0 auto;
-  font-size: 20px;
-  color: #1c1d22;
+  width: 20px;
+  height: 20px;
+  color: #1b1c22;
 }
 
 .cache-layer {

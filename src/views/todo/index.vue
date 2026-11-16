@@ -1,59 +1,56 @@
 <template>
   <div class="todo-page app-page">
-    <header class="todo-header gradient-bg">
-      <div class="todo-header-glow todo-header-glow-left"></div>
-      <div class="todo-header-glow todo-header-glow-right"></div>
-      <div class="todo-header-grid"></div>
+    <t-pull-down-refresh
+      v-model="refreshing"
+      class="todo-page-refresh"
+      :loading-texts="['下拉刷新', '松开刷新', '正在刷新', '刷新完成']"
+      @refresh="onRefresh"
+    >
+      <header class="todo-header">
+        <div class="todo-cubes" aria-hidden="true">
+          <span class="todo-cube todo-cube--a"><i></i><i></i><i></i></span>
+          <span class="todo-cube todo-cube--b"><i></i><i></i><i></i></span>
+          <span class="todo-cube todo-cube--c"><i></i><i></i><i></i></span>
+        </div>
 
-      <div class="todo-header-content">
-        <div class="todo-header-top">
-          <div class="todo-header-copy">
-            <div class="todo-header-kicker">
-              <span class="todo-header-kicker-dot"></span>
-              <span>任务协同</span>
+        <div class="todo-header-content">
+          <div class="todo-header-top">
+            <div class="todo-header-copy">
+              <h1 class="todo-header-title">待办</h1>
+              <p class="todo-header-subtitle">聚焦当前需要处理的巡检、整改与审核任务</p>
             </div>
-            <h1 class="todo-header-title">待办</h1>
-            <p class="todo-header-subtitle">聚焦当前需要处理的巡检、整改与审核任务</p>
+
+            <button type="button" class="todo-refresh" aria-label="刷新任务" @click="refreshTodos">
+              <t-icon name="refresh" />
+            </button>
           </div>
 
-          <button type="button" class="todo-refresh" @click="refreshTodos">
-            <t-icon name="refresh" />
-          </button>
+          <div class="todo-status-grid">
+            <button
+              v-for="tab in tabList"
+              :key="tab.value"
+              type="button"
+              class="todo-status-card"
+              :class="[tab.tone, { active: activeTab === tab.value }]"
+              @click="onTabChange(tab.value)"
+            >
+              <t-icon class="todo-status-watermark" :name="getTabIcon(tab.value)" />
+              <span class="todo-status-label">{{ tab.label }}</span>
+              <span class="todo-status-count">{{ tab.count }}</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <section class="app-section todo-filter-section">
-      <div class="todo-segmented app-card">
-        <button
-          v-for="tab in tabList"
-          :key="tab.value"
-          type="button"
-          class="todo-segment-item"
-          :class="[tab.tone, { active: activeTab === tab.value }]"
-          @click="onTabChange(tab.value)"
-        >
-          <span class="todo-segment-label">{{ tab.label }}</span>
-          <span class="todo-segment-count-pill">{{ tab.count }}</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="app-section todo-stream-section">
-      <div class="todo-stream-head">
-        <div>
-          <div class="todo-stream-title">{{ currentTabMeta.label }}</div>
-          <div class="todo-stream-note">{{ currentTabMeta.note }}</div>
+      <section class="app-section todo-stream-section">
+        <div class="todo-stream-head">
+          <div class="todo-stream-title-row">
+            <h2 class="todo-stream-title">{{ currentTabMeta.label }}</h2>
+            <span class="todo-stream-badge">{{ currentTodos.length }} 项</span>
+          </div>
+          <p class="todo-stream-note">{{ currentTabMeta.note }}</p>
         </div>
-        <span class="todo-stream-badge">{{ currentTodos.length }} 项</span>
-      </div>
 
-      <t-pull-down-refresh
-        v-model="refreshing"
-        class="todo-refresh-wrap"
-        :loading-texts="['下拉刷新', '松开刷新', '正在刷新', '刷新完成']"
-        @refresh="onRefresh"
-      >
         <div class="todo-list">
           <template v-if="loading">
             <div v-for="skeleton in 3" :key="skeleton" class="todo-skeleton app-card">
@@ -67,7 +64,7 @@
             <div
               v-for="item in currentTodos"
               :key="item.id"
-              class="todo-card app-card"
+              class="todo-card"
               :class="`todo-card--${activeTab}`"
               @click="handlePrimary(item)"
             >
@@ -80,8 +77,11 @@
                     <h3 class="todo-card-title">{{ item.storeName }}</h3>
                     <span class="todo-card-time">{{ getTimeLabel(item) }}</span>
                   </div>
+                  <span class="todo-card-id">{{ item.id }}</span>
                   <div class="todo-card-chips">
-                    <span class="todo-chip">{{ item.id }}</span>
+                    <span class="todo-chip todo-chip--status" :class="getStatusTone(item)">
+                      {{ getStatusText(item) }}
+                    </span>
                     <span v-if="activeTab !== 'pending'" class="todo-chip todo-chip--issue">
                       问题 {{ item.issueCount }} 个
                     </span>
@@ -110,11 +110,8 @@
               </div>
 
               <div v-if="activeTab === 'rectify' && item.rejectReason" class="todo-reject">
-                <t-icon name="error-circle-filled" class="todo-reject-icon" />
-                <div class="todo-reject-copy">
-                  <span class="todo-reject-label">审核驳回原因</span>
-                  <span class="todo-reject-text">{{ item.rejectReason }}</span>
-                </div>
+                <t-icon name="error-triangle-filled" class="todo-reject-icon" />
+                <span class="todo-reject-text">驳回原因：{{ item.rejectReason }}</span>
               </div>
 
               <div v-if="activeTab === 'completed' && item.reviewOpinion" class="todo-opinion">
@@ -122,18 +119,13 @@
                 <span>审核意见：{{ item.reviewOpinion }}</span>
               </div>
 
-              <div v-if="activeTab === 'completed' && !item.issueCount" class="todo-opinion todo-opinion--calm">
-                <t-icon name="check-circle" class="todo-opinion-icon" />
+              <div v-if="activeTab === 'completed' && !item.issueCount" class="todo-opinion">
+                <t-icon name="check-circle-filled" class="todo-opinion-icon" />
                 <span>本次巡检全部检查项合格，已自动归档</span>
               </div>
 
               <div class="todo-card-foot">
-                <div class="todo-card-tags">
-                  <span class="todo-status-pill" :class="getStatusTone(item)">
-                    {{ getStatusText(item) }}
-                  </span>
-                  <span class="todo-type-pill">{{ item.method }}</span>
-                </div>
+                <span class="todo-type-pill">{{ item.method }}</span>
 
                 <div class="todo-card-actions">
                   <button
@@ -157,8 +149,8 @@
             <div class="todo-empty-note">当前筛选下没有待处理内容</div>
           </div>
         </div>
-      </t-pull-down-refresh>
-    </section>
+      </section>
+    </t-pull-down-refresh>
   </div>
 </template>
 
@@ -187,7 +179,7 @@ const tabList = computed(() => [
   { value: 'pending', label: '待执行', count: todoStore.pendingTasks.length, tone: 'primary' },
   { value: 'rectify', label: '待整改', count: todoStore.rectifyTickets.length, tone: 'warning' },
   { value: 'review', label: '待审核', count: todoStore.reviewTickets.length, tone: 'success' },
-  { value: 'completed', label: '已完成', count: todoStore.completedTickets.length, tone: 'slate' }
+  { value: 'completed', label: '已完成', count: todoStore.completedTickets.length, tone: 'rose' }
 ])
 
 const currentTodos = computed(() => {
@@ -283,9 +275,9 @@ const getExtraValue = (item) => {
 
 const getTabIcon = (tab) => {
   const icons = {
-    pending: 'task',
+    pending: 'task-time',
     rectify: 'tools',
-    review: 'file-copy',
+    review: 'user-time',
     completed: 'task-checked'
   }
   return icons[tab] || 'task'
@@ -302,7 +294,7 @@ const getStatusTone = (item) => {
   if (activeTab.value === 'pending') return 'primary'
   if (activeTab.value === 'rectify') return 'warning'
   if (activeTab.value === 'review') return 'success'
-  return item.issueCount ? 'success' : 'calm'
+  return 'calm'
 }
 
 const getActionLabel = () => {
@@ -351,53 +343,77 @@ onMounted(() => {
 <style scoped>
 .todo-page {
   background:
-    radial-gradient(circle at top, rgba(var(--theme-primary-rgb), 0.08), transparent 24%),
-    #f5f7fb;
+    radial-gradient(120% 38% at 82% -2%, rgba(198, 210, 245, 0.72) 0%, rgba(226, 232, 250, 0.32) 46%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(90% 42% at 10% 100%, rgba(214, 246, 236, 0.5) 0%, rgba(255, 255, 255, 0) 68%),
+    linear-gradient(180deg, #e9ecfa 0%, #f4f6fd 32%, #ffffff 60%);
 }
 
 .todo-header {
   position: relative;
-  overflow: hidden;
-  padding: calc(var(--prototype-safe-top) + 10px) var(--prototype-page-padding-x) 22px;
-  color: #173153;
-  border-radius: 0 0 34px 34px;
-  box-shadow: 0 24px 48px rgba(var(--theme-primary-rgb), 0.18);
+  padding: calc(var(--prototype-safe-top) + 22px) var(--prototype-page-padding-x) 6px;
 }
 
-.todo-header-glow {
+.todo-cubes {
   position: absolute;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  filter: blur(10px);
+  inset: -100px 0 0 0;
+  pointer-events: none;
+  filter: blur(9px);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 66%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 66%, rgba(0, 0, 0, 0) 100%);
 }
 
-.todo-header-glow-left {
-  width: 140px;
-  height: 140px;
-  top: -36px;
-  left: -24px;
+.todo-cube {
+  position: absolute;
+  display: block;
 }
 
-.todo-header-glow-right {
-  width: 180px;
-  height: 180px;
-  right: -60px;
-  top: 18px;
-}
-
-.todo-header-grid {
+.todo-cube i {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 22px 22px;
-  opacity: 0.2;
+  display: block;
+}
+
+.todo-cube i:nth-child(1) {
+  clip-path: polygon(50% 2%, 98% 26%, 50% 50%, 2% 26%);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(213, 221, 244, 0.66));
+}
+
+.todo-cube i:nth-child(2) {
+  clip-path: polygon(2% 26%, 50% 50%, 50% 98%, 2% 74%);
+  background: linear-gradient(180deg, rgba(206, 215, 241, 0.7), rgba(186, 198, 234, 0.56));
+}
+
+.todo-cube i:nth-child(3) {
+  clip-path: polygon(98% 26%, 50% 50%, 50% 98%, 98% 74%);
+  background: linear-gradient(180deg, rgba(231, 236, 251, 0.78), rgba(203, 214, 243, 0.62));
+}
+
+.todo-cube--a {
+  top: -84px;
+  right: -86px;
+  width: 300px;
+  height: 268px;
+}
+
+.todo-cube--b {
+  top: 148px;
+  right: -110px;
+  width: 224px;
+  height: 200px;
+  opacity: 0.9;
+}
+
+.todo-cube--c {
+  top: 34px;
+  left: -96px;
+  width: 164px;
+  height: 146px;
+  opacity: 0.45;
 }
 
 .todo-header-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .todo-header-top {
@@ -411,193 +427,235 @@ onMounted(() => {
   min-width: 0;
 }
 
-.todo-header-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.38);
-  color: rgba(23, 49, 83, 0.7);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.todo-header-kicker-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #9ef0b5;
-  box-shadow: 0 0 0 5px rgba(158, 240, 181, 0.16);
-}
-
 .todo-header-title {
-  margin: 12px 0 0;
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #173153;
+  font-size: 35px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: #16181f;
 }
 
 .todo-header-subtitle {
-  margin: 8px 0 0;
-  max-width: 300px;
+  margin-top: 10px;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(23, 49, 83, 0.72);
+  color: #6f7486;
 }
 
 .todo-refresh {
-  width: 38px;
-  height: 38px;
-  border: 0;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.88);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.34);
-  color: #1f5a7b;
+  background: rgba(255, 255, 255, 0.56);
+  color: #4a5064;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  font-size: 18px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.todo-filter-section {
-  padding-top: 10px;
+.todo-refresh:active {
+  transform: scale(0.94);
 }
 
-.todo-segmented {
-  padding: 6px;
+/* 四个状态卡片 */
+.todo-status-grid {
+  margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  background: linear-gradient(180deg, rgba(239, 244, 251, 0.98) 0%, rgba(234, 240, 248, 0.98) 100%);
-  border-radius: 999px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  gap: 9px;
 }
 
-.todo-segment-item {
+.todo-status-card {
+  position: relative;
   min-width: 0;
+  height: 78px;
+  padding: 12px 10px 11px;
   border: 0;
-  border-radius: 999px;
-  background: transparent;
-  padding: 7px 8px;
-  color: #79879b;
+  border-radius: 15px;
+  background: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  text-align: center;
-  transition: all 0.22s ease;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(24, 36, 72, 0.05);
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
 }
 
-.todo-segment-item.active {
-  background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
-  box-shadow: 0 10px 20px rgba(11, 31, 68, 0.08);
+.todo-status-card:active {
+  transform: scale(0.97);
 }
 
-.todo-segment-item.primary.active {
-  color: var(--theme-primary-strong);
-}
-
-.todo-segment-item.warning.active {
-  color: #d97706;
-}
-
-.todo-segment-item.success.active {
-  color: #16a34a;
-}
-
-.todo-segment-item.slate.active {
-  color: #475569;
-}
-
-.todo-segment-label {
-  font-size: 12px;
-  font-weight: 700;
+.todo-status-label {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9a9ca8;
   white-space: nowrap;
-  color: #708096;
 }
 
-.todo-segment-count-pill {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  line-height: 1;
+.todo-status-count {
+  position: relative;
+  z-index: 1;
+  font-size: 23px;
   font-weight: 700;
-  color: #5f728d;
-  background: rgba(148, 163, 184, 0.14);
+  line-height: 1;
+  color: #191a20;
+  font-variant-numeric: tabular-nums;
+  transition: margin-left 0.25s ease;
 }
 
-.todo-segment-item.primary .todo-segment-count-pill {
-  background: rgba(var(--theme-primary-rgb), 0.1);
-  color: var(--theme-primary-strong);
+.todo-status-watermark {
+  position: absolute;
+  left: 4px;
+  bottom: 0;
+  font-size: 34px;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.25s ease, color 0.25s ease;
 }
 
-.todo-segment-item.warning .todo-segment-count-pill {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
+.todo-status-card.active .todo-status-label {
+  color: #1b1c22;
 }
 
-.todo-segment-item.success .todo-segment-count-pill {
-  background: rgba(22, 163, 74, 0.1);
-  color: #16a34a;
+.todo-status-card.active .todo-status-count {
+  margin-left: 12px;
 }
 
-.todo-segment-item.slate .todo-segment-count-pill {
-  background: rgba(71, 85, 105, 0.1);
-  color: #475569;
+.todo-status-card.active .todo-status-watermark {
+  opacity: 0.15;
 }
 
-.todo-segment-item.active .todo-segment-label {
-  color: #173153;
+.todo-status-card.primary.active {
+  background: linear-gradient(150deg, #e6f1ff 0%, #f7fbff 100%);
+  box-shadow: 0 12px 24px rgba(70, 124, 235, 0.14);
 }
 
-.todo-segment-item.active .todo-segment-count-pill {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+.todo-status-card.primary.active .todo-status-count,
+.todo-status-card.primary.active .todo-status-watermark {
+  color: #3f6ef5;
 }
 
+.todo-status-card.warning.active {
+  background: linear-gradient(150deg, #fff0e0 0%, #fff9f2 100%);
+  box-shadow: 0 12px 24px rgba(239, 138, 23, 0.14);
+}
+
+.todo-status-card.warning.active .todo-status-count,
+.todo-status-card.warning.active .todo-status-watermark {
+  color: #ef8a17;
+}
+
+.todo-status-card.success.active {
+  background: linear-gradient(150deg, #def8ef 0%, #f5fffb 100%);
+  box-shadow: 0 12px 24px rgba(18, 163, 127, 0.14);
+}
+
+.todo-status-card.success.active .todo-status-count,
+.todo-status-card.success.active .todo-status-watermark {
+  color: #12a37f;
+}
+
+.todo-status-card.rose.active {
+  background: linear-gradient(150deg, #ffe9e6 0%, #fff8f7 100%);
+  box-shadow: 0 12px 24px rgba(229, 72, 77, 0.14);
+}
+
+.todo-status-card.rose.active .todo-status-count,
+.todo-status-card.rose.active .todo-status-watermark {
+  color: #e5484d;
+}
+
+/* 区块标题 */
 .todo-stream-section {
-  padding-top: 14px;
+  padding-top: 22px;
 }
 
 .todo-stream-head {
-  padding: 0 4px 12px;
+  padding: 0 2px 14px;
+}
+
+.todo-stream-title-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .todo-stream-title {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
-  color: #173153;
-}
-
-.todo-stream-note {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #7a8798;
+  color: #1b1c22;
+  letter-spacing: -0.01em;
 }
 
 .todo-stream-badge {
   flex: 0 0 auto;
-  padding: 6px 10px;
+  padding: 3px 11px;
   border-radius: 999px;
-  background: rgba(var(--theme-primary-rgb), 0.08);
-  color: var(--theme-primary-strong);
+  background: linear-gradient(135deg, #5c6cf8 0%, #4058ef 100%);
+  color: #ffffff;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(74, 92, 238, 0.22);
 }
 
-.todo-refresh-wrap {
-  min-height: 420px;
+.todo-stream-note {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9498a6;
+}
+
+.todo-page-refresh {
+  min-height: 100%;
+}
+
+/* 下拉刷新：蓝紫色点环指示器 */
+.todo-page-refresh :deep(.t-pull-down-refresh__loading) {
+  position: relative;
+  overflow: hidden;
+}
+
+.todo-page-refresh :deep(.t-pull-down-refresh__loading) > * {
+  opacity: 0;
+}
+
+.todo-page-refresh :deep(.t-pull-down-refresh__loading)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 -17px 0 3px rgba(111, 127, 245, 0.95),
+    12px -12px 0 2.6px rgba(111, 127, 245, 0.84),
+    17px 0 0 2.3px rgba(111, 127, 245, 0.72),
+    12px 12px 0 2px rgba(111, 127, 245, 0.58),
+    0 17px 0 1.8px rgba(111, 127, 245, 0.46),
+    -12px 12px 0 1.6px rgba(111, 127, 245, 0.34),
+    -17px 0 0 1.4px rgba(111, 127, 245, 0.24),
+    -12px -12px 0 1.2px rgba(111, 127, 245, 0.15);
+  animation: todo-dot-ring 1.1s linear infinite;
+}
+
+@keyframes todo-dot-ring {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .todo-list {
@@ -607,6 +665,7 @@ onMounted(() => {
 
 .todo-skeleton {
   padding: 20px;
+  border-radius: 20px;
 }
 
 .todo-skeleton-row {
@@ -634,62 +693,15 @@ onMounted(() => {
   width: 38%;
 }
 
+/* 任务卡片 */
 .todo-card {
   position: relative;
-  padding: 16px;
-  border: 1px solid rgba(229, 235, 244, 0.96);
-  box-shadow: 0 16px 32px rgba(11, 31, 68, 0.07);
+  padding: 18px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
   overflow: hidden;
-}
-
-.todo-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 16px;
-  bottom: 16px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
-}
-
-.todo-card--pending::before {
-  background: linear-gradient(180deg, var(--theme-primary) 0%, var(--theme-primary-strong) 100%);
-}
-
-.todo-card--rectify::before {
-  background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
-}
-
-.todo-card--review::before {
-  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
-}
-
-.todo-card--completed::before {
-  background: linear-gradient(180deg, #a5b4fc 0%, #6366f1 100%);
-}
-
-.todo-card--rectify {
-  background:
-    radial-gradient(circle at top right, rgba(217, 119, 6, 0.06), transparent 34%),
-    linear-gradient(180deg, #fffcf7 0%, #ffffff 100%);
-}
-
-.todo-card--review {
-  background:
-    radial-gradient(circle at top right, rgba(22, 163, 74, 0.06), transparent 34%),
-    linear-gradient(180deg, #f8fffb 0%, #ffffff 100%);
-}
-
-.todo-card--completed {
-  background:
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.06), transparent 34%),
-    linear-gradient(180deg, #f9f9ff 0%, #ffffff 100%);
-}
-
-.todo-card--pending {
-  background:
-    radial-gradient(circle at top right, rgba(var(--theme-primary-rgb), 0.08), transparent 34%),
-    linear-gradient(180deg, #f8fcff 0%, #ffffff 100%);
 }
 
 .todo-card-head {
@@ -699,34 +711,34 @@ onMounted(() => {
 }
 
 .todo-card-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  flex: 0 0 40px;
+  font-size: 20px;
 }
 
 .todo-card-badge.pending {
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
+  background: #eef0ff;
+  color: #4756c8;
 }
 
 .todo-card-badge.rectify {
-  background: rgba(217, 119, 6, 0.12);
-  color: #d97706;
+  background: #fff3e6;
+  color: #e08a2e;
 }
 
 .todo-card-badge.review {
-  background: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
+  background: #e9fbf5;
+  color: #12a37f;
 }
 
 .todo-card-badge.completed {
-  background: rgba(99, 102, 241, 0.12);
-  color: #4f46e5;
+  background: #f4f4f6;
+  color: #565863;
 }
 
 .todo-card-copy {
@@ -743,20 +755,27 @@ onMounted(() => {
 
 .todo-card-title {
   margin: 0;
-  font-size: 16px;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
   line-height: 1.4;
-  color: #173153;
-  font-weight: 700;
+  color: #1c1d24;
+  font-weight: 600;
 }
 
 .todo-card-time {
   flex: 0 0 auto;
-  font-size: 11px;
-  color: #6e7f95;
+  padding-top: 2px;
+  font-size: 12px;
+  color: #9497a2;
   white-space: nowrap;
-  background: rgba(241, 245, 251, 0.96);
-  padding: 4px 8px;
-  border-radius: 999px;
+}
+
+.todo-card-id {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8d909b;
 }
 
 .todo-card-chips {
@@ -767,51 +786,70 @@ onMounted(() => {
 }
 
 .todo-chip {
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: rgba(236, 241, 248, 0.92);
-  color: #5b7290;
-  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.todo-chip--status.primary {
+  background: #e9f0ff;
+  color: #3f6ef5;
+}
+
+.todo-chip--status.warning {
+  background: #fff2e2;
+  color: #e08c2e;
+}
+
+.todo-chip--status.success {
+  background: #e6f8f1;
+  color: #12a37f;
+}
+
+.todo-chip--status.calm {
+  background: #f2f2f5;
+  color: #5f616b;
+  border: 1px solid #e4e4ea;
 }
 
 .todo-chip--issue {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+  background: #ffe9e9;
+  color: #e5484d;
 }
 
 .todo-chip--ai {
-  background: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
+  background: #e8edff;
+  color: #4f63e8;
 }
 
 .todo-meta-grid {
-  margin-top: 12px;
+  margin-top: 14px;
+  padding: 15px 14px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
-  padding: 12px;
+  gap: 18px 12px;
   border-radius: 14px;
-  background: rgba(247, 250, 254, 0.92);
+  background: #f7f7f9;
 }
 
 .todo-meta-item {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .todo-meta-label {
-  font-size: 11px;
-  color: #93a0b2;
+  font-size: 12px;
+  color: #9b9da6;
 }
 
 .todo-meta-value {
-  font-size: 12px;
-  line-height: 1.4;
-  color: #3f5877;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #2b2c33;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -819,114 +857,69 @@ onMounted(() => {
 }
 
 .todo-reject {
-  margin-top: 12px;
-  padding: 10px 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(213, 73, 65, 0.08);
-  border: 1px solid rgba(213, 73, 65, 0.16);
+  background: #fdf0f0;
   display: flex;
   gap: 8px;
   align-items: flex-start;
 }
 
 .todo-reject-icon {
-  color: #d54941;
-  font-size: 15px;
-  margin-top: 1px;
   flex: 0 0 15px;
-}
-
-.todo-reject-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.todo-reject-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #b9382f;
+  margin-top: 1px;
+  font-size: 15px;
+  color: #f5b02e;
 }
 
 .todo-reject-text {
-  font-size: 12px;
-  line-height: 1.55;
-  color: #a34a45;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+  color: #e5484d;
 }
 
 .todo-opinion {
-  margin-top: 12px;
-  padding: 10px 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, 0.07);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  color: #4f46e5;
-  font-size: 12px;
-  line-height: 1.55;
+  background: #eef9f1;
   display: flex;
-  align-items: flex-start;
   gap: 8px;
-}
-
-.todo-opinion--calm {
-  background: rgba(22, 163, 74, 0.07);
-  border-color: rgba(22, 163, 74, 0.16);
-  color: #15803d;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+  color: #1d8a57;
 }
 
 .todo-opinion-icon {
-  font-size: 15px;
   flex: 0 0 15px;
   margin-top: 1px;
+  font-size: 15px;
+  color: #22a35f;
 }
 
 .todo-card-foot {
-  margin-top: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f1f4;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
 
-.todo-card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.todo-status-pill,
 .todo-type-pill {
-  padding: 5px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.todo-status-pill.primary {
-  background: rgba(var(--theme-primary-rgb), 0.1);
-  color: var(--theme-primary-strong);
-}
-
-.todo-status-pill.warning {
-  background: rgba(217, 119, 6, 0.1);
-  color: #d97706;
-}
-
-.todo-status-pill.success {
-  background: rgba(22, 163, 74, 0.1);
-  color: #16a34a;
-}
-
-.todo-status-pill.calm {
-  background: rgba(100, 116, 139, 0.1);
-  color: #64748b;
-}
-
-.todo-type-pill {
-  background: rgba(236, 241, 248, 0.92);
-  color: #5b7290;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: #f3f3f6;
+  color: #6b6d76;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .todo-card-actions {
@@ -936,35 +929,46 @@ onMounted(() => {
 }
 
 .todo-action {
-  height: 34px;
-  padding: 0 14px;
+  height: 40px;
+  padding: 0 24px;
   border: 0;
   border-radius: 999px;
-  background: var(--theme-primary-strong);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.todo-action--warning {
-  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-}
-
-.todo-action--success {
-  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
-}
-
-.todo-action--slate {
-  background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .todo-action:active {
   transform: scale(0.97);
 }
 
+.todo-action--primary {
+  background: #4059f0;
+  box-shadow: 0 8px 18px rgba(64, 89, 240, 0.24);
+}
+
+.todo-action--warning {
+  background: #ef8a17;
+  box-shadow: 0 8px 18px rgba(239, 138, 23, 0.24);
+}
+
+.todo-action--success {
+  background: #178c78;
+  box-shadow: 0 8px 18px rgba(23, 140, 120, 0.22);
+}
+
+.todo-action--slate {
+  background: #ffffff;
+  color: #2b2c33;
+  border: 1px solid #d9dbe2;
+  box-shadow: none;
+}
+
 .todo-empty {
   padding: 32px 20px;
   text-align: center;
+  border-radius: 20px;
 }
 
 .todo-empty-icon {
@@ -973,7 +977,7 @@ onMounted(() => {
   margin: 0 auto;
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(235, 242, 255, 0.98) 0%, rgba(244, 248, 255, 0.98) 100%);
-  color: var(--theme-primary-strong);
+  color: #4059f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -984,13 +988,13 @@ onMounted(() => {
   margin-top: 16px;
   font-size: 16px;
   font-weight: 700;
-  color: #173153;
+  color: #1b1c22;
 }
 
 .todo-empty-note {
   margin-top: 8px;
   font-size: 13px;
-  color: #7d8b9f;
+  color: #8b8e9b;
 }
 
 @keyframes todo-skeleton-flow {
@@ -999,6 +1003,44 @@ onMounted(() => {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .todo-status-card {
+    height: 72px;
+    padding: 10px 8px;
+  }
+
+  .todo-status-label {
+    font-size: 12px;
+  }
+
+  .todo-status-count {
+    font-size: 21px;
+  }
+
+  .todo-status-watermark {
+    font-size: 34px;
+  }
+
+  .todo-card {
+    padding: 16px 14px;
+  }
+
+  .todo-card-title {
+    font-size: 15px;
+  }
+
+  .todo-meta-grid {
+    padding: 13px 12px;
+    gap: 16px 10px;
+  }
+
+  .todo-action {
+    height: 38px;
+    padding: 0 18px;
+    font-size: 13px;
   }
 }
 </style>
