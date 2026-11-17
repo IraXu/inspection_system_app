@@ -159,14 +159,12 @@
               v-for="notification in rollingNotifications"
               :key="notification.id"
               class="alert-row"
-              :class="notification.level"
             >
               <span class="alert-row-dot"></span>
               <div class="alert-row-copy">
                 <span class="alert-row-title">{{ notification.title }}</span>
                 <span class="alert-row-meta">{{ notification.category }} · {{ notification.time }}</span>
               </div>
-              <span class="alert-row-tag">{{ notification.levelLabel }}</span>
             </div>
           </div>
         </div>
@@ -264,17 +262,7 @@ const pendingTotal = computed(
 const unreadNotificationCount = computed(() => notificationStore.unreadCount)
 
 const rollingNotifications = computed(() => {
-  const levelLabelMap = {
-    critical: '紧急',
-    warning: '重要',
-    normal: '提示'
-  }
-
-  const base = notificationStore.items.slice(0, 4).map((item) => ({
-    ...item,
-    levelLabel: levelLabelMap[item.level] || '提示'
-  }))
-
+  const base = notificationStore.items.slice(0, 4)
   return [...base, ...base, ...base]
 })
 
@@ -1050,16 +1038,6 @@ const handleInspectionTouchCancel = () => {
   box-shadow: 0 0 0 5px rgba(97, 114, 243, 0.1);
 }
 
-.alert-row.critical .alert-row-dot {
-  background: #f04438;
-  box-shadow: 0 0 0 5px rgba(240, 68, 56, 0.1);
-}
-
-.alert-row.warning .alert-row-dot {
-  background: #f79009;
-  box-shadow: 0 0 0 5px rgba(247, 144, 9, 0.1);
-}
-
 .alert-row-copy {
   min-width: 0;
   flex: 1;
@@ -1077,27 +1055,6 @@ const handleInspectionTouchCancel = () => {
 .alert-row-meta {
   font-size: 12px;
   color: #9aa1b2;
-}
-
-.alert-row-tag {
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #eceffe;
-  color: #5468dd;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.alert-row.critical .alert-row-tag {
-  background: #feecea;
-  color: #e5484d;
-}
-
-.alert-row.warning .alert-row-tag {
-  background: #fff2e2;
-  color: #e08c2e;
 }
 
 .alerts-foot {

@@ -17,12 +17,14 @@
         </div>
 
         <div class="detail-head">
-          <h1 class="detail-title">{{ eventLabel }}</h1>
+          <div class="detail-head-row">
+            <h1 class="detail-title">{{ eventLabel }}</h1>
+          </div>
           <p class="detail-subtitle">{{ notification.time }} · {{ notification.storeName }}</p>
         </div>
       </div>
 
-      <div class="detail-card app-card">
+      <div class="detail-card">
         <div class="card-title">告警信息</div>
         <div class="info-row">
           <span class="info-label">事件类型</span>
@@ -48,32 +50,11 @@
           <span class="info-label">安装位置</span>
           <span class="info-value">{{ notification.location }}</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">消息来源</span>
-          <span class="info-value">{{ notification.reportedBy }}</span>
-        </div>
       </div>
 
-      <div class="detail-card app-card">
-        <div class="card-title">事件说明</div>
-        <p class="impact-text">{{ notification.summary }}</p>
-        <p class="impact-text impact-text--sub">{{ notification.impact }}</p>
-      </div>
-
-      <div class="detail-card app-card">
-        <div class="card-title">处理建议</div>
-        <div class="suggestion-list">
-          <div v-for="(item, index) in notification.suggestions" :key="item" class="suggestion-item">
-            <div class="suggestion-index">{{ index + 1 }}</div>
-            <div class="suggestion-text">{{ item }}</div>
-          </div>
-        </div>
-      </div>
+      <div class="action-spacer"></div>
 
       <div class="action-bar">
-        <button type="button" class="action-btn action-btn--ghost" @click="goBack">
-          返回列表
-        </button>
         <button type="button" class="action-btn action-btn--primary" @click="viewDevice">
           查看设备详情
         </button>
@@ -161,9 +142,13 @@ onMounted(() => {
 
 <style scoped>
 .notification-detail-page {
+  padding-bottom: 12px;
+  display: flex;
+  flex-direction: column;
   background:
-    radial-gradient(circle at top left, rgba(var(--theme-primary-rgb), 0.12), transparent 34%),
-    linear-gradient(180deg, #f7faff 0%, #f5f7fb 32%, #f5f7fb 100%);
+    radial-gradient(120% 36% at 84% -2%, rgba(198, 210, 245, 0.66) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(80% 34% at 8% 100%, rgba(214, 246, 236, 0.42) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #eef0fa 0%, #f7f9fe 30%, #ffffff 64%);
 }
 
 .page-navbar {
@@ -172,8 +157,8 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.92);
+  background: linear-gradient(180deg, rgba(237, 240, 250, 0.94) 0%, rgba(240, 243, 250, 0.72) 100%) !important;
+  border-bottom: 0;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -182,30 +167,36 @@ onMounted(() => {
 .page-navbar :deep(.t-navbar__title),
 .page-navbar :deep(.t-navbar__left),
 .page-navbar :deep(.t-navbar__right) {
-  color: #101828;
+  color: #1b1d24;
+}
+
+.page-navbar :deep(.t-navbar__title) {
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .navbar-delete {
   border: 0;
   background: transparent;
-  color: #d54941;
+  color: #e5484d;
   padding: 4px;
   display: inline-flex;
   align-items: center;
 }
 
 .detail-banner {
-  margin: 16px;
-  border-radius: 22px;
+  margin: 12px var(--prototype-page-padding-x) 0;
+  border-radius: 20px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 16px 34px rgba(18, 42, 76, 0.09);
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .detail-image {
   position: relative;
   aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  background: #eef1f8;
   overflow: hidden;
 }
 
@@ -234,33 +225,45 @@ onMounted(() => {
   padding: 14px 16px 16px;
 }
 
+.detail-head-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .detail-title {
   margin: 0;
-  font-size: 19px;
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
   line-height: 1.4;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
 .detail-subtitle {
   margin: 6px 0 0;
   font-size: 12px;
-  line-height: 20px;
-  color: #64748b;
+  line-height: 1.5;
+  color: #9498a6;
 }
 
 .detail-card {
-  margin: 0 16px 12px;
+  margin: 12px var(--prototype-page-padding-x) 0;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .card-title {
-  font-size: 15px;
-  line-height: 22px;
+  margin: 0 0 12px;
+  font-size: 19px;
+  line-height: 1.3;
   font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 10px;
+  color: #1b1c22;
+  letter-spacing: -0.01em;
 }
 
 .info-row {
@@ -268,8 +271,8 @@ onMounted(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 9px 0;
-  border-bottom: 1px solid #edf2f7;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f1f4;
 }
 
 .info-row:last-child {
@@ -280,86 +283,51 @@ onMounted(() => {
 .info-label {
   font-size: 12px;
   line-height: 20px;
-  color: #64748b;
+  color: #9b9da6;
   white-space: nowrap;
 }
 
 .info-value {
   font-size: 13px;
   line-height: 20px;
-  color: #1e293b;
+  color: #2b2c33;
+  font-weight: 500;
   text-align: right;
   word-break: break-all;
 }
 
-.impact-text {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.65;
-  color: #334155;
-}
-
-.impact-text--sub {
-  margin-top: 8px;
-  color: #64748b;
-}
-
-.suggestion-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.suggestion-item {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.suggestion-index {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #eaf2ff;
-  color: var(--theme-primary-strong);
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.suggestion-text {
-  font-size: 13px;
-  line-height: 1.55;
-  color: #334155;
+.action-spacer {
+  flex: 1;
+  min-height: 12px;
 }
 
 .action-bar {
-  margin: 18px 16px calc(16px + var(--prototype-safe-bottom));
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  margin: 0 var(--prototype-page-padding-x);
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 -10px 30px rgba(24, 36, 72, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 10;
 }
 
 .action-btn {
-  height: 44px;
+  width: 100%;
+  height: 46px;
   border: 0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.action-btn--ghost {
-  background: rgba(236, 243, 251, 0.96);
-  color: #3f6f94;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .action-btn--primary {
-  background: linear-gradient(135deg, var(--theme-glass-4) 0%, var(--theme-primary) 58%, var(--theme-primary-strong) 100%);
+  background: #4059f0;
   color: #fff;
-  box-shadow: 0 10px 22px rgba(var(--theme-primary-rgb), 0.22);
+  box-shadow: 0 8px 18px rgba(64, 89, 240, 0.24);
 }
 
 .empty-wrap {
@@ -385,15 +353,16 @@ onMounted(() => {
   max-width: 320px;
   padding: 22px 20px 18px;
   text-align: center;
+  border-radius: 20px;
 }
 
 .dialog-icon {
   width: 52px;
   height: 52px;
   margin: 0 auto;
-  border-radius: 18px;
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+  border-radius: 16px;
+  background: #fdeeee;
+  color: #e5484d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -404,14 +373,14 @@ onMounted(() => {
   margin-top: 14px;
   font-size: 17px;
   font-weight: 700;
-  color: #173153;
+  color: #1b1c22;
 }
 
 .dialog-content {
   margin-top: 8px;
   font-size: 13px;
   line-height: 1.6;
-  color: #6f8199;
+  color: #7a7e8a;
 }
 
 .dialog-actions {
@@ -424,18 +393,18 @@ onMounted(() => {
 .dialog-btn {
   height: 42px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dialog-btn--ghost {
-  background: rgba(239, 244, 251, 0.96);
-  color: #59718f;
+  background: #f2f3f7;
+  color: #5a5e69;
 }
 
 .dialog-btn--danger {
-  background: #d54941;
+  background: #e5484d;
   color: #fff;
 }
 </style>

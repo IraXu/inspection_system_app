@@ -3,48 +3,63 @@
     <t-navbar title="整改审核" left-arrow class="page-navbar" @left-click="goBack" />
 
     <template v-if="ticket">
-      <div class="flow-hero app-card">
-        <div class="flow-hero-top">
-          <div class="flow-hero-copy">
-            <div class="flow-hero-kicker">整改单 · {{ ticket.id }}</div>
-            <h1 class="flow-hero-title">{{ ticket.storeName }}</h1>
-            <p class="flow-hero-note">整改人 {{ ticket.rectifier }} · 提交于 {{ ticket.rectifiedAt }}</p>
+      <div class="review-hero">
+        <div class="review-hero-head">
+          <div class="review-hero-badge">
+            <t-icon name="user-time" />
           </div>
-          <span class="flow-hero-status">待审核</span>
+          <div class="review-hero-copy">
+            <div class="review-hero-topline">
+              <h1 class="review-hero-title">{{ ticket.storeName }}</h1>
+              <span class="review-hero-time">{{ ticket.rectifiedAt }}</span>
+            </div>
+            <span class="review-hero-id">{{ ticket.id }}</span>
+            <div class="review-chips">
+              <span class="chip chip--success">待审核</span>
+              <span class="chip chip--issue">问题 {{ ticket.issueCount }} 个</span>
+              <span v-if="ticket.sourceType === 'ai'" class="chip chip--ai">AI</span>
+            </div>
+          </div>
         </div>
 
-        <div class="flow-hero-stats">
-          <div class="flow-hero-stat">
-            <span>问题数</span>
-            <strong>{{ ticket.issueCount }}</strong>
+        <div class="review-meta">
+          <div class="review-meta-item">
+            <span class="meta-label">巡检模板</span>
+            <span class="meta-value">{{ ticket.templateName }}</span>
           </div>
-          <div class="flow-hero-stat">
-            <span>巡检模板</span>
-            <strong>{{ ticket.templateName }}</strong>
+          <div class="review-meta-item">
+            <span class="meta-label">巡检方式</span>
+            <span class="meta-value">{{ ticket.method }}</span>
           </div>
-          <div class="flow-hero-stat">
-            <span>审核人</span>
-            <strong>{{ ticket.reviewer }}</strong>
+          <div class="review-meta-item">
+            <span class="meta-label">整改人</span>
+            <span class="meta-value">{{ ticket.rectifier }}</span>
+          </div>
+          <div class="review-meta-item">
+            <span class="meta-label">提交人</span>
+            <span class="meta-value">{{ ticket.submitter }}</span>
           </div>
         </div>
       </div>
 
       <section class="app-section review-section">
-        <div class="review-head">
-          <div class="review-head-title">整改结果核对</div>
-          <span class="review-head-count">{{ ticket.items.length }} 项</span>
+        <div class="section-head">
+          <h2 class="section-title">整改明细</h2>
+          <span class="section-pill section-pill--success">
+            {{ doneCount }}/{{ ticket.items.length }} 已完善
+          </span>
         </div>
 
         <div class="review-list">
-          <div v-for="(item, index) in ticket.items" :key="item.id" class="review-item app-card">
+          <div v-for="(item, index) in ticket.items" :key="item.id" class="review-item">
             <div class="review-item-head">
               <span class="review-item-index">{{ String(index + 1).padStart(2, '0') }}</span>
               <span class="review-item-title">{{ item.categoryName }} · {{ item.itemName }}</span>
             </div>
 
-            <div class="review-block">
-              <span class="review-label">问题描述</span>
-              <p class="review-text">{{ item.problemDesc }}</p>
+            <div class="review-field">
+              <span class="field-label">问题描述</span>
+              <p class="field-box">{{ item.problemDesc }}</p>
               <div v-if="item.inspectImages.length" class="thumb-row">
                 <div
                   v-for="image in item.inspectImages"
@@ -57,19 +72,18 @@
               </div>
             </div>
 
-            <div class="review-divider"></div>
+            <div class="review-field">
+              <span class="field-label field-label--done"><i class="dot"></i>整改结果</span>
+              <p class="field-box field-box--done">{{ item.rectifyDesc || '未填写整改说明' }}</p>
+            </div>
 
-            <div class="review-block">
-              <span class="review-label review-label--done">
-                <t-icon name="check-circle-filled" />
-                整改说明
-              </span>
-              <p class="review-text review-text--done">{{ item.rectifyDesc || '未填写整改说明' }}</p>
-              <div v-if="item.rectifyImages.length" class="thumb-row">
+            <div v-if="item.rectifyImages.length" class="review-field">
+              <span class="field-label">整改截图</span>
+              <div class="thumb-row">
                 <div
                   v-for="image in item.rectifyImages"
                   :key="image"
-                  class="thumb thumb--done"
+                  class="thumb"
                   @click="previewImage(image, '整改截图')"
                 >
                   <img :src="image" alt="" />
@@ -79,17 +93,11 @@
           </div>
         </div>
 
-        <div class="opinion-card app-card">
+        <div class="opinion-card">
           <div class="opinion-head">
             <span class="opinion-title"><em>*</em> 审核意见</span>
             <span class="opinion-note">驳回时必填，通过时自动记录默认意见</span>
           </div>
-          <textarea
-            v-model="opinion"
-            class="opinion-textarea"
-            maxlength="300"
-            placeholder="请填写整体审核意见，例如整改是否到位、需补充的材料等"
-          ></textarea>
           <div class="opinion-quick">
             <button
               v-for="text in quickOpinions"
@@ -101,6 +109,12 @@
               {{ text }}
             </button>
           </div>
+          <textarea
+            v-model="opinion"
+            class="opinion-textarea"
+            maxlength="300"
+            placeholder="请填写整体审核意见，例如整改是否到位、需补充的材料等"
+          ></textarea>
         </div>
       </section>
 
@@ -140,6 +154,13 @@ const viewerUrl = ref('')
 const viewerCaption = ref('')
 
 const quickOpinions = ['整改到位，审核通过', '照片不清晰，请重新上传', '整改说明不完整，请补充']
+
+const doneCount = computed(
+  () =>
+    ticket.value?.items.filter(
+      (item) => (item.rectifyDesc || '').trim() && item.rectifyImages.length > 0
+    ).length || 0
+)
 
 const goBack = () => {
   router.back()
@@ -192,8 +213,9 @@ const reject = () => {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(circle at top, rgba(22, 163, 74, 0.1), transparent 26%),
-    linear-gradient(180deg, #f4fdf8 0%, #f6f8fb 26%, #f5f7fb 100%);
+    radial-gradient(120% 36% at 84% -2%, rgba(198, 210, 245, 0.66) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(80% 34% at 8% 100%, rgba(214, 246, 236, 0.42) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #eef0fa 0%, #f7f9fe 30%, #ffffff 64%);
 }
 
 .page-navbar {
@@ -202,8 +224,8 @@ const reject = () => {
   left: 0;
   right: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.92);
+  background: linear-gradient(180deg, rgba(237, 240, 250, 0.94) 0%, rgba(240, 243, 250, 0.72) 100%) !important;
+  border-bottom: 0;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -212,117 +234,178 @@ const reject = () => {
 .page-navbar :deep(.t-navbar__title),
 .page-navbar :deep(.t-navbar__left),
 .page-navbar :deep(.t-navbar__right) {
-  color: #101828;
+  color: #1b1d24;
 }
 
-.flow-hero {
-  margin: 16px;
-  padding: 18px;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.72), transparent 42%),
-    linear-gradient(135deg, #e4fbee 0%, #c7f4dc 58%, #a7ebc5 100%);
-  box-shadow: 0 18px 36px rgba(36, 140, 88, 0.14);
+.page-navbar :deep(.t-navbar__title) {
+  font-size: 17px;
+  font-weight: 700;
 }
 
-.flow-hero-top {
+.review-hero {
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
+}
+
+.review-hero-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
+  align-items: flex-start;
 }
 
-.flow-hero-copy {
+.review-hero-badge {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: #e9fbf5;
+  color: #12a37f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.review-hero-copy {
+  flex: 1;
   min-width: 0;
 }
 
-.flow-hero-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(19, 101, 59, 0.66);
-  letter-spacing: 0.02em;
+.review-hero-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.flow-hero-title {
-  margin: 8px 0 0;
-  font-size: 19px;
-  line-height: 1.35;
-  font-weight: 700;
-  color: #14532d;
+.review-hero-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
-.flow-hero-note {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: rgba(20, 83, 45, 0.62);
-}
-
-.flow-hero-status {
+.review-hero-time {
   flex: 0 0 auto;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.66);
-  color: #15803d;
-  font-size: 11px;
-  font-weight: 700;
+  padding-top: 2px;
+  font-size: 12px;
+  color: #9497a2;
   white-space: nowrap;
 }
 
-.flow-hero-stats {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+.review-hero-id {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8d909b;
 }
 
-.flow-hero-stat {
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.48);
+.review-chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.chip--success {
+  background: #e6f8f1;
+  color: #12a37f;
+}
+
+.chip--issue {
+  background: #ffe9e9;
+  color: #e5484d;
+}
+
+.chip--ai {
+  background: #e8edff;
+  color: #4f63e8;
+}
+
+.review-meta {
+  margin-top: 14px;
+  padding: 15px 14px;
+  border-radius: 14px;
+  background: #f7f7f9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 12px;
+}
+
+.review-meta-item {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.flow-hero-stat span {
-  font-size: 10px;
-  color: rgba(20, 83, 45, 0.56);
-}
-
-.flow-hero-stat strong {
+.meta-label {
   font-size: 12px;
-  color: #14532d;
-  font-weight: 700;
+  color: #9b9da6;
+}
+
+.meta-value {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #2b2c33;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .review-section {
-  padding-top: 12px;
+  padding-top: 20px;
   flex: 1;
 }
 
-.review-head {
+.section-head {
+  padding: 0 2px 12px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 4px 10px;
+  gap: 10px;
 }
 
-.review-head-title {
-  font-size: 17px;
+.section-title {
+  margin: 0;
+  font-size: 19px;
   font-weight: 700;
-  color: #173153;
+  color: #1b1c22;
+  letter-spacing: -0.01em;
 }
 
-.review-head-count {
-  font-size: 11px;
-  font-weight: 600;
-  color: #15803d;
-  background: rgba(22, 163, 74, 0.1);
-  padding: 5px 9px;
+.section-pill {
+  padding: 4px 11px;
   border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.section-pill--success {
+  background: #12a37f;
+  box-shadow: 0 4px 10px rgba(18, 163, 127, 0.22);
+}
+
+.section-pill--warning {
+  background: #ef8a17;
+  box-shadow: 0 4px 10px rgba(239, 138, 23, 0.24);
 }
 
 .review-list {
@@ -331,74 +414,85 @@ const reject = () => {
 }
 
 .review-item {
-  padding: 14px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .review-item-head {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #173153;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .review-item-index {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
   border-radius: 8px;
-  background: rgba(22, 163, 74, 0.12);
-  color: #15803d;
+  background: #e9fbf5;
+  color: #12a37f;
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 24px;
 }
 
-.review-block {
-  margin-top: 12px;
+.review-item-title {
+  padding-top: 3px;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
-.review-label {
+.review-field {
+  margin-top: 14px;
+}
+
+.field-label {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #93a0b2;
-  margin-bottom: 6px;
-}
-
-.review-label--done {
-  color: #15803d;
-}
-
-.review-text {
-  margin: 0;
-  padding: 9px 11px;
-  border-radius: 10px;
-  background: rgba(247, 250, 254, 0.96);
+  gap: 6px;
+  margin-bottom: 7px;
   font-size: 12px;
+  font-weight: 600;
+  color: #9b9da6;
+}
+
+.field-label--done {
+  color: #12a37f;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #12a37f;
+}
+
+.field-box {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f7f7f9;
+  font-size: 13px;
   line-height: 1.6;
-  color: #3f5877;
+  color: #6b6f7a;
 }
 
-.review-text--done {
-  background: rgba(240, 253, 246, 0.96);
-  color: #1f5a3f;
-}
-
-.review-divider {
-  height: 1px;
-  margin: 12px 0 0;
-  background: rgba(226, 234, 244, 0.9);
+.field-box--done {
+  background: #effaf3;
+  border: 1px solid #bfe8d0;
+  color: #1d8a57;
+  font-weight: 500;
 }
 
 .thumb-row {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -406,14 +500,10 @@ const reject = () => {
 
 .thumb {
   width: 78px;
-  height: 58px;
+  height: 60px;
   border-radius: 10px;
   overflow: hidden;
   background: #eef3f9;
-}
-
-.thumb--done {
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.24);
 }
 
 .thumb img {
@@ -424,8 +514,11 @@ const reject = () => {
 
 .opinion-card {
   margin-top: 14px;
-  padding: 14px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .opinion-head {
@@ -436,97 +529,105 @@ const reject = () => {
 }
 
 .opinion-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: #173153;
+  color: #1b1c22;
 }
 
 .opinion-title em {
   font-style: normal;
-  color: #d54941;
-  margin-right: 2px;
+  color: #e5484d;
+  margin-right: 3px;
 }
 
 .opinion-note {
-  font-size: 10px;
-  color: #9aa7b8;
-}
-
-.opinion-textarea {
-  margin-top: 10px;
-  width: 100%;
-  min-height: 82px;
-  padding: 10px 12px;
-  border: 1px solid rgba(225, 233, 243, 0.96);
-  border-radius: 12px;
-  background: #fbfdff;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #2f4a68;
-  resize: none;
-  outline: none;
-  font-family: inherit;
-}
-
-.opinion-textarea:focus {
-  border-color: rgba(22, 163, 74, 0.5);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.09);
-}
-
-.opinion-textarea::placeholder {
-  color: #a9b4c4;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #9aa0ac;
+  text-align: right;
 }
 
 .opinion-quick {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .opinion-chip {
-  border: 1px solid rgba(22, 163, 74, 0.24);
-  border-radius: 999px;
-  background: rgba(22, 163, 74, 0.07);
-  color: #15803d;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 10px;
+  padding: 7px 11px;
+  border: 1px solid #e6e8ee;
+  border-radius: 8px;
+  background: #f7f7f9;
+  color: #4c4f58;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.opinion-chip:active {
+  background: #eef0f5;
+}
+
+.opinion-textarea {
+  margin-top: 10px;
+  width: 100%;
+  min-height: 86px;
+  padding: 11px 12px;
+  border: 1px solid #e6e8ee;
+  border-radius: 12px;
+  background: #fbfbfc;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #2b2c33;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.opinion-textarea:focus {
+  border-color: rgba(18, 163, 127, 0.5);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(18, 163, 127, 0.08);
+}
+
+.opinion-textarea::placeholder {
+  color: #a9adb7;
 }
 
 .flow-footer {
   position: sticky;
   bottom: 0;
-  margin-top: auto;
-  padding: 12px var(--prototype-page-padding-x) calc(12px + var(--prototype-safe-bottom));
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 10px 10px calc(10px + var(--prototype-safe-bottom));
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  background: rgba(247, 250, 254, 0.94);
-  border-top: 1px solid rgba(226, 234, 244, 0.92);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 -10px 30px rgba(24, 36, 72, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   z-index: 10;
 }
 
 .footer-btn {
-  height: 42px;
+  height: 46px;
   border: 0;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .footer-btn--reject {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+  background: #fdecec;
+  color: #e5484d;
 }
 
 .footer-btn--approve {
-  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
-  color: #fff;
-  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.22);
+  background: #178c78;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(23, 140, 120, 0.24);
 }
 
 .footer-btn:disabled {

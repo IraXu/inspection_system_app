@@ -46,7 +46,9 @@
         <div class="todo-stream-head">
           <div class="todo-stream-title-row">
             <h2 class="todo-stream-title">{{ currentTabMeta.label }}</h2>
-            <span class="todo-stream-badge">{{ currentTodos.length }} 项</span>
+            <span class="todo-stream-badge" :class="`todo-stream-badge--${currentTabTone}`">
+              {{ currentTodos.length }} 项
+            </span>
           </div>
           <p class="todo-stream-note">{{ currentTabMeta.note }}</p>
         </div>
@@ -190,6 +192,10 @@ const currentTodos = computed(() => {
 })
 
 const currentTabMeta = computed(() => tabMetaMap[activeTab.value] || tabMetaMap.pending)
+
+const currentTabTone = computed(
+  () => tabList.value.find((tab) => tab.value === activeTab.value)?.tone || 'primary'
+)
 
 const applyTabFromRoute = () => {
   const tab = route.query.tab
@@ -600,12 +606,31 @@ onMounted(() => {
   flex: 0 0 auto;
   padding: 3px 11px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #5c6cf8 0%, #4058ef 100%);
   color: #ffffff;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(74, 92, 238, 0.22);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.todo-stream-badge--primary {
+  background: #4058ef;
+  box-shadow: 0 4px 10px rgba(64, 88, 239, 0.22);
+}
+
+.todo-stream-badge--warning {
+  background: #ef8a17;
+  box-shadow: 0 4px 10px rgba(239, 138, 23, 0.24);
+}
+
+.todo-stream-badge--success {
+  background: #12a37f;
+  box-shadow: 0 4px 10px rgba(18, 163, 127, 0.22);
+}
+
+.todo-stream-badge--rose {
+  background: #e5484d;
+  box-shadow: 0 4px 10px rgba(229, 72, 77, 0.22);
 }
 
 .todo-stream-note {

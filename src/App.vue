@@ -443,6 +443,23 @@ body.prototype-preview-canvas .t-popup--top {
   transform: none !important;
 }
 
+body.prototype-preview-shell .t-popup--bottom,
+body.prototype-preview-canvas .t-popup--bottom {
+  overflow: hidden;
+}
+
+body.prototype-preview-shell .t-popup--bottom,
+body.prototype-preview-shell .t-overlay {
+  border-bottom-left-radius: 34px;
+  border-bottom-right-radius: 34px;
+}
+
+body.prototype-preview-canvas .t-popup--bottom,
+body.prototype-preview-canvas .t-overlay {
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
 body.prototype-preview-shell .t-popup__content--center,
 body.prototype-preview-canvas .t-popup__content--center,
 body.prototype-preview-shell .t-dialog__ctx,

@@ -272,3 +272,12 @@ body.prototype-preview-canvas .t-toast {
   left: calc(var(--preview-overlay-left, 0px) + (var(--preview-overlay-width, min(402px, 100vw)) / 2)) !important;
   max-width: min(calc(var(--preview-overlay-width, min(402px, 100vw)) - 28px), 280px) !important;
 }
+
+/* 日历组件的品牌色对齐当前设计语言 */
+.t-calendar {
+  --td-brand-color: #4059f0;
+  --td-brand-color-7: #4059f0;
+  --td-calendar-active-color: #4059f0;
+  --td-calendar-item-centre-color: #eef1ff;
+  --td-calendar-radius: 22px;
+}

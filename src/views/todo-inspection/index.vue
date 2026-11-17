@@ -1,47 +1,48 @@
 <template>
   <div class="inspection-page app-page app-page--navbar">
-    <t-navbar title="线下巡检" left-arrow class="page-navbar" @left-click="handleBack">
-      <template #right>
-        <span class="navbar-code">{{ task?.id || '—' }}</span>
-      </template>
-    </t-navbar>
+    <t-navbar title="线下巡检" left-arrow class="page-navbar" @left-click="handleBack" />
 
     <template v-if="task">
-      <div class="inspection-hero app-card">
-        <div class="inspection-hero-top">
-          <div class="inspection-hero-copy">
-            <div class="inspection-hero-kicker">线下巡检任务</div>
-            <h1 class="inspection-hero-title">{{ task.storeName }}</h1>
-            <p class="inspection-hero-address">{{ task.address }}</p>
+      <div class="inspection-hero">
+        <div class="inspection-hero-head">
+          <div class="inspection-hero-badge">
+            <t-icon name="task-time" />
           </div>
-          <span class="inspection-hero-deadline">{{ task.deadline }}</span>
+          <div class="inspection-hero-copy">
+            <div class="inspection-hero-topline">
+              <h1 class="inspection-hero-title">{{ task.storeName }}</h1>
+              <span class="inspection-hero-time">{{ task.deadline }}</span>
+            </div>
+            <span class="inspection-hero-id">{{ task.id }}</span>
+            <span class="inspection-hero-address">{{ task.address }}</span>
+            <div class="inspection-chips">
+              <span class="chip chip--primary">待执行</span>
+            </div>
+          </div>
         </div>
 
-        <div class="inspection-hero-meta">
-          <div class="inspection-hero-meta-item">
-            <span>巡检模板</span>
-            <strong>{{ task.templateName }}</strong>
+        <div class="inspection-meta">
+          <div class="inspection-meta-item">
+            <span class="meta-label">巡检模板</span>
+            <span class="meta-value">{{ task.templateName }}</span>
           </div>
-          <div class="inspection-hero-meta-item">
-            <span>巡检方式</span>
-            <strong>{{ task.method }}</strong>
+          <div class="inspection-meta-item">
+            <span class="meta-label">巡检方式</span>
+            <span class="meta-value">{{ task.method }}</span>
           </div>
-          <div class="inspection-hero-meta-item">
-            <span>执行人</span>
-            <strong>{{ task.executors.join('、') }}</strong>
+          <div class="inspection-meta-item">
+            <span class="meta-label">执行人</span>
+            <span class="meta-value">{{ task.executors.join('、') }}</span>
           </div>
-          <div class="inspection-hero-meta-item">
-            <span>关联计划</span>
-            <strong>{{ task.planName }}</strong>
+          <div class="inspection-meta-item">
+            <span class="meta-label">关联计划</span>
+            <span class="meta-value">{{ task.planName }}</span>
           </div>
         </div>
       </div>
 
       <section class="app-section inspection-section">
-        <div class="location-card app-card" :class="`is-${locateStatus}`">
-          <div class="location-icon">
-            <t-icon :name="locationIcon" />
-          </div>
+        <div class="location-card" :class="`is-${locateStatus}`">
           <div class="location-copy">
             <div class="location-title">{{ locationTitle }}</div>
             <div class="location-desc">{{ locationDesc }}</div>
@@ -53,7 +54,7 @@
             class="location-action"
             @click="requestLocation"
           >
-            {{ locateStatus === 'inside' ? '重新定位' : '获取定位' }}
+            {{ locateStatus === 'inside' ? '重新定位' : '获取位置' }}
           </button>
         </div>
 
@@ -131,7 +132,6 @@
                 :class="{ 'is-active': item.result === 'pass' }"
                 @click="setResult(item, 'pass')"
               >
-                <t-icon name="check-circle" />
                 合格
               </button>
               <button
@@ -140,7 +140,6 @@
                 :class="{ 'is-active': item.result === 'fail' }"
                 @click="setResult(item, 'fail')"
               >
-                <t-icon name="error-circle" />
                 不合格
               </button>
             </div>
@@ -282,8 +281,6 @@ const hasInput = computed(() =>
     (item) => (item.problemDesc || '').trim() || item.screenshots.length > 0 || item.result === 'fail'
   )
 )
-
-const locationIcon = computed(() => (locateStatus.value === 'locating' ? 'time' : 'location'))
 
 const locationTitle = computed(() => {
   const map = {
@@ -528,8 +525,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(circle at top, rgba(var(--theme-primary-rgb), 0.1), transparent 28%),
-    linear-gradient(180deg, #eff8ff 0%, #f5f7fb 28%, #f5f7fb 100%);
+    radial-gradient(120% 36% at 84% -2%, rgba(198, 210, 245, 0.66) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(80% 34% at 8% 100%, rgba(214, 246, 236, 0.42) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #eef0fa 0%, #f7f9fe 30%, #ffffff 64%);
 }
 
 .page-navbar {
@@ -538,8 +536,8 @@ onMounted(() => {
   left: 0;
   right: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.92);
+  background: linear-gradient(180deg, rgba(237, 240, 250, 0.94) 0%, rgba(240, 243, 250, 0.72) 100%) !important;
+  border-bottom: 0;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -548,147 +546,164 @@ onMounted(() => {
 .page-navbar :deep(.t-navbar__title),
 .page-navbar :deep(.t-navbar__left),
 .page-navbar :deep(.t-navbar__right) {
-  color: #101828;
+  color: #1b1d24;
 }
 
-.navbar-code {
-  font-size: 11px;
-  font-weight: 600;
-  color: #56708f;
-  background: rgba(236, 241, 248, 0.96);
-  padding: 4px 8px;
-  border-radius: 8px;
+.page-navbar :deep(.t-navbar__title) {
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .inspection-hero {
-  margin: 16px;
-  padding: 18px;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.7), transparent 42%),
-    linear-gradient(135deg, #dff3ff 0%, #bfe6ff 58%, #a7d8f2 100%);
-  box-shadow: 0 18px 36px rgba(87, 136, 171, 0.16);
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
-.inspection-hero-top {
+.inspection-hero-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
+  align-items: flex-start;
+}
+
+.inspection-hero-badge {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: #eef0ff;
+  color: #4756c8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
 
 .inspection-hero-copy {
+  flex: 1;
   min-width: 0;
 }
 
-.inspection-hero-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(23, 49, 83, 0.62);
-  letter-spacing: 0.04em;
-}
-
-.inspection-hero-title {
-  margin: 8px 0 0;
-  font-size: 19px;
-  line-height: 1.35;
-  font-weight: 700;
-  color: #173153;
-}
-
-.inspection-hero-address {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: rgba(23, 49, 83, 0.62);
-}
-
-.inspection-hero-deadline {
-  flex: 0 0 auto;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-  color: #1f5a7b;
-  font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.inspection-hero-meta {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.inspection-hero-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 10px;
 }
 
-.inspection-hero-meta-item {
+.inspection-hero-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #1c1d24;
+}
+
+.inspection-hero-time {
+  flex: 0 0 auto;
+  padding-top: 2px;
+  font-size: 12px;
+  color: #9497a2;
+  white-space: nowrap;
+}
+
+.inspection-hero-id {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8d909b;
+}
+
+.inspection-hero-address {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #a3a6b0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspection-chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.chip--primary {
+  background: #e9f0ff;
+  color: #3f6ef5;
+}
+
+.inspection-meta {
+  margin-top: 14px;
+  padding: 15px 14px;
+  border-radius: 14px;
+  background: #f7f7f9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 12px;
+}
+
+.inspection-meta-item {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 9px 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.46);
+  gap: 5px;
 }
 
-.inspection-hero-meta-item span {
-  font-size: 10px;
-  color: rgba(23, 49, 83, 0.56);
-}
-
-.inspection-hero-meta-item strong {
+.meta-label {
   font-size: 12px;
-  color: #173153;
+  color: #9b9da6;
+}
+
+.meta-value {
+  font-size: 14px;
+  line-height: 1.35;
   font-weight: 600;
+  color: #2b2c33;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .inspection-section {
-  padding-top: 2px;
+  padding-top: 14px;
 }
 
 .location-card {
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 16px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  border: 1px solid rgba(228, 235, 244, 0.96);
+  background: #f2f5ff;
+  border: 1px solid #dfe6fb;
 }
 
 .location-card.is-inside {
-  border-color: rgba(22, 163, 74, 0.26);
-  background: rgba(240, 253, 246, 0.96);
+  background: #eefaf2;
+  border-color: #b7e6cb;
 }
 
 .location-card.is-outside,
 .location-card.is-denied {
-  border-color: rgba(213, 73, 65, 0.24);
-  background: rgba(255, 246, 245, 0.96);
-}
-
-.location-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex: 0 0 40px;
-}
-
-.location-card.is-inside .location-icon {
-  background: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
-}
-
-.location-card.is-outside .location-icon,
-.location-card.is-denied .location-icon {
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+  background: #fdeeee;
+  border-color: #f6c9c9;
 }
 
 .location-copy {
@@ -699,29 +714,39 @@ onMounted(() => {
 .location-title {
   font-size: 14px;
   font-weight: 700;
-  color: #173153;
+  color: #3b4356;
 }
 
 .location-card.is-inside .location-title {
-  color: #14532d;
+  color: #17835b;
 }
 
 .location-card.is-outside .location-title,
 .location-card.is-denied .location-title {
-  color: #b9382f;
+  color: #e5484d;
 }
 
 .location-desc {
-  margin-top: 4px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: #7a8ba0;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #6e7484;
+}
+
+.location-card.is-inside .location-desc {
+  color: #2e8a63;
+}
+
+.location-card.is-outside .location-desc,
+.location-card.is-denied .location-desc {
+  color: #d9524e;
 }
 
 .location-distance {
-  margin-top: 4px;
-  font-size: 10px;
-  color: #93a0b2;
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a3a7b2;
   word-break: break-all;
 }
 
@@ -730,23 +755,33 @@ onMounted(() => {
   height: 30px;
   padding: 0 10px;
   border: 0;
-  border-radius: 10px;
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
-  font-size: 11px;
-  font-weight: 700;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #5a6273;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.location-card.is-inside .location-action {
+  color: #17835b;
+}
+
+.location-card.is-outside .location-action,
+.location-card.is-denied .location-action {
+  background: #ffffff;
+  color: #e5484d;
 }
 
 .location-demo {
   margin-top: 10px;
   width: 100%;
-  height: 34px;
-  border: 1px dashed rgba(var(--theme-primary-rgb), 0.5);
+  height: 36px;
+  border: 1px dashed #dfe3ec;
   border-radius: 12px;
-  background: rgba(var(--theme-primary-rgb), 0.05);
-  color: var(--theme-primary-strong);
+  background: rgba(255, 255, 255, 0.6);
+  color: #7a7e8a;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .category-tabs {
@@ -763,33 +798,35 @@ onMounted(() => {
 
 .category-tab {
   flex: 0 0 auto;
-  height: 36px;
+  height: 38px;
   padding: 0 14px;
-  border: 1px solid rgba(224, 232, 242, 0.96);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #6b7c92;
-  font-size: 12px;
+  border: 1px solid #e9ebf1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6c6f7a;
+  font-size: 13px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 4px 10px rgba(24, 36, 72, 0.03);
 }
 
 .category-tab span {
-  font-size: 10px;
-  color: #9aa7b8;
+  font-size: 12px;
+  color: #a0a3ad;
+  font-variant-numeric: tabular-nums;
 }
 
 .category-tab.is-active {
   border-color: transparent;
-  background: linear-gradient(135deg, #bfe6ff 0%, #97d2f2 100%);
-  color: #173153;
-  box-shadow: 0 8px 18px rgba(var(--theme-primary-rgb), 0.18);
+  background: #4059f0;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(64, 89, 240, 0.24);
 }
 
 .category-tab.is-active span {
-  color: #2d6383;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .inspection-items {
@@ -800,8 +837,11 @@ onMounted(() => {
 }
 
 .inspection-item {
-  padding: 14px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .item-head {
@@ -814,88 +854,88 @@ onMounted(() => {
 .item-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
   font-size: 15px;
-  font-weight: 700;
-  color: #173153;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
 .item-index {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: rgba(var(--theme-primary-rgb), 0.12);
-  color: var(--theme-primary-strong);
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #eef0ff;
+  color: #4756c8;
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 24px;
+  flex: 0 0 28px;
 }
 
 .item-standard {
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: var(--theme-primary-strong);
-  font-size: 12px;
+  color: #4059f0;
+  font-size: 13px;
   font-weight: 600;
   padding: 4px;
 }
 
 .item-standard-text {
-  margin: 10px 0 0;
-  padding: 8px 10px;
+  margin: 12px 0 0;
+  padding: 11px 12px;
   border-radius: 10px;
-  background: rgba(246, 250, 254, 0.96);
-  font-size: 11px;
-  line-height: 1.6;
-  color: #7a8ba0;
+  background: #f7f7f9;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #6b6f7a;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .item-textarea {
-  margin-top: 10px;
+  margin-top: 12px;
   width: 100%;
-  min-height: 62px;
-  padding: 10px 12px;
-  border: 1px solid rgba(225, 233, 243, 0.96);
+  min-height: 74px;
+  padding: 11px 12px;
+  border: 1px solid #eceef3;
   border-radius: 12px;
-  background: #fbfdff;
+  background: #fbfbfc;
   font-size: 13px;
-  line-height: 1.55;
-  color: #2f4a68;
+  line-height: 1.6;
+  color: #2b2c33;
   resize: none;
   outline: none;
   font-family: inherit;
 }
 
 .item-textarea:focus {
-  border-color: rgba(var(--theme-primary-rgb), 0.6);
+  border-color: rgba(64, 89, 240, 0.5);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(var(--theme-primary-rgb), 0.1);
+  box-shadow: 0 0 0 3px rgba(64, 89, 240, 0.08);
 }
 
 .item-textarea::placeholder {
-  color: #a9b4c4;
+  color: #a9adb7;
 }
 
 .item-shots {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .item-shot {
   position: relative;
-  width: 78px;
-  height: 62px;
+  width: 86px;
+  height: 68px;
   border-radius: 10px;
   overflow: hidden;
   background: #eef3f9;
@@ -909,8 +949,8 @@ onMounted(() => {
 
 .item-shot-del {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   width: 18px;
   height: 18px;
   border: 0;
@@ -923,31 +963,31 @@ onMounted(() => {
 }
 
 .item-shot-add {
-  width: 78px;
-  height: 62px;
-  border: 1px dashed rgba(var(--theme-primary-rgb), 0.5);
+  width: 86px;
+  height: 68px;
+  border: 1px dashed #b9c4f8;
   border-radius: 10px;
-  background: rgba(var(--theme-primary-rgb), 0.06);
-  color: var(--theme-primary-strong);
+  background: #f6f8ff;
+  color: #4059f0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 10px;
+  gap: 3px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .item-shot-add em {
   font-style: normal;
   font-size: 9px;
-  color: #7a8ba0;
+  color: #8b93ad;
 }
 
 .item-result {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed rgba(226, 234, 244, 0.96);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f1f4;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -955,8 +995,8 @@ onMounted(() => {
 }
 
 .item-result-label {
-  font-size: 12px;
-  color: #7a8ba0;
+  font-size: 13px;
+  color: #4a4d57;
   font-weight: 600;
 }
 
@@ -967,12 +1007,12 @@ onMounted(() => {
 
 .result-btn {
   height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(224, 232, 242, 0.96);
+  padding: 0 16px;
+  border: 1px solid #e6e8ee;
   border-radius: 999px;
   background: #fff;
-  color: #7a8ba0;
-  font-size: 12px;
+  color: #7c7f89;
+  font-size: 13px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -980,37 +1020,39 @@ onMounted(() => {
 }
 
 .result-btn--pass.is-active {
-  border-color: rgba(22, 163, 74, 0.4);
-  background: rgba(22, 163, 74, 0.1);
-  color: #15803d;
+  border-color: #bfe8d0;
+  background: #eefaf3;
+  color: #17835b;
 }
 
 .result-btn--fail.is-active {
-  border-color: rgba(213, 73, 65, 0.4);
-  background: rgba(213, 73, 65, 0.1);
-  color: #d54941;
+  border-color: #f6c9c9;
+  background: #fdeeee;
+  color: #e5484d;
 }
 
 .item-hint {
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 10px;
-  background: rgba(213, 73, 65, 0.07);
-  color: #b9382f;
-  font-size: 11px;
+  background: #fdeeee;
+  color: #e5484d;
+  font-size: 12px;
   line-height: 1.5;
 }
 
 .inspection-footer {
   position: sticky;
   bottom: 0;
-  margin-top: auto;
-  padding: 12px var(--prototype-page-padding-x) calc(12px + var(--prototype-safe-bottom));
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 12px 14px calc(10px + var(--prototype-safe-bottom));
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(247, 250, 254, 0.94);
-  border-top: 1px solid rgba(226, 234, 244, 0.92);
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 -10px 30px rgba(24, 36, 72, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   z-index: 10;
@@ -1025,20 +1067,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  color: #7a8ba0;
+  font-size: 12px;
+  color: #8b8e99;
 }
 
 .inspection-progress-head strong {
-  color: #173153;
-  font-size: 12px;
+  color: #1b1c22;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .inspection-progress-bar {
-  margin-top: 6px;
-  height: 6px;
+  margin-top: 7px;
+  height: 5px;
   border-radius: 999px;
-  background: rgba(203, 215, 230, 0.5);
+  background: #eef0f4;
   overflow: hidden;
 }
 
@@ -1046,12 +1090,24 @@ onMounted(() => {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--theme-primary) 0%, var(--theme-primary-strong) 100%);
+  background: #4059f0;
   transition: width 0.3s ease;
 }
 
 .inspection-footer :deep(.t-button) {
-  min-width: 118px;
+  min-width: 132px;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: #4059f0 !important;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(64, 89, 240, 0.24);
+}
+
+.inspection-footer :deep(.t-button::after) {
+  border: 0;
 }
 
 .hidden-input {

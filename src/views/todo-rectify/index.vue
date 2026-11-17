@@ -3,50 +3,58 @@
     <t-navbar title="整改处理" left-arrow class="page-navbar" @left-click="goBack" />
 
     <template v-if="ticket">
-      <div class="flow-hero app-card">
-        <div class="flow-hero-top">
-          <div class="flow-hero-copy">
-            <div class="flow-hero-kicker">整改单 · {{ ticket.id }}</div>
-            <h1 class="flow-hero-title">{{ ticket.storeName }}</h1>
-            <p class="flow-hero-note">
-              提交人 {{ ticket.submitter }} · 生成于 {{ ticket.createdAt }}
-            </p>
+      <div class="rectify-hero">
+        <div class="rectify-hero-head">
+          <div class="rectify-hero-badge">
+            <t-icon name="tools" />
           </div>
-          <span class="flow-hero-status">待整改</span>
+          <div class="rectify-hero-copy">
+            <div class="rectify-hero-topline">
+              <h1 class="rectify-hero-title">{{ ticket.storeName }}</h1>
+              <span class="rectify-hero-time">{{ ticket.createdAt }}</span>
+            </div>
+            <span class="rectify-hero-id">{{ ticket.id }}</span>
+            <div class="rectify-chips">
+              <span class="chip chip--warning">驳回待整改</span>
+              <span class="chip chip--issue">问题 {{ ticket.issueCount }} 个</span>
+              <span v-if="ticket.sourceType === 'ai'" class="chip chip--ai">AI</span>
+            </div>
+          </div>
         </div>
 
-        <div class="flow-hero-stats">
-          <div class="flow-hero-stat">
-            <span>问题数</span>
-            <strong>{{ ticket.issueCount }}</strong>
+        <div class="rectify-meta">
+          <div class="rectify-meta-item">
+            <span class="meta-label">巡检模板</span>
+            <span class="meta-value">{{ ticket.templateName }}</span>
           </div>
-          <div class="flow-hero-stat">
-            <span>巡检模板</span>
-            <strong>{{ ticket.templateName }}</strong>
+          <div class="rectify-meta-item">
+            <span class="meta-label">巡检方式</span>
+            <span class="meta-value">{{ ticket.method }}</span>
           </div>
-          <div class="flow-hero-stat">
-            <span>整改人</span>
-            <strong>{{ ticket.rectifier }}</strong>
+          <div class="rectify-meta-item">
+            <span class="meta-label">整改人</span>
+            <span class="meta-value">{{ ticket.rectifier }}</span>
+          </div>
+          <div class="rectify-meta-item">
+            <span class="meta-label">提交人</span>
+            <span class="meta-value">{{ ticket.submitter }}</span>
           </div>
         </div>
       </div>
 
-      <div v-if="ticket.rejectReason" class="reject-banner app-card">
-        <t-icon name="error-circle-filled" class="reject-icon" />
-        <div class="reject-copy">
-          <span class="reject-label">上次审核驳回原因</span>
-          <span class="reject-text">{{ ticket.rejectReason }}</span>
-        </div>
+      <div v-if="ticket.rejectReason" class="reject-banner">
+        <div class="reject-label">上次审核驳回原因</div>
+        <p class="reject-text">{{ ticket.rejectReason }}</p>
       </div>
 
       <section class="app-section rectify-section">
         <div class="rectify-head">
-          <div class="rectify-head-title">整改明细</div>
+          <h2 class="rectify-head-title">整改明细</h2>
           <span class="rectify-head-count">{{ doneCount }}/{{ ticket.items.length }} 已完善</span>
         </div>
 
         <div class="rectify-list">
-          <div v-for="(item, index) in ticket.items" :key="item.id" class="rectify-item app-card">
+          <div v-for="(item, index) in ticket.items" :key="item.id" class="rectify-item">
             <div class="rectify-item-head">
               <div class="rectify-item-title">
                 <span class="rectify-item-index">{{ String(index + 1).padStart(2, '0') }}</span>
@@ -106,7 +114,7 @@
                 </button>
                 <button type="button" class="upload-add upload-add--sample" @click="addSample(item)">
                   <t-icon name="camera" />
-                  <span>模拟拍照</span>
+                  <span>拍照</span>
                 </button>
               </div>
             </div>
@@ -116,7 +124,10 @@
 
       <div class="flow-footer">
         <div class="flow-footer-info">
-          <span>整改进度</span>
+          <div class="flow-footer-head">
+            <span>整改进度</span>
+            <strong>{{ doneCount }}/{{ ticket.items.length }}</strong>
+          </div>
           <div class="flow-footer-bar">
             <span :style="{ width: `${progressPercent}%` }"></span>
           </div>
@@ -259,8 +270,9 @@ const submit = () => {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(circle at top, rgba(217, 119, 6, 0.1), transparent 26%),
-    linear-gradient(180deg, #fffaf2 0%, #f6f8fb 26%, #f5f7fb 100%);
+    radial-gradient(120% 36% at 84% -2%, rgba(198, 210, 245, 0.66) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(80% 34% at 8% 100%, rgba(214, 246, 236, 0.42) 0%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #eef0fa 0%, #f7f9fe 30%, #ffffff 64%);
 }
 
 .page-navbar {
@@ -269,8 +281,8 @@ const submit = () => {
   left: 0;
   right: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-bottom: 1px solid rgba(228, 235, 244, 0.92);
+  background: linear-gradient(180deg, rgba(237, 240, 250, 0.94) 0%, rgba(240, 243, 250, 0.72) 100%) !important;
+  border-bottom: 0;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -279,155 +291,190 @@ const submit = () => {
 .page-navbar :deep(.t-navbar__title),
 .page-navbar :deep(.t-navbar__left),
 .page-navbar :deep(.t-navbar__right) {
-  color: #101828;
+  color: #1b1d24;
 }
 
-.flow-hero {
-  margin: 16px;
-  padding: 18px;
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.7), transparent 42%),
-    linear-gradient(135deg, #fff3dd 0%, #ffe4bb 58%, #fcd9a4 100%);
-  box-shadow: 0 18px 36px rgba(185, 130, 42, 0.14);
+.page-navbar :deep(.t-navbar__title) {
+  font-size: 17px;
+  font-weight: 700;
 }
 
-.flow-hero-top {
+.rectify-hero {
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
+}
+
+.rectify-hero-head {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
+  align-items: flex-start;
 }
 
-.flow-hero-copy {
+.rectify-hero-badge {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 12px;
+  background: #fff3e6;
+  color: #e08a2e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.rectify-hero-copy {
+  flex: 1;
   min-width: 0;
 }
 
-.flow-hero-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(120, 78, 20, 0.66);
-  letter-spacing: 0.02em;
+.rectify-hero-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.flow-hero-title {
-  margin: 8px 0 0;
-  font-size: 19px;
-  line-height: 1.35;
-  font-weight: 700;
-  color: #7a4a12;
+.rectify-hero-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
-.flow-hero-note {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: rgba(122, 74, 18, 0.62);
-}
-
-.flow-hero-status {
+.rectify-hero-time {
   flex: 0 0 auto;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  color: #b45309;
-  font-size: 11px;
-  font-weight: 700;
+  padding-top: 2px;
+  font-size: 12px;
+  color: #9497a2;
   white-space: nowrap;
 }
 
-.flow-hero-stats {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+.rectify-hero-id {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  color: #8d909b;
 }
 
-.flow-hero-stat {
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.46);
+.rectify-chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.chip--warning {
+  background: #fff2e2;
+  color: #e08c2e;
+}
+
+.chip--issue {
+  background: #ffe9e9;
+  color: #e5484d;
+}
+
+.chip--ai {
+  background: #e8edff;
+  color: #4f63e8;
+}
+
+.rectify-meta {
+  margin-top: 14px;
+  padding: 15px 14px;
+  border-radius: 14px;
+  background: #f7f7f9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 12px;
+}
+
+.rectify-meta-item {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.flow-hero-stat span {
-  font-size: 10px;
-  color: rgba(122, 74, 18, 0.56);
-}
-
-.flow-hero-stat strong {
+.meta-label {
   font-size: 12px;
-  color: #7a4a12;
-  font-weight: 700;
+  color: #9b9da6;
+}
+
+.meta-value {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #2b2c33;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .reject-banner {
-  margin: 0 16px 4px;
-  padding: 12px;
-  border-radius: 16px;
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  background: rgba(255, 245, 244, 0.96);
-  border: 1px solid rgba(213, 73, 65, 0.2);
-  box-shadow: 0 10px 22px rgba(185, 56, 47, 0.07);
-}
-
-.reject-icon {
-  color: #d54941;
-  font-size: 16px;
-  margin-top: 1px;
-  flex: 0 0 16px;
-}
-
-.reject-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #fdf0f0;
 }
 
 .reject-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  color: #b9382f;
+  color: #e5484d;
 }
 
 .reject-text {
-  font-size: 12px;
+  margin: 6px 0 0;
+  font-size: 13px;
   line-height: 1.6;
-  color: #a34a45;
+  color: #e5484d;
 }
 
 .rectify-section {
-  padding-top: 14px;
+  padding-top: 20px;
   flex: 1;
 }
 
 .rectify-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 4px 10px;
+  gap: 10px;
+  padding: 0 2px 12px;
 }
 
 .rectify-head-title {
-  font-size: 17px;
+  margin: 0;
+  font-size: 19px;
   font-weight: 700;
-  color: #173153;
+  color: #1b1c22;
+  letter-spacing: -0.01em;
 }
 
 .rectify-head-count {
-  font-size: 11px;
-  font-weight: 600;
-  color: #b45309;
-  background: rgba(217, 119, 6, 0.1);
-  padding: 5px 9px;
+  padding: 4px 11px;
   border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #ef8a17;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(239, 138, 23, 0.24);
 }
 
 .rectify-list {
@@ -436,87 +483,93 @@ const submit = () => {
 }
 
 .rectify-item {
-  padding: 14px;
-  border-radius: 18px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  box-shadow: 0 14px 30px rgba(24, 36, 72, 0.06);
 }
 
 .rectify-item-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
 }
 
 .rectify-item-title {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 9px;
   min-width: 0;
   font-size: 14px;
-  font-weight: 700;
-  color: #173153;
+  line-height: 1.45;
+  font-weight: 600;
+  color: #1c1d24;
 }
 
 .rectify-item-index {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
+  margin-top: 0;
   border-radius: 8px;
-  background: rgba(217, 119, 6, 0.12);
-  color: #b45309;
+  background: #fff3e6;
+  color: #e08a2e;
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 24px;
+  flex: 0 0 26px;
 }
 
 .rectify-item-state {
   flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: rgba(217, 119, 6, 0.1);
-  color: #b45309;
-  font-size: 11px;
-  font-weight: 700;
+  padding-top: 4px;
+  background: transparent;
+  color: #e08c2e;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .rectify-item-state.is-done {
-  background: rgba(22, 163, 74, 0.1);
-  color: #15803d;
+  background: transparent;
+  color: #12a37f;
 }
 
 .rectify-block {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .block-label {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: #93a0b2;
-  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9b9da6;
+  margin-bottom: 7px;
 }
 
 .block-text {
   margin: 0;
-  padding: 9px 11px;
+  padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(247, 250, 254, 0.96);
-  font-size: 12px;
+  background: #f7f7f9;
+  font-size: 13px;
   line-height: 1.6;
-  color: #3f5877;
+  color: #6b6f7a;
 }
 
 .thumb-row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 .thumb {
   width: 78px;
-  height: 58px;
+  height: 60px;
   border-radius: 10px;
   overflow: hidden;
   background: #eef3f9;
@@ -529,58 +582,58 @@ const submit = () => {
 }
 
 .rectify-field {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .rectify-field-label {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   font-size: 12px;
-  font-weight: 700;
-  color: #43607f;
+  font-weight: 600;
+  color: #9b9da6;
 }
 
 .rectify-field-label em {
   font-style: normal;
-  color: #d54941;
+  color: #e5484d;
   margin-right: 2px;
 }
 
 .rectify-textarea {
   width: 100%;
-  min-height: 70px;
-  padding: 10px 12px;
-  border: 1px solid rgba(225, 233, 243, 0.96);
+  min-height: 86px;
+  padding: 11px 12px;
+  border: 1px solid #e6e8ee;
   border-radius: 12px;
-  background: #fbfdff;
+  background: #fbfbfc;
   font-size: 13px;
-  line-height: 1.55;
-  color: #2f4a68;
+  line-height: 1.6;
+  color: #2b2c33;
   resize: none;
   outline: none;
   font-family: inherit;
 }
 
 .rectify-textarea:focus {
-  border-color: rgba(217, 119, 6, 0.55);
+  border-color: rgba(239, 138, 23, 0.55);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.09);
+  box-shadow: 0 0 0 3px rgba(239, 138, 23, 0.09);
 }
 
 .rectify-textarea::placeholder {
-  color: #a9b4c4;
+  color: #a9adb7;
 }
 
 .upload-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .upload-thumb {
   position: relative;
-  width: 72px;
-  height: 56px;
+  width: 84px;
+  height: 64px;
   border-radius: 10px;
   overflow: hidden;
   background: #eef3f9;
@@ -594,8 +647,8 @@ const submit = () => {
 
 .upload-del {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   width: 18px;
   height: 18px;
   border: 0;
@@ -608,25 +661,25 @@ const submit = () => {
 }
 
 .upload-add {
-  width: 72px;
-  height: 56px;
-  border: 1px dashed rgba(148, 163, 184, 0.6);
+  width: 84px;
+  height: 64px;
+  border: 1px dashed #f0cfa6;
   border-radius: 10px;
-  background: rgba(247, 250, 254, 0.96);
-  color: #7a8ba0;
+  background: #fff8ef;
+  color: #e08a2e;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 10px;
+  gap: 4px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .upload-add--sample {
-  border-color: rgba(217, 119, 6, 0.45);
-  background: rgba(217, 119, 6, 0.06);
-  color: #b45309;
+  border-color: #f0cfa6;
+  background: #fff8ef;
+  color: #e08a2e;
 }
 
 .hidden-input {
@@ -636,13 +689,15 @@ const submit = () => {
 .flow-footer {
   position: sticky;
   bottom: 0;
-  margin-top: auto;
-  padding: 12px var(--prototype-page-padding-x) calc(12px + var(--prototype-safe-bottom));
+  margin: 12px var(--prototype-page-padding-x) 0;
+  padding: 12px 14px calc(10px + var(--prototype-safe-bottom));
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(247, 250, 254, 0.94);
-  border-top: 1px solid rgba(226, 234, 244, 0.92);
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(238, 240, 245, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 -10px 30px rgba(24, 36, 72, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   z-index: 10;
@@ -651,15 +706,28 @@ const submit = () => {
 .flow-footer-info {
   flex: 1;
   min-width: 0;
-  font-size: 11px;
-  color: #7a8ba0;
+}
+
+.flow-footer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #8b8e99;
+}
+
+.flow-footer-head strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b1c22;
+  font-variant-numeric: tabular-nums;
 }
 
 .flow-footer-bar {
-  margin-top: 6px;
-  height: 6px;
+  margin-top: 7px;
+  height: 5px;
   border-radius: 999px;
-  background: rgba(203, 215, 230, 0.5);
+  background: #eef0f4;
   overflow: hidden;
 }
 
@@ -667,12 +735,24 @@ const submit = () => {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #fbbf24 0%, #d97706 100%);
+  background: #ef8a17;
   transition: width 0.3s ease;
 }
 
 .flow-footer :deep(.t-button) {
-  min-width: 118px;
+  min-width: 132px;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: #ef8a17 !important;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(239, 138, 23, 0.26);
+}
+
+.flow-footer :deep(.t-button::after) {
+  border: 0;
 }
 
 .empty-wrap {
