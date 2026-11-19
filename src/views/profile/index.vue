@@ -375,7 +375,7 @@ const goToGallery = () => {
 }
 
 const handleHelp = () => {
-  Toast.info('帮助与反馈')
+  router.push('/help')
 }
 
 const openCacheDialog = () => {

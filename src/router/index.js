@@ -60,6 +60,12 @@ const routes = [
     meta: { title: '设置' }
   },
   {
+    path: '/help',
+    name: 'help',
+    component: () => import('../views/help/index.vue'),
+    meta: { title: '帮助与反馈' }
+  },
+  {
     path: '/agreement',
     name: 'agreement',
     component: () => import('../views/agreement/index.vue'),
