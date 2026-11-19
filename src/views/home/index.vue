@@ -1,10 +1,30 @@
 <template>
-  <div class="home-page app-page">
+  <div class="home-page app-page" :class="{ 'is-map-mode': viewMode === 'map' }">
     <span class="home-decor" aria-hidden="true"></span>
 
     <header class="home-top">
-      <div class="home-title-row">
-        <h1 class="home-title">视频广场</h1>
+      <div class="home-head-row">
+        <div class="view-switch">
+          <button
+            type="button"
+            class="view-switch-item"
+            :class="{ active: viewMode === 'video' }"
+            @click="switchView('video')"
+          >
+            <t-icon name="video" />
+            视频广场
+          </button>
+          <button
+            type="button"
+            class="view-switch-item"
+            :class="{ active: viewMode === 'map' }"
+            @click="switchView('map')"
+          >
+            <t-icon name="location" />
+            点位地图
+          </button>
+        </div>
+
         <button type="button" class="grid-entry" @click="openMultiViewSettings" aria-label="多画面设置">
           <t-icon name="grid-view" />
         </button>
@@ -23,6 +43,7 @@
       </div>
     </header>
 
+    <template v-if="viewMode === 'video'">
     <div class="search-wrap">
       <div class="search-shell">
         <t-icon name="search" class="search-icon" />
@@ -97,6 +118,148 @@
         </template>
       </div>
     </t-pull-down-refresh>
+    </template>
+
+    <!-- ==================== 点位地图 ==================== -->
+    <div v-else class="map-shell">
+      <VideoMapCanvas
+        :stores="mapStoresWithCounts"
+        :devices="mapDevices"
+        :mode="mapMode"
+        :selected-store-id="selectedMapStoreId"
+        :selected-device-id="selectedMapDeviceId"
+        @store-click="openStoreSheet"
+        @device-click="openDeviceMapSheet"
+      />
+
+      <div class="map-mode-tabs">
+        <button
+          type="button"
+          class="map-mode-tab"
+          :class="{ active: mapMode === 'store' }"
+          @click="switchMapMode('store')"
+        >
+          门店定位
+        </button>
+        <button
+          type="button"
+          class="map-mode-tab"
+          :class="{ active: mapMode === 'device' }"
+          @click="switchMapMode('device')"
+        >
+          设备定位
+        </button>
+      </div>
+
+      <div class="map-summary">
+        <span class="map-summary-dot" />
+        {{
+          mapMode === 'store'
+            ? `${mapStoresWithCounts.length} 个门店 · ${mapDevices.length} 台设备`
+            : `${mapDevices.length} 个监控点位`
+        }}
+      </div>
+
+      <!-- 门店设备列表 -->
+      <transition name="map-sheet">
+        <section v-if="storeSheetVisible && selectedStoreData" class="map-sheet">
+          <button type="button" class="map-sheet-grabber" aria-label="关闭门店设备列表" @click="closeStoreSheet">
+            <i />
+          </button>
+          <div class="map-sheet-head">
+            <div class="map-sheet-title">
+              <h3>{{ selectedStoreData.name }}</h3>
+              <p>{{ selectedStoreData.area }} · 共 {{ selectedStoreData.deviceCount }} 台设备</p>
+            </div>
+            <button type="button" class="map-sheet-close" aria-label="关闭" @click="closeStoreSheet">
+              <t-icon name="close" />
+            </button>
+          </div>
+
+          <div class="map-sheet-body">
+            <button
+              v-for="device in selectedStoreDevices"
+              :key="device.id"
+              type="button"
+              class="map-device-card"
+              @click="openDeviceMapSheet(device)"
+            >
+              <div class="map-device-card-head">
+                <span class="map-device-dot" :class="device.status" />
+                <strong>{{ device.name }}</strong>
+                <span class="map-state" :class="device.status">{{ getStatusText(device.status) }}</span>
+              </div>
+              <div class="map-device-rows">
+                <div class="map-device-row"><span>设备License</span><em>{{ device.license }}</em></div>
+                <div class="map-device-row"><span>所属区域</span><em>{{ device.area }}</em></div>
+                <div class="map-device-row"><span>设备类型</span><em>{{ device.type }}</em></div>
+                <div class="map-device-row">
+                  <span>最近事件</span>
+                  <em :class="{ 'is-event': device.lastEvent }">{{ device.lastEvent || '暂无事件' }}</em>
+                </div>
+              </div>
+              <div class="map-device-card-foot">
+                <span>{{ device.lat }}°N，{{ device.lng }}°E</span>
+                <span class="map-device-link">查看详情<t-icon name="chevron-right" /></span>
+              </div>
+            </button>
+
+            <div v-if="!selectedStoreDevices.length" class="map-sheet-empty">
+              <t-icon name="video" />
+              <p>该门店下暂无设备</p>
+            </div>
+          </div>
+        </section>
+      </transition>
+
+      <!-- 设备详情 -->
+      <transition name="map-sheet">
+        <section v-if="deviceSheetVisible && selectedMapDeviceData" class="map-sheet map-sheet--device">
+          <button type="button" class="map-sheet-grabber" aria-label="关闭设备详情" @click="closeDeviceSheet">
+            <i />
+          </button>
+          <div class="map-sheet-head">
+            <div class="map-sheet-title">
+              <h3>{{ selectedMapDeviceData.name }}</h3>
+              <p>
+                <span class="map-state" :class="selectedMapDeviceData.status">
+                  {{ getStatusText(selectedMapDeviceData.status) }}
+                </span>
+                {{ selectedMapDeviceData.storeName }}
+              </p>
+            </div>
+            <button type="button" class="map-sheet-close" aria-label="关闭" @click="closeDeviceSheet">
+              <t-icon name="close" />
+            </button>
+          </div>
+
+          <div class="map-sheet-body">
+            <div class="map-device-rows map-device-rows--detail">
+              <div class="map-device-row"><span>设备License</span><em>{{ selectedMapDeviceData.license }}</em></div>
+              <div class="map-device-row"><span>所属区域</span><em>{{ selectedMapDeviceData.area }}</em></div>
+              <div class="map-device-row"><span>设备类型</span><em>{{ selectedMapDeviceData.type }}</em></div>
+              <div class="map-device-row">
+                <span>坐标</span>
+                <em>{{ selectedMapDeviceData.lat }}°N，{{ selectedMapDeviceData.lng }}°E</em>
+              </div>
+              <div class="map-device-row">
+                <span>最近事件</span>
+                <em :class="{ 'is-event': selectedMapDeviceData.lastEvent }">
+                  {{ selectedMapDeviceData.lastEvent || '暂无事件' }}
+                </em>
+              </div>
+            </div>
+
+            <div class="map-sheet-actions">
+              <button type="button" class="map-action map-action--primary" @click="openLiveVideo(selectedMapDeviceData)">
+                <t-icon name="video" />
+                实时视频
+              </button>
+            </div>
+          </div>
+        </section>
+      </transition>
+    </div>
 
     <transition name="region-sheet">
       <div v-if="showRegionPicker" class="region-layer" @click.self="closeRegionPicker">
@@ -202,6 +365,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 import { buildImageUrl } from '../../utils/media'
+import VideoMapCanvas from '../../components/VideoMapCanvas.vue'
 
 const router = useRouter()
 
@@ -209,6 +373,14 @@ const searchText = ref('')
 const loading = ref(true)
 const deviceRefreshing = ref(false)
 const treeRefreshing = ref(false)
+
+// 视频广场 / 点位地图
+const viewMode = ref('video')
+const mapMode = ref('store')
+const selectedMapStoreId = ref('')
+const storeSheetVisible = ref(false)
+const selectedMapDeviceId = ref('')
+const deviceSheetVisible = ref(false)
 
 onMounted(() => {
   setTimeout(() => {
@@ -308,16 +480,77 @@ const thumbnailUrl = buildImageUrl(
 )
 
 const devices = ref([
-  { id: 1, name: '摄像头-车间1入口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
-  { id: 2, name: '摄像头-车间1出口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
-  { id: 3, name: '摄像头-车间2入口', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
-  { id: 4, name: '摄像头-仓库区域', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂', thumbnail: thumbnailUrl },
-  { id: 5, name: '摄像头-办公区域', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
-  { id: 6, name: '摄像头-停车场', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
-  { id: 7, name: '摄像头-厂区大门', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂', thumbnail: thumbnailUrl },
-  { id: 8, name: '摄像头-生产车间', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂', thumbnail: thumbnailUrl },
-  { id: 9, name: '摄像头-质检区域', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂', thumbnail: thumbnailUrl }
+  {
+    id: 1, name: '摄像头-车间1入口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SH-A101', type: '高清枪机', area: '生产车间 · A线', regionId: 'line-sh-a',
+    lat: 32.0625, lng: 118.7325, lastEvent: '2024-07-29 18:00:24',
+    marker: { left: 17, top: 21 }
+  },
+  {
+    id: 2, name: '摄像头-车间1出口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SH-A102', type: '低功耗摄像机', area: '生产车间 · A线', regionId: 'line-sh-a',
+    lat: 32.0598, lng: 118.7302, lastEvent: null,
+    marker: { left: 38, top: 20 }
+  },
+  {
+    id: 3, name: '摄像头-车间2入口', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SH-B201', type: '高清球机', area: '生产车间 · B线', regionId: 'line-sh-b',
+    lat: 32.0602, lng: 118.7288, lastEvent: '2024-07-23 18:00:00',
+    marker: { left: 15, top: 38 }
+  },
+  {
+    id: 4, name: '摄像头-仓库区域', status: 'offline', storeId: 'store-sh-factory', storeName: '上海工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SH-W301', type: '低功耗摄像机', area: '仓库', regionId: 'dept-sh-wh',
+    lat: 32.0589, lng: 118.7312, lastEvent: null,
+    marker: { left: 39, top: 39 }
+  },
+  {
+    id: 5, name: '摄像头-办公区域', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-BJ-O101', type: '高清球机', area: '办公区域', regionId: 'store-bj-factory',
+    lat: 32.0508, lng: 118.7808, lastEvent: null,
+    marker: { left: 38, top: 44 }
+  },
+  {
+    id: 6, name: '摄像头-停车场', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-BJ-P201', type: '低功耗摄像机', area: '停车场', regionId: 'store-bj-factory',
+    lat: 32.0492, lng: 118.7791, lastEvent: '2024-07-27 14:22:10',
+    marker: { left: 50, top: 62 }
+  },
+  {
+    id: 7, name: '摄像头-厂区大门', status: 'online', storeId: 'store-bj-factory', storeName: '北京工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-BJ-G301', type: '高清枪机', area: '厂区大门', regionId: 'store-bj-factory',
+    lat: 32.0514, lng: 118.7812, lastEvent: null,
+    marker: { left: 62, top: 45 }
+  },
+  {
+    id: 8, name: '摄像头-生产车间', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SZ-W101', type: '高清球机', area: '生产车间', regionId: 'store-sz-factory',
+    lat: 31.9506, lng: 118.8207, lastEvent: '2024-07-29 10:00:05',
+    marker: { left: 61, top: 64 }
+  },
+  {
+    id: 9, name: '摄像头-质检区域', status: 'online', storeId: 'store-sz-factory', storeName: '深圳工厂',
+    thumbnail: thumbnailUrl, license: 'CAM-SZ-Q201', type: '低功耗摄像机', area: '质检区域', regionId: 'store-sz-factory',
+    lat: 31.9494, lng: 118.8192, lastEvent: null,
+    marker: { left: 84, top: 66 }
+  }
 ])
+
+// 点位地图 — 门店聚合点
+const mapStores = [
+  {
+    id: 'store-sh-factory', name: '上海工厂', district: '桥北', area: '华东区 · 上海工厂',
+    lat: 32.060, lng: 118.730, marker: { left: 27, top: 29 }
+  },
+  {
+    id: 'store-bj-factory', name: '北京工厂', district: '鼓楼', area: '华北区 · 北京工厂',
+    lat: 32.050, lng: 118.780, marker: { left: 50, top: 50 }
+  },
+  {
+    id: 'store-sz-factory', name: '深圳工厂', district: '江宁', area: '华南区 · 深圳工厂',
+    lat: 31.950, lng: 118.820, marker: { left: 72, top: 71 }
+  }
+]
 
 const confirmButtonText = computed(() => {
   if (!pendingStoreId.value) {
@@ -434,7 +667,11 @@ const filteredDevices = computed(() => {
     const selectedNodeData = findNode(regionTree.value, selectedStoreId.value)
     if (selectedNodeData) {
       const allValues = getAllChildValues(selectedNodeData)
-      result = result.filter(d => allValues.includes(d.storeId) || d.storeId === selectedStoreId.value)
+      result = result.filter(d =>
+        allValues.includes(d.storeId) ||
+        allValues.includes(d.regionId) ||
+        d.storeId === selectedStoreId.value
+      )
     }
   }
 
@@ -448,6 +685,86 @@ const filteredDevices = computed(() => {
 
   return result
 })
+
+// ==================== 点位地图 ====================
+const mapDevices = computed(() =>
+  filteredDevices.value.map(device => ({
+    ...device,
+    online: device.status === 'online'
+  }))
+)
+
+const mapStoresWithCounts = computed(() =>
+  mapStores
+    .map(store => ({
+      ...store,
+      deviceCount: filteredDevices.value.filter(device => device.storeId === store.id).length
+    }))
+    .filter(store => store.deviceCount > 0)
+)
+
+const selectedStoreData = computed(
+  () => mapStoresWithCounts.value.find(store => store.id === selectedMapStoreId.value) || null
+)
+
+const selectedStoreDevices = computed(() =>
+  filteredDevices.value.filter(device => device.storeId === selectedMapStoreId.value)
+)
+
+const selectedMapDeviceData = computed(
+  () => devices.value.find(device => device.id === selectedMapDeviceId.value) || null
+)
+
+const switchMapMode = (mode) => {
+  mapMode.value = mode
+  selectedMapStoreId.value = ''
+  storeSheetVisible.value = false
+  selectedMapDeviceId.value = ''
+  deviceSheetVisible.value = false
+}
+
+const switchView = (mode) => {
+  viewMode.value = mode
+  if (mode === 'map') {
+    // 地图视角不沿用视频列表的临时筛选，避免隐藏的搜索词导致点位为空
+    searchText.value = ''
+    activeFilter.value = 'all'
+    return
+  }
+  switchMapMode('store')
+}
+
+const openStoreSheet = (store) => {
+  selectedMapStoreId.value = store.id
+  storeSheetVisible.value = true
+  selectedMapDeviceId.value = ''
+  deviceSheetVisible.value = false
+}
+
+const closeStoreSheet = () => {
+  storeSheetVisible.value = false
+  selectedMapStoreId.value = ''
+}
+
+const openDeviceMapSheet = (device) => {
+  selectedMapDeviceId.value = device.id
+  deviceSheetVisible.value = true
+  storeSheetVisible.value = false
+  selectedMapStoreId.value = ''
+}
+
+const closeDeviceSheet = () => {
+  deviceSheetVisible.value = false
+  selectedMapDeviceId.value = ''
+}
+
+const openLiveVideo = (device) => {
+  if (device.status === 'offline') {
+    Toast.error('设备离线，无法查看实时视频')
+    return
+  }
+  router.push(`/video-player/${device.id}`)
+}
 
 const collectAncestorValues = (value) => {
   const values = []
@@ -645,20 +962,11 @@ const getFilterCount = (value) => {
   padding: calc(var(--prototype-safe-top) + 10px) 16px 0 20px;
 }
 
-.home-title-row {
+.home-head-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.home-title {
-  margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #16171d;
-  letter-spacing: 0.01em;
 }
 
 .grid-entry {
@@ -746,6 +1054,51 @@ const getFilterCount = (value) => {
 
 .switch-chip:active {
   background: linear-gradient(135deg, #4d5ef0 0%, #3848e6 100%);
+}
+
+/* 视频广场 / 点位地图 切换 */
+.view-switch {
+  flex: 0 1 auto;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.view-switch-item {
+  height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #5f6472;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.16s ease;
+}
+
+.view-switch-item :deep(.t-icon) {
+  font-size: 16px;
+}
+
+.view-switch-item.active {
+  background: linear-gradient(135deg, #5b6cfb 0%, #4059f0 100%);
+  color: #ffffff;
+  box-shadow:
+    0 6px 16px rgba(64, 89, 240, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.view-switch-item:active {
+  transform: scale(0.97);
 }
 
 .search-wrap {
@@ -947,6 +1300,367 @@ const getFilterCount = (value) => {
 .device-empty {
   grid-column: 1 / -1;
   padding: 32px 0;
+}
+
+/* ==================== 点位地图 ==================== */
+.home-page.is-map-mode {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+:global(body.prototype-preview-canvas) .home-page.is-map-mode {
+  height: calc(100dvh - 88px);
+  min-height: 640px;
+}
+
+.home-page.is-map-mode .home-top {
+  flex: 0 0 auto;
+}
+
+.map-shell {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 8px 12px calc(var(--app-tabbar-space, 92px) + 2px);
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 24px;
+  overflow: hidden;
+  background: #f2f6f5;
+  box-shadow: 0 18px 38px rgba(70, 88, 140, 0.14);
+}
+
+.map-mode-tabs {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 6;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 6px 16px rgba(24, 43, 74, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.map-mode-tab {
+  height: 29px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #66748a;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.map-mode-tab.active {
+  background: #4059f0;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(64, 89, 240, 0.28);
+}
+
+.map-summary {
+  position: absolute;
+  right: 52px;
+  top: 15px;
+  z-index: 5;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #56657b;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 5px 14px rgba(24, 43, 74, 0.12);
+  white-space: nowrap;
+}
+
+.map-summary-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+}
+
+/* 底部面板 */
+.map-sheet {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 8;
+  max-height: 58%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 -14px 36px rgba(19, 37, 70, 0.2);
+  overflow: hidden;
+}
+
+.map-sheet--device {
+  max-height: 46%;
+}
+
+.map-sheet-grabber {
+  flex: 0 0 18px;
+  width: 100%;
+  padding: 7px 0 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+}
+
+.map-sheet-grabber i {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e2e7ef;
+}
+
+.map-sheet-head {
+  flex: 0 0 auto;
+  padding: 2px 16px 9px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.map-sheet-title {
+  min-width: 0;
+}
+
+.map-sheet-title h3 {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #16233a;
+  letter-spacing: -0.01em;
+}
+
+.map-sheet-title p {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #93a0b1;
+}
+
+.map-sheet-close {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 0;
+  border-radius: 50%;
+  background: #f4f5f8;
+  color: #7a7e8a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.map-device-card {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #eef1f6;
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-device-card:active {
+  background: #f7f9ff;
+  border-color: rgba(64, 89, 240, 0.35);
+}
+
+.map-device-card-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.map-device-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #16a34a;
+}
+
+.map-device-dot.offline {
+  background: #b0bac7;
+}
+
+.map-device-card-head strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-state {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #eafaf2;
+  color: #12946a;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.map-state.offline {
+  background: #f1f3f6;
+  color: #8a94a4;
+}
+
+.map-device-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-device-rows--detail {
+  gap: 9px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f7f8fc;
+}
+
+.map-device-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.map-device-row span {
+  flex: 0 0 66px;
+  color: #9aa4b4;
+}
+
+.map-device-row em {
+  flex: 1;
+  min-width: 0;
+  font-style: normal;
+  color: #334155;
+  word-break: break-all;
+}
+
+.map-device-row em.is-event {
+  color: #e5484d;
+  font-weight: 600;
+}
+
+.map-device-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #f1f3f8;
+  color: #a3aebd;
+  font-size: 9.5px;
+}
+
+.map-device-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #4059f0;
+  font-weight: 600;
+}
+
+.map-device-link :deep(.t-icon) {
+  font-size: 12px;
+}
+
+.map-sheet-empty {
+  padding: 22px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  color: #a9b2c0;
+  font-size: 11.5px;
+}
+
+.map-sheet-empty :deep(.t-icon) {
+  font-size: 28px;
+  color: #ccd5e2;
+}
+
+.map-sheet-actions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.map-action {
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.map-action--primary {
+  background: linear-gradient(135deg, #5b6cfb 0%, #4059f0 100%);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(64, 89, 240, 0.24);
+}
+
+.map-action--primary :deep(.t-icon) {
+  font-size: 15px;
+}
+
+.map-sheet-enter-active,
+.map-sheet-leave-active {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+}
+
+.map-sheet-enter-from,
+.map-sheet-leave-to {
+  transform: translateY(26px);
+  opacity: 0;
 }
 
 .region-layer {

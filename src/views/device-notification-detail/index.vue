@@ -46,10 +46,6 @@
           <span class="info-label">设备 License</span>
           <span class="info-value">{{ notification.license }}</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">安装位置</span>
-          <span class="info-value">{{ notification.location }}</span>
-        </div>
       </div>
 
       <div class="action-spacer"></div>
