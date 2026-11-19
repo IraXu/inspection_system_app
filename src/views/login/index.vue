@@ -8,7 +8,7 @@
     </div>
 
     <div class="auth-body">
-      <h1 class="auth-title">欢迎登录 智能巡检</h1>
+      <h1 class="auth-title">欢迎登录 鹤梦之家</h1>
       <p class="auth-subtitle">让巡检更智能、更高效</p>
 
       <button type="button" class="auth-region" @click="openServerSheet">

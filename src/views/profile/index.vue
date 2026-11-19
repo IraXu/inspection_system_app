@@ -294,8 +294,10 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 import { buildImageUrl } from '../../utils/media'
+import { useGalleryStore } from '../../stores/gallery'
 
 const router = useRouter()
+const galleryStore = useGalleryStore()
 
 const cacheDialogVisible = ref(false)
 
@@ -313,10 +315,10 @@ const enterpriseInfo = ref({
   code: 'HM20260115001'
 })
 
-const galleryStats = ref({
-  images: 12,
-  videos: 5
-})
+const galleryStats = computed(() => ({
+  images: galleryStore.photos.length,
+  videos: galleryStore.videos.length
+}))
 
 const avatarUrl = buildImageUrl(
   '3D cartoon avatar portrait of a smiling young asian man with fluffy short brown hair, big friendly eyes, wearing a light gray shirt, soft clay render style, plain pale lavender background, head and shoulders, centered, mobile app profile avatar',
@@ -369,7 +371,7 @@ const copyEnterpriseCode = async () => {
 }
 
 const goToGallery = () => {
-  Toast.info('图库管理功能开发中')
+  router.push('/gallery')
 }
 
 const handleHelp = () => {

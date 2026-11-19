@@ -339,6 +339,8 @@ const syncPreviewViewport = () => {
 .app-canvas :deep(.video-navbar),
 .phone-screen :deep(.bottom-tabs),
 .app-canvas :deep(.bottom-tabs),
+.phone-screen :deep(.select-bar),
+.app-canvas :deep(.select-bar),
 .phone-screen :deep(.region-layer),
 .app-canvas :deep(.region-layer) {
   left: 50% !important;

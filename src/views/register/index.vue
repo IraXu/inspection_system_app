@@ -8,7 +8,7 @@
     </div>
 
     <div class="auth-body">
-      <h1 class="auth-title">加入智慧巡检</h1>
+      <h1 class="auth-title">加入鹤梦之家</h1>
       <p class="auth-subtitle auth-subtitle--narrow">创建巡检账号后即可进入企业工作台，接收任务与设备告警</p>
 
       <div class="auth-form">

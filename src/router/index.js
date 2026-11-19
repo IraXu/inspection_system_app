@@ -96,6 +96,18 @@ const routes = [
     meta: { title: '视频播放' }
   },
   {
+    path: '/video-playback/:id',
+    name: 'video-playback',
+    component: () => import('../views/video-playback/index.vue'),
+    meta: { title: '录像回放' }
+  },
+  {
+    path: '/gallery',
+    name: 'gallery',
+    component: () => import('../views/gallery/index.vue'),
+    meta: { title: '图库管理' }
+  },
+  {
     path: '/video-wall-setup',
     name: 'video-wall-setup',
     component: () => import('../views/video-wall-setup/index.vue'),
@@ -133,7 +145,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title || '智慧巡检APP'
+  document.title = to.meta.title || '鹤梦之家APP'
   next()
 })
 

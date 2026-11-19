@@ -1,59 +1,49 @@
 <template>
-  <div class="about-page app-page">
-    <header class="page-top">
-      <button type="button" class="back-entry" aria-label="返回" @click="goBack">
-        <t-icon name="chevron-left" />
-      </button>
-      <h1 class="page-title">关于我们</h1>
-    </header>
+  <div class="about-page">
+    <button type="button" class="back-entry" aria-label="返回" @click="goBack">
+      <t-icon name="chevron-left" />
+    </button>
 
-    <section class="app-section about-section">
-      <div class="about-hero">
-        <div class="about-logo">
-          <t-icon name="secured" />
-        </div>
-        <div class="about-name">智慧巡检</div>
-        <div class="about-version">版本 1.0.0</div>
-      </div>
-    </section>
+    <main class="about-main">
+      <svg class="app-icon" viewBox="0 0 1024 1024" role="img" aria-label="鹤梦之家应用图标">
+        <defs>
+          <linearGradient id="about-icon-bg" x1="120" y1="0" x2="904" y2="1024" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#3f9dff" />
+            <stop offset="0.55" stop-color="#2a89fa" />
+            <stop offset="1" stop-color="#1c70ee" />
+          </linearGradient>
+          <radialGradient id="about-icon-glow" cx="0.3" cy="0.18" r="0.8">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.2" />
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="1024" height="1024" fill="url(#about-icon-bg)" />
+        <rect width="1024" height="1024" fill="url(#about-icon-glow)" />
+        <path
+          fill="#ffffff"
+          fill-opacity="0.45"
+          d="M345 250C300 302 262 372 252 448C242 522 266 592 316 634C362 672 440 686 520 662C468 656 410 636 366 600C316 560 296 496 300 428C305 358 326 294 345 250Z"
+        />
+        <path
+          fill="#ffffff"
+          d="M228 545C236 640 300 720 402 762C492 799 592 794 670 754C748 714 786 620 790 438C770 556 720 642 640 692C560 742 460 746 380 706C310 670 260 610 228 545Z"
+        />
+        <path
+          fill="#ffffff"
+          d="M470 560C500 470 550 370 605 315C640 282 695 258 735 280C775 302 790 355 775 405C758 462 715 505 665 535C700 480 705 430 685 400C662 366 620 372 592 410C550 468 505 520 470 560Z"
+        />
+        <ellipse cx="650" cy="298" rx="20" ry="11" transform="rotate(-20 650 298)" fill="#a9d9ff" />
+      </svg>
 
-    <section class="app-section about-section">
-      <div class="about-card">
-        <p class="about-intro">
-          智慧巡检是一款面向企业现场巡检场景的移动应用，覆盖任务下发、现场打卡、隐患上报、整改审核与数据看板，帮助团队高效完成日常巡检工作。
-        </p>
-      </div>
-    </section>
+      <h1 class="app-name">鹤梦之家</h1>
+      <p class="app-slogan">让每一次巡检都更智能、更高效</p>
+    </main>
 
-    <section class="app-section about-section">
-      <h2 class="section-title">核心能力</h2>
-      <div class="about-card about-card--list">
-        <div v-for="item in features" :key="item.title" class="about-row">
-          <span class="row-icon">
-            <t-icon :name="item.icon" />
-          </span>
-          <div class="row-copy">
-            <div class="row-title">{{ item.title }}</div>
-            <div class="row-desc">{{ item.desc }}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="app-section about-section">
-      <h2 class="section-title">联系我们</h2>
-      <div class="about-card about-card--list">
-        <div v-for="item in contacts" :key="item.label" class="about-row">
-          <span class="row-icon">
-            <t-icon :name="item.icon" />
-          </span>
-          <span class="row-title row-title--plain">{{ item.label }}</span>
-          <span class="row-value">{{ item.value }}</span>
-        </div>
-      </div>
-    </section>
-
-    <p class="copyright">© 2026 鹤梦科技有限公司 · 保留所有权利</p>
+    <div class="about-bottom">
+      <span class="app-version">版本 1.0.0</span>
+      <a class="app-site" :href="officialSite" target="_blank" rel="noopener">{{ officialSite }}</a>
+      <footer class="about-footer">© 2017-2026 Hemeng Technology Co., Ltd. All rights reserved.</footer>
+    </div>
   </div>
 </template>
 
@@ -62,219 +52,112 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+const officialSite = 'https://www.smartcloudcon.com/'
+
 const goBack = () => {
   router.back()
 }
-
-const features = [
-  {
-    icon: 'task',
-    title: '智能巡检',
-    desc: '任务下发、扫码点位、现场拍照留痕'
-  },
-  {
-    icon: 'video',
-    title: '视频巡查',
-    desc: '实时视频与多画面轮巡，异常快速定位'
-  },
-  {
-    icon: 'check-circle',
-    title: '整改闭环',
-    desc: '隐患上报、整改跟踪、复核归档全流程'
-  }
-]
-
-const contacts = [
-  { label: '客服电话', value: '400-666-6666', icon: 'call' },
-  { label: '联系邮箱', value: 'support@hemeng.com', icon: 'mail' },
-  { label: '官方网站', value: 'www.hemeng.com', icon: 'internet' }
-]
 </script>
 
 <style scoped>
 .about-page {
+  position: relative;
   min-height: 100%;
-  background:
-    radial-gradient(120% 48% at 6% 0%, rgba(224, 212, 250, 0.9) 0%, rgba(224, 212, 250, 0) 62%),
-    radial-gradient(120% 46% at 100% 100%, rgba(206, 240, 235, 0.95) 0%, rgba(206, 240, 235, 0) 60%),
-    linear-gradient(170deg, #f2edfb 0%, #edf2fb 44%, #e9f5f3 100%);
-  padding-bottom: calc(28px + var(--prototype-safe-bottom));
-}
-
-.page-top {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: calc(var(--prototype-safe-top) + 10px) 16px 0 14px;
+  flex-direction: column;
+  padding: calc(var(--prototype-safe-top) + 8px) 24px calc(20px + var(--prototype-safe-bottom));
+  background:
+    radial-gradient(64% 36% at 50% 32%, rgba(91, 168, 255, 0.16) 0%, rgba(91, 168, 255, 0) 72%),
+    linear-gradient(180deg, #f8fbff 0%, #eff5fd 100%);
 }
 
 .back-entry {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  margin-left: -2px;
+  position: absolute;
+  top: calc(var(--prototype-safe-top) + 4px);
+  left: 14px;
+  width: 36px;
+  height: 36px;
   border: 0;
+  border-radius: 50%;
   background: transparent;
-  color: #16171d;
+  color: #1b2430;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .back-entry:active {
+  background: rgba(27, 36, 48, 0.06);
+}
+
+.about-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding-top: 92px;
+}
+
+.app-icon {
+  display: block;
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  box-shadow: 0 20px 44px rgba(31, 116, 239, 0.26);
+}
+
+.app-name {
+  margin: 24px 0 0;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: #1b2430;
+  letter-spacing: 0.08em;
+}
+
+.app-slogan {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #6d7b8d;
+  letter-spacing: 0.02em;
+}
+
+.app-version {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #6f7b8b;
+}
+
+.about-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.app-site {
+  padding-bottom: 2px;
+  font-size: 12.5px;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.app-site:active {
   opacity: 0.6;
 }
 
-.page-title {
+.about-footer {
   margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #16171d;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.6;
   letter-spacing: 0.01em;
-}
-
-.about-section {
-  padding-top: 18px;
-}
-
-.about-hero {
-  position: relative;
-  overflow: hidden;
-  padding: 24px 18px 22px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 249, 255, 0.88) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.08);
-  text-align: center;
-}
-
-.about-hero::after {
-  content: '';
-  position: absolute;
-  top: -50px;
-  right: -34px;
-  width: 150px;
-  height: 150px;
-  border-radius: 30px;
-  transform: rotate(14deg);
-  background:
-    linear-gradient(118deg, rgba(140, 176, 255, 0.2) 0 24%, rgba(140, 176, 255, 0) 24% 44%, rgba(170, 200, 255, 0.18) 44% 70%, rgba(170, 200, 255, 0) 70%);
-  pointer-events: none;
-}
-
-.about-logo {
-  position: relative;
-  width: 76px;
-  height: 76px;
-  margin: 0 auto;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, #7ea6ff 0%, #3f6cf5 100%);
-  color: #fff;
-  font-size: 38px;
-  box-shadow: 0 12px 26px rgba(63, 108, 245, 0.26);
-}
-
-.about-name {
-  position: relative;
-  margin-top: 14px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #17181d;
-}
-
-.about-version {
-  position: relative;
-  margin-top: 6px;
-  font-size: 13px;
-  color: #9c9da6;
-}
-
-.about-card {
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 30px rgba(112, 120, 170, 0.07);
-}
-
-.about-card--list {
-  padding: 4px 18px;
-}
-
-.about-intro {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.9;
-  color: #4d4e58;
-}
-
-.section-title {
-  margin: 0 0 12px 4px;
-  font-size: 19px;
-  line-height: 1.3;
-  font-weight: 700;
-  color: #17181d;
-}
-
-.about-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 0;
-}
-
-.row-icon {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  border-radius: 10px;
-  background: #eaf1ff;
-  color: #3f6cf5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-}
-
-.row-copy {
-  min-width: 0;
-}
-
-.row-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1c1d22;
-}
-
-.row-title--plain {
-  flex: 1;
-  min-width: 0;
-  font-weight: 500;
-  font-size: 16px;
-}
-
-.row-desc {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #a2a3ac;
-}
-
-.row-value {
-  flex: 0 0 auto;
-  font-size: 13px;
-  color: #9c9da6;
-}
-
-.copyright {
-  margin: 26px 0 0;
-  text-align: center;
-  font-size: 12px;
-  color: #9d9ea7;
+  color: #98a5b6;
 }
 </style>
