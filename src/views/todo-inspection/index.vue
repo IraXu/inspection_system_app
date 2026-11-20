@@ -111,7 +111,7 @@
               class="item-shot"
               @click="previewImage(image, item.name)"
             >
-              <img :src="image" alt="" />
+              <img :src="image" alt="" loading="lazy" decoding="async" />
               <button type="button" class="item-shot-del" @click.stop="removeShot(item, imageIndex)">
                 ×
               </button>
@@ -200,6 +200,8 @@
                 :key="image"
                 :src="image"
                 alt=""
+                loading="lazy"
+                decoding="async"
                 @click="previewImage(image, '标准图')"
               />
             </div>

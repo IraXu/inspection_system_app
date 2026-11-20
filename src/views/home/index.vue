@@ -103,7 +103,7 @@
             @click="openDevice(device)"
           >
             <div class="device-thumbnail">
-              <img :src="device.thumbnail" :alt="device.name" />
+              <img :src="device.thumbnail" :alt="device.name" loading="lazy" decoding="async" />
               <span class="status-tag" :class="device.status">{{ getStatusText(device.status) }}</span>
             </div>
             <div class="device-info">
@@ -385,7 +385,7 @@ const deviceSheetVisible = ref(false)
 onMounted(() => {
   setTimeout(() => {
     loading.value = false
-  }, 1500)
+  }, 300)
 })
 
 onBeforeUnmount(() => {

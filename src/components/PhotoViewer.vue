@@ -25,10 +25,7 @@ const close = () => {
 <style scoped>
 .photo-viewer {
   position: fixed;
-  left: var(--preview-overlay-left, 0);
-  top: var(--preview-overlay-top, 0);
-  width: var(--preview-overlay-width, 100vw);
-  height: var(--preview-overlay-height, 100vh);
+  inset: 0;
   z-index: 1900;
   background: rgba(9, 16, 28, 0.88);
   display: flex;
@@ -37,6 +34,15 @@ const close = () => {
   padding: 24px;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+}
+
+/* 画布模式（无手机壳）下 fixed 相对视口，需要对齐到画布区域 */
+:global(body.prototype-preview-canvas .photo-viewer) {
+  inset: auto;
+  left: var(--preview-overlay-left, 0px);
+  top: var(--preview-overlay-top, 0px);
+  width: var(--preview-overlay-width, 100vw);
+  height: var(--preview-overlay-height, 100dvh);
 }
 
 .photo-viewer-image {

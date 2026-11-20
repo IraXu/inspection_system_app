@@ -79,7 +79,7 @@
                   class="thumb"
                   @click="previewImage(image, '巡检截图')"
                 >
-                  <img :src="image" alt="" />
+                  <img :src="image" alt="" loading="lazy" decoding="async" />
                 </div>
               </div>
             </div>
@@ -103,7 +103,7 @@
                   class="upload-thumb"
                   @click="previewImage(image, '整改截图')"
                 >
-                  <img :src="image" alt="" />
+                  <img :src="image" alt="" loading="lazy" decoding="async" />
                   <button type="button" class="upload-del" @click.stop="removeImage(item, imageIndex)">
                     ×
                   </button>

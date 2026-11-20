@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { buildImageUrl } from '../utils/media'
+import { buildImageUrl, normalizeImageUrl } from '../utils/media'
 
 const STORAGE_KEY = 'prototype-gallery-media'
 
@@ -67,7 +67,9 @@ const readStorage = () => {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : null
+    if (!Array.isArray(parsed)) return null
+    // 旧版本缓存里存的是远程图片地址，读取时替换为本地图片
+    return parsed.map(item => ({ ...item, url: normalizeImageUrl(item.url) }))
   } catch {
     return null
   }

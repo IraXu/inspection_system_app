@@ -59,7 +59,7 @@
         <span v-if="manageMode" class="check-dot" :class="{ 'is-on': selectedIds.includes(item.id) }">✓</span>
 
         <div class="message-thumb">
-          <img :src="item.eventImage" alt="" @error="hideBrokenImage" />
+          <img :src="item.eventImage" alt="" loading="lazy" decoding="async" @error="hideBrokenImage" />
         </div>
 
         <div class="message-body">

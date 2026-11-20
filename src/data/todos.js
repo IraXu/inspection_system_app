@@ -1,5 +1,6 @@
-const snapshot = (prompt, size = 'landscape_4_3') =>
-  `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`
+import { buildImageUrl } from '../utils/media'
+
+const snapshot = (prompt, size = 'landscape_4_3') => buildImageUrl(prompt, size)
 
 // ============ 巡检项库 ============
 const ITEM_LIBRARY = {

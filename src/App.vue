@@ -77,6 +77,8 @@ onMounted(() => {
   syncBodyPreviewClass(previewEnabled.value)
   syncPreviewViewport()
   window.addEventListener('resize', syncPreviewViewport)
+  // 画布模式下页面滚动时画布位置会变化，需要同步更新浮层定位变量
+  window.addEventListener('scroll', onPreviewScroll, { capture: true, passive: true })
 })
 
 watch(previewEnabled, (value) => {
@@ -96,6 +98,7 @@ onBeforeUnmount(() => {
   document.body.classList.remove('prototype-preview-shell')
   document.body.classList.remove('prototype-preview-canvas')
   window.removeEventListener('resize', syncPreviewViewport)
+  window.removeEventListener('scroll', onPreviewScroll, true)
 })
 
 
@@ -108,10 +111,30 @@ const syncPreviewViewport = () => {
   if (!target) return
 
   const rect = target.getBoundingClientRect()
-  root.style.setProperty('--preview-overlay-left', `${rect.left}px`)
-  root.style.setProperty('--preview-overlay-top', `${rect.top}px`)
-  root.style.setProperty('--preview-overlay-width', `${rect.width}px`)
-  root.style.setProperty('--preview-overlay-height', `${rect.height}px`)
+  let left = rect.left
+  let top = rect.top
+  let width = rect.width
+  let height = rect.height
+
+  // 画布可能比视口更高：浮层按画布在视口内的可见区域定位，避免内容被滚出屏幕
+  if (!previewEnabled.value) {
+    left = Math.max(rect.left, 0)
+    top = Math.max(rect.top, 0)
+    width = Math.min(rect.right, window.innerWidth) - left
+    height = Math.min(rect.bottom, window.innerHeight) - top
+  }
+
+  root.style.setProperty('--preview-overlay-left', `${left}px`)
+  root.style.setProperty('--preview-overlay-top', `${top}px`)
+  root.style.setProperty('--preview-overlay-width', `${width}px`)
+  root.style.setProperty('--preview-overlay-height', `${height}px`)
+}
+
+const onPreviewScroll = () => {
+  // 手机壳模式下的浮层相对手机屏定位，滚动时无需重算
+  if (!previewEnabled.value) {
+    syncPreviewViewport()
+  }
 }
 </script>
 

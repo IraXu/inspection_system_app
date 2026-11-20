@@ -51,7 +51,7 @@
             @click="onCardClick(item)"
           >
             <div class="media-thumb">
-              <img :src="item.url" alt="" loading="lazy" />
+              <img :src="item.url" alt="" loading="lazy" decoding="async" />
 
               <span v-if="item.type === 'video'" class="media-duration">{{ formatDuration(item.duration) }}</span>
 
