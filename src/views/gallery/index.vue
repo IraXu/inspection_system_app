@@ -89,39 +89,60 @@
 
     <transition name="viewer">
       <div v-if="activeItem" class="media-viewer" @click.self="closeViewer">
-        <button type="button" class="viewer-close" aria-label="关闭" @click="closeViewer">
-          <t-icon name="close" />
-        </button>
-
-        <div class="viewer-stage" :class="{ 'is-video': activeItem.type === 'video' }">
-          <img :src="activeItem.url" alt="" />
-          <button
-            v-if="activeItem.type === 'video'"
-            type="button"
-            class="viewer-play"
-            :class="{ playing: isPlaying }"
-            @click="togglePlay"
-          >
-            <t-icon :name="isPlaying ? 'pause-circle-filled' : 'play-circle-filled'" size="52px" />
+        <div class="viewer-topbar">
+          <button type="button" class="viewer-icon-btn" aria-label="关闭" @click="closeViewer">
+            <t-icon name="close" size="20px" />
           </button>
-          <div v-if="activeItem.type === 'video'" class="viewer-progress">
-            <span :style="{ width: `${playProgress}%` }"></span>
+          <span class="viewer-chip">{{ activeItem.type === 'video' ? '视频' : '照片' }}</span>
+        </div>
+
+        <div class="viewer-stage">
+          <img :src="activeItem.url" alt="" />
+
+          <template v-if="activeItem.type === 'video'">
+            <button
+              v-if="!isPlaying"
+              type="button"
+              class="viewer-play"
+              aria-label="播放"
+              @click.stop="togglePlay"
+            >
+              <t-icon name="play-circle-filled" size="56px" />
+            </button>
+
+            <div class="viewer-controls">
+              <button type="button" class="control-toggle" aria-label="播放或暂停" @click.stop="togglePlay">
+                <t-icon :name="isPlaying ? 'pause-circle-filled' : 'play-circle-filled'" size="20px" />
+              </button>
+              <span class="control-time">{{ formatDuration(elapsedSeconds) }}</span>
+              <div class="viewer-progress">
+                <span :style="{ width: `${playProgress}%` }"></span>
+              </div>
+              <span class="control-time">{{ formatDuration(activeItem.duration) }}</span>
+            </div>
+          </template>
+        </div>
+
+        <div class="viewer-panel">
+          <div class="viewer-meta">
+            <h3>{{ activeItem.deviceName }}</h3>
+            <p>
+              {{ formatFullTime(activeItem.createdAt) }}
+              <template v-if="activeItem.type === 'video'"> · 时长 {{ formatDuration(activeItem.duration) }}</template>
+            </p>
+          </div>
+
+          <div class="viewer-actions">
+            <button type="button" class="viewer-action is-primary" @click="saveToPhone">
+              <t-icon name="download" size="18px" />
+              保存到手机
+            </button>
+            <button type="button" class="viewer-action is-danger" @click="removeActive">
+              <t-icon name="delete" size="18px" />
+              删除
+            </button>
           </div>
         </div>
-
-        <div class="viewer-meta">
-          <span class="viewer-type">{{ activeItem.type === 'video' ? '录制视频' : '监控照片' }}</span>
-          <h3>{{ activeItem.deviceName }}</h3>
-          <p>
-            {{ formatFullTime(activeItem.createdAt) }}
-            <template v-if="activeItem.type === 'video'"> · 时长 {{ formatDuration(activeItem.duration) }}</template>
-          </p>
-        </div>
-
-        <button type="button" class="viewer-delete" @click="removeActive">
-          <t-icon name="delete" size="16px" />
-          删除此项
-        </button>
       </div>
     </transition>
 
@@ -224,6 +245,11 @@ const formatFullTime = (timestamp) => {
   const pad = (value) => String(value).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
+
+const elapsedSeconds = computed(() => {
+  const duration = activeItem.value?.duration || 0
+  return Math.round((duration * playProgress.value) / 100)
+})
 
 const isSelected = (id) => selectedIds.value.includes(id)
 
@@ -346,6 +372,11 @@ const togglePlay = () => {
       stopPlayback()
     }
   }, 120)
+}
+
+const saveToPhone = () => {
+  if (!activeItem.value) return
+  Toast.success('已保存到手机相册')
 }
 
 onUnmounted(() => {
@@ -695,71 +726,131 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   z-index: 1900;
-  padding: 0 20px calc(30px + var(--prototype-safe-bottom));
-  background: rgba(8, 13, 22, 0.92);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  gap: 14px;
+  padding: calc(var(--prototype-safe-top) + 10px) 16px calc(16px + var(--prototype-safe-bottom));
+  background:
+    radial-gradient(90% 45% at 50% 0%, rgba(72, 92, 190, 0.42) 0%, rgba(72, 92, 190, 0) 62%),
+    linear-gradient(180deg, #10141f 0%, #070a11 100%);
 }
 
-.viewer-close {
-  position: absolute;
-  top: calc(var(--prototype-safe-top) + 8px);
-  right: 16px;
+.viewer-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.viewer-icon-btn {
   width: 36px;
   height: 36px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  font-size: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.viewer-icon-btn:active {
+  opacity: 0.6;
+}
+
+.viewer-chip {
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
 }
 
 .viewer-stage {
   position: relative;
-  width: 100%;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #000000;
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.46);
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .viewer-stage img {
   display: block;
-  width: 100%;
-  max-height: 56vh;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 18px;
   object-fit: contain;
-  background: #000000;
+  background: rgba(6, 10, 18, 0.7);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.5);
 }
 
 .viewer-play {
   position: absolute;
   inset: 0;
+  margin: auto;
+  width: 66px;
+  height: 66px;
+  padding: 0;
   border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.94);
-  display: flex;
+  border-radius: 50%;
+  background: rgba(10, 14, 24, 0.42);
+  color: rgba(255, 255, 255, 0.95);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.36);
+  transition: transform 0.16s ease, background 0.16s ease;
 }
 
-.viewer-play.playing {
-  background: rgba(8, 13, 22, 0.18);
+.viewer-play:active {
+  transform: scale(0.92);
+  background: rgba(10, 14, 24, 0.55);
+}
+
+.viewer-controls {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.control-toggle {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.82);
+  font-variant-numeric: tabular-nums;
 }
 
 .viewer-progress {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 12px;
+  flex: 1;
   height: 3px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.24);
@@ -770,56 +861,69 @@ onUnmounted(() => {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #7c8bff;
+  background: linear-gradient(90deg, #7c8bff 0%, #a4b0ff 100%);
   transition: width 0.12s linear;
 }
 
-.viewer-meta {
-  width: 100%;
-  text-align: left;
-  color: #ffffff;
-}
-
-.viewer-type {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(91, 108, 251, 0.24);
-  color: #b9c2ff;
-  font-size: 10.5px;
-  font-weight: 600;
+.viewer-panel {
+  flex: 0 0 auto;
+  padding: 16px 16px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .viewer-meta h3 {
-  margin: 10px 0 0;
-  font-size: 16px;
+  margin: 0;
+  font-size: 15.5px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .viewer-meta p {
   margin-top: 5px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.62);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
-.viewer-delete {
-  width: 100%;
-  height: 46px;
+.viewer-actions {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.viewer-action {
+  height: 44px;
   border: 0;
-  border-radius: 23px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ff9a92;
-  font-size: 14px;
+  border-radius: 22px;
+  font-size: 13.5px;
   font-weight: 600;
   font-family: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transition: transform 0.16s ease, opacity 0.16s ease;
 }
 
-.viewer-delete:active {
-  background: rgba(255, 255, 255, 0.18);
+.viewer-action:active {
+  transform: scale(0.97);
+  opacity: 0.82;
+}
+
+.viewer-action.is-primary {
+  background: linear-gradient(135deg, #5b6cfb 0%, #4059f0 100%);
+  box-shadow: 0 10px 24px rgba(64, 89, 240, 0.28);
+}
+
+.viewer-action.is-danger {
+  background: rgba(255, 107, 95, 0.14);
+  color: #ff9a92;
 }
 
 .viewer-enter-active,
