@@ -5,7 +5,9 @@
         <LiveIcon name="back" :size="26" />
       </button>
       <h1 class="live-title">{{ deviceName }}</h1>
-      <span class="live-nav-spacer"></span>
+      <button type="button" class="live-back" aria-label="设备设置" @click="goDeviceSettings">
+        <LiveIcon name="setting" :size="22" />
+      </button>
     </header>
 
     <section class="live-stage">
@@ -268,6 +270,10 @@ const goBack = () => {
     stopRecording()
   }
   router.back()
+}
+
+const goDeviceSettings = () => {
+  router.push(`/device-settings/${deviceId.value}`)
 }
 
 const switchBottomTab = (tab) => {

@@ -102,6 +102,36 @@ const routes = [
     meta: { title: '视频播放' }
   },
   {
+    path: '/device-settings/:id',
+    name: 'device-settings',
+    component: () => import('../views/device-settings/index.vue'),
+    meta: { title: '设备设置' }
+  },
+  {
+    path: '/device-storage-settings/:id',
+    name: 'device-storage-settings',
+    component: () => import('../views/device-storage-settings/index.vue'),
+    meta: { title: '存储设置' }
+  },
+  {
+    path: '/alarm-settings/:id',
+    name: 'alarm-settings',
+    component: () => import('../views/alarm-settings/index.vue'),
+    meta: { title: '报警设置' }
+  },
+  {
+    path: '/detection-types/:id',
+    name: 'detection-types',
+    component: () => import('../views/detection-types/index.vue'),
+    meta: { title: '侦测类型' }
+  },
+  {
+    path: '/cloud-plan/:id',
+    name: 'cloud-plan',
+    component: () => import('../views/cloud-plan/index.vue'),
+    meta: { title: '云存储套餐' }
+  },
+  {
     path: '/video-playback/:id',
     name: 'video-playback',
     component: () => import('../views/video-playback/index.vue'),
