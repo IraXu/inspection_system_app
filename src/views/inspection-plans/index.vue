@@ -17,9 +17,15 @@
         <div class="hero-top">
           <div class="hero-copy">
             <h1 class="hero-title">巡检计划</h1>
-            <p class="hero-subtitle">
-              共 {{ plans.length }} 个计划 · {{ store.inProgressPlanCount }} 个进行中
-            </p>
+            <div class="hero-meta">
+              <span class="hero-subtitle">
+                共 {{ plans.length }} 个计划 · {{ store.inProgressPlanCount }} 个进行中
+              </span>
+              <button type="button" class="legend-link" @click="legendVisible = true">
+                <t-icon name="help-circle" size="14" />
+                <span>说明</span>
+              </button>
+            </div>
           </div>
           <button type="button" class="hero-add" @click="openCreate">
             <t-icon name="add" size="18" />
@@ -46,10 +52,6 @@
           >
             <span>{{ tab.label }}</span>
             <b>{{ tab.count }}</b>
-          </button>
-          <button type="button" class="legend-trigger" aria-label="查看状态说明" @click="legendVisible = true">
-            <t-icon name="help" size="16" />
-            <span class="legend-text">说明</span>
           </button>
         </div>
       </div>
@@ -430,10 +432,35 @@ onDeactivated(() => {
   color: #16181f;
 }
 
+.hero-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
 .hero-subtitle {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 13.5px;
   color: #6b7186;
+}
+
+.legend-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4a6cf0;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: opacity 0.2s ease;
+}
+
+.legend-link:active {
+  opacity: 0.6;
 }
 
 .hero-add {
@@ -506,7 +533,7 @@ onDeactivated(() => {
 .status-tabs {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -556,26 +583,6 @@ onDeactivated(() => {
 .status-tab.is-active b {
   background: transparent;
   color: #2f5fe0;
-}
-
-.legend-trigger {
-  height: 48px;
-  padding: 0 4px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.66);
-  color: #7a8093;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-}
-
-.legend-text {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
 }
 
 .plan-list {
