@@ -6,31 +6,69 @@
 
         <div class="option-head">
           <h3 class="option-title">{{ title }}</h3>
-          <button v-if="multiple" type="button" class="option-clear" @click="clearDraft">清空</button>
+          <button type="button" class="option-close" aria-label="关闭" @click="close">
+            <t-icon name="close" size="17" />
+          </button>
+        </div>
+
+        <div v-if="searchable" class="option-search">
+          <t-icon name="search" size="16" class="option-search-icon" />
+          <input
+            v-model="keyword"
+            class="option-search-input"
+            type="text"
+            :placeholder="searchPlaceholder"
+          />
+          <button v-if="keyword" type="button" class="option-search-clear" aria-label="清空搜索" @click="keyword = ''">
+            <t-icon name="close-circle-filled" size="16" />
+          </button>
+        </div>
+
+        <div v-if="multiple && draft.length" class="option-selected">
+          <div class="option-selected-head">
+            <span class="option-selected-label">已选 {{ draft.length }} 项</span>
+            <button type="button" class="option-selected-clear" @click="clearDraft">清空</button>
+          </div>
+          <div class="option-chips">
+            <button
+              v-for="item in draftLabels"
+              :key="item.value"
+              type="button"
+              class="option-chip"
+              @click="removeDraft(item.value)"
+            >
+              {{ item.label }}
+              <t-icon name="close" size="11" />
+            </button>
+          </div>
         </div>
 
         <div class="option-list">
           <button
-            v-for="option in options"
+            v-for="option in filteredOptions"
             :key="option.value"
             type="button"
             class="option-item"
             :class="{ 'is-active': isSelected(option.value) }"
             @click="selectOption(option.value)"
           >
+            <span v-if="option.avatar" class="option-avatar">{{ option.avatar }}</span>
             <span class="option-copy">
               <span class="option-label">{{ option.label }}</span>
               <span v-if="option.desc" class="option-desc">{{ option.desc }}</span>
             </span>
-            <t-icon v-if="isSelected(option.value)" name="check" size="20" class="option-check" />
+            <span class="option-mark" :class="{ 'is-checked': isSelected(option.value) }">
+              <t-icon v-if="isSelected(option.value)" name="check" size="13" />
+            </span>
           </button>
 
-          <p v-if="!options.length" class="option-empty">暂无可选项</p>
+          <p v-if="!filteredOptions.length" class="option-empty">
+            {{ keyword ? '未找到相关结果' : '暂无可选项' }}
+          </p>
         </div>
 
-        <div class="option-actions">
-          <button type="button" class="option-btn option-btn--ghost" @click="close">取消</button>
-          <button v-if="multiple" type="button" class="option-btn option-btn--primary" @click="confirmDraft">
+        <div v-if="multiple" class="option-actions">
+          <button type="button" class="option-btn option-btn--primary" @click="confirmDraft">
             确定{{ draft.length ? `（${draft.length}）` : '' }}
           </button>
         </div>
@@ -40,24 +78,45 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   title: { type: String, default: '请选择' },
   options: { type: Array, default: () => [] },
   modelValue: { type: [Array, String], default: '' },
-  multiple: { type: Boolean, default: false }
+  multiple: { type: Boolean, default: false },
+  searchable: { type: Boolean, default: false },
+  searchPlaceholder: { type: String, default: '搜索' }
 })
 
 const emit = defineEmits(['update:visible', 'update:modelValue'])
 
 const draft = ref([])
+const keyword = ref('')
+
+const filteredOptions = computed(() => {
+  const text = keyword.value.trim()
+  if (!text) return props.options
+  return props.options.filter((option) => `${option.label}${option.desc || ''}`.includes(text))
+})
+
+const draftLabels = computed(() =>
+  draft.value.map((value) => {
+    const option = props.options.find((item) => item.value === value)
+    return { value, label: option?.label || value }
+  })
+)
+
+const removeDraft = (value) => {
+  draft.value = draft.value.filter((item) => item !== value)
+}
 
 watch(
   () => props.visible,
   (visible) => {
     if (!visible) return
+    keyword.value = ''
     draft.value = props.multiple ? [...(props.modelValue || [])] : []
   }
 )
@@ -152,13 +211,102 @@ const confirmDraft = () => {
   color: #16171d;
 }
 
-.option-clear {
-  flex: 0 0 auto;
+.option-close {
+  width: 30px;
+  height: 30px;
   border: 0;
-  padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 50%;
   background: #f3f4f8;
-  color: #6b6e7a;
+  color: #7d818d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-search {
+  flex: 0 0 auto;
+  height: 42px;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: #f5f6fa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-search-icon {
+  flex: 0 0 auto;
+  color: #9aa0ae;
+}
+
+.option-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  color: #23242b;
+  outline: none;
+}
+
+.option-search-input::placeholder {
+  color: #adb1bd;
+}
+
+.option-search-clear {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b6bac4;
+  display: inline-flex;
+  align-items: center;
+}
+
+.option-selected {
+  flex: 0 0 auto;
+  padding: 0 2px 10px;
+}
+
+.option-selected-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.option-selected-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b92a4;
+}
+
+.option-selected-clear {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #4a6cf0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.option-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.option-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef3ff;
+  color: #3f55f0;
   font-size: 12.5px;
   font-weight: 600;
 }
@@ -167,9 +315,7 @@ const confirmDraft = () => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  display: grid;
-  gap: 8px;
-  padding: 2px;
+  padding: 0 2px;
   scrollbar-width: none;
 }
 
@@ -182,18 +328,36 @@ const confirmDraft = () => {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 14px;
-  border: 1px solid #eef0f5;
-  border-radius: 14px;
-  background: #f8f9fc;
+  gap: 10px;
+  padding: 11px 8px;
+  border: 0;
+  border-bottom: 1px solid #f1f3f9;
+  border-radius: 12px;
+  background: transparent;
   text-align: left;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease;
+}
+
+.option-item:last-of-type {
+  border-bottom: 0;
 }
 
 .option-item.is-active {
-  background: #eaf1ff;
-  border-color: rgba(61, 108, 245, 0.32);
+  background: #f5f8ff;
+}
+
+.option-avatar {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #eaf0ff 0%, #dfe8ff 100%);
+  color: #3d6cf5;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .option-copy {
@@ -204,7 +368,7 @@ const confirmDraft = () => {
 }
 
 .option-label {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   line-height: 1.35;
   color: #23242b;
@@ -218,11 +382,28 @@ const confirmDraft = () => {
   font-size: 12px;
   line-height: 1.4;
   color: #9497a2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.option-check {
-  flex: 0 0 auto;
-  color: #3d6cf5;
+.option-mark {
+  flex: 0 0 21px;
+  width: 21px;
+  height: 21px;
+  border: 1.5px solid #d5d9e4;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.option-mark.is-checked {
+  border-color: #3d6cf5;
+  background: #3d6cf5;
 }
 
 .option-empty {
@@ -234,32 +415,26 @@ const confirmDraft = () => {
 
 .option-actions {
   flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
   padding-top: 14px;
 }
 
 .option-btn {
-  height: 48px;
+  width: 100%;
+  height: 54px;
   border: 0;
-  border-radius: 24px;
-  font-size: 16px;
+  border-radius: 27px;
+  font-size: 16.5px;
   font-weight: 600;
 }
 
-.option-btn--ghost {
-  background: #ececee;
-  color: #16171d;
-}
-
 .option-btn--primary {
-  background: #2f7dfa;
-  color: #fff;
+  background: linear-gradient(135deg, #5b6cfb 0%, #4454ef 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(74, 92, 255, 0.22);
 }
 
 .option-btn--primary:active {
-  background: #1f6ceb;
+  background: linear-gradient(135deg, #4d5ef0 0%, #3848e6 100%);
 }
 
 .sheet-enter-active,

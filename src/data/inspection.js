@@ -28,24 +28,86 @@ export const issueStatusMap = {
   已完成: { label: '已完成', tone: 'success' }
 }
 
-export const planStoreOptions = [
-  '上海工厂 · A线旗舰门店',
-  '北京工厂 · 办公区域',
-  '深圳园区 · 仓储中心',
-  '上海工厂 · 车间B',
-  '上海工厂 · 仓库区域',
-  '京东电器 · 南京新街口店'
+export const planPersonnelList = [
+  { name: '吕建成', dept: '设备管理部 · 设备主管' },
+  { name: '孙锐', dept: '设备管理部 · 巡检专员' },
+  { name: '王鹏', dept: '安全环保部 · 安全主管' },
+  { name: '李晨', dept: '生产运营部 · 巡检专员' },
+  { name: '王敏', dept: '质量管理部 · 质量主管' },
+  { name: '张三', dept: '门店运营部 · 门店督导' }
 ]
 
-export const planPersonnelOptions = ['吕建成', '孙锐', '王鹏', '李晨', '王敏', '张三']
+export const planPersonnelOptions = planPersonnelList.map((item) => item.name)
 
-export const planTemplateOptions = [
-  '门店基础巡检',
-  '消防安全巡检',
-  '仓储管理巡检',
-  '设备点检巡检',
-  'AI 智能巡检'
+// 巡检门店组织架构：企业 → 区域 → 厂区 → 门店（巡检计划需配置到门店级）
+export const planStoreTree = [
+  {
+    label: '南京鹤梦科技有限公司',
+    value: 'ent-001',
+    level: 0,
+    children: [
+      {
+        label: '华东区',
+        value: 'area-huadong',
+        level: 1,
+        children: [
+          {
+            label: '上海工厂',
+            value: 'factory-sh',
+            level: 2,
+            children: [
+              { label: 'A线旗舰门店', value: '上海工厂 · A线旗舰门店', level: 3 },
+              { label: '车间B', value: '上海工厂 · 车间B', level: 3 },
+              { label: '仓库区域', value: '上海工厂 · 仓库区域', level: 3 }
+            ]
+          },
+          {
+            label: '京东电器',
+            value: 'factory-jd',
+            level: 2,
+            children: [{ label: '南京新街口店', value: '京东电器 · 南京新街口店', level: 3 }]
+          }
+        ]
+      },
+      {
+        label: '华北区',
+        value: 'area-huabei',
+        level: 1,
+        children: [
+          {
+            label: '北京工厂',
+            value: 'factory-bj',
+            level: 2,
+            children: [{ label: '办公区域', value: '北京工厂 · 办公区域', level: 3 }]
+          }
+        ]
+      },
+      {
+        label: '华南区',
+        value: 'area-huanan',
+        level: 1,
+        children: [
+          {
+            label: '深圳园区',
+            value: 'factory-sz',
+            level: 2,
+            children: [{ label: '仓储中心', value: '深圳园区 · 仓储中心', level: 3 }]
+          }
+        ]
+      }
+    ]
+  }
 ]
+
+export const planTemplateList = [
+  { name: '门店基础巡检', desc: '12 个检查项 · 营业环境与在岗情况' },
+  { name: '消防安全巡检', desc: '9 个检查项 · 消防设施与疏散通道' },
+  { name: '仓储管理巡检', desc: '10 个检查项 · 货物堆放与温湿度' },
+  { name: '设备点检巡检', desc: '8 个检查项 · 摄像头与传感器状态' },
+  { name: 'AI 智能巡检', desc: '6 个检查项 · AI 自动识别异常' }
+]
+
+export const planTemplateOptions = planTemplateList.map((item) => item.name)
 
 export const mockPlans = [
   {

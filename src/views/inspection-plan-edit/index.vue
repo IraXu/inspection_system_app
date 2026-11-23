@@ -97,8 +97,24 @@
           <div class="field">
             <span class="field-label">任务生成时间<em>*</em></span>
             <div class="inline-fields">
-              <input v-model="form.onceDate" class="field-input" type="date" />
-              <input v-model="form.onceTime" class="field-input" type="time" step="60" />
+              <button
+                type="button"
+                class="value-field"
+                :class="{ 'is-empty': !form.onceDate }"
+                @click="openDateSheet('onceDate')"
+              >
+                <t-icon name="calendar" size="15" class="value-icon" />
+                <span class="value-text">{{ form.onceDate ? formatDateText(form.onceDate) : '选择日期' }}</span>
+              </button>
+              <button
+                type="button"
+                class="value-field"
+                :class="{ 'is-empty': !form.onceTime }"
+                @click="openTimeSheet('onceTime')"
+              >
+                <t-icon name="time" size="15" class="value-icon" />
+                <span class="value-text">{{ form.onceTime || '选择时间' }}</span>
+              </button>
             </div>
           </div>
 
@@ -161,17 +177,42 @@
             </div>
           </div>
 
-          <label class="field">
+          <div class="field">
             <span class="field-label">具体时间<em>*</em></span>
-            <input v-model="form.cycleTime" class="field-input" type="time" step="60" />
-          </label>
+            <button
+              type="button"
+              class="value-field"
+              :class="{ 'is-empty': !form.cycleTime }"
+              @click="openTimeSheet('cycleTime')"
+            >
+              <t-icon name="time" size="16" class="value-icon" />
+              <span class="value-text">{{ form.cycleTime || '选择具体时间' }}</span>
+              <t-icon name="chevron-down" size="14" class="value-arrow" />
+            </button>
+          </div>
 
           <div class="field">
             <span class="field-label">计划周期<em>*</em></span>
             <div class="inline-fields inline-fields--range">
-              <input v-model="form.validFrom" class="field-input" type="date" />
+              <button
+                type="button"
+                class="value-field"
+                :class="{ 'is-empty': !form.validFrom }"
+                @click="openDateSheet('validFrom')"
+              >
+                <t-icon name="calendar" size="15" class="value-icon" />
+                <span class="value-text">{{ form.validFrom ? formatDateText(form.validFrom) : '开始日期' }}</span>
+              </button>
               <span class="range-sep">至</span>
-              <input v-model="form.validUntil" class="field-input" type="date" />
+              <button
+                type="button"
+                class="value-field"
+                :class="{ 'is-empty': !form.validUntil }"
+                @click="openDateSheet('validUntil')"
+              >
+                <t-icon name="calendar" size="15" class="value-icon" />
+                <span class="value-text">{{ form.validUntil ? formatDateText(form.validUntil) : '结束日期' }}</span>
+              </button>
             </div>
           </div>
 
@@ -211,7 +252,7 @@
               </button>
             </div>
 
-            <button type="button" class="select-field" @click="openPicker('store', row.key)">
+            <button type="button" class="select-field" @click="openStoreSheet(row.key)">
               <span class="select-label">门店<em>*</em></span>
               <span class="select-value" :class="{ 'is-placeholder': !row.storeName }">
                 {{ row.storeName || '请选择门店' }}
@@ -284,7 +325,32 @@
       :options="pickerConfig.options"
       :model-value="pickerModel"
       :multiple="pickerConfig.multiple"
+      :searchable="pickerConfig.searchable"
+      :search-placeholder="pickerConfig.searchPlaceholder || '搜索'"
       @update:model-value="onPickerUpdate"
+    />
+
+    <RegionTreeSheet
+      v-model:visible="storeSheetVisible"
+      title="选择门店"
+      description="巡检计划需配置到门店级，区域与厂区仅支持展开查看"
+      :tree="planStoreTree"
+      :model-value="storeSheetValue"
+      unit="家"
+      :show-root="false"
+      empty-path-label="未选择门店"
+      leaf-hint="可配置巡检"
+      :selectable-level="3"
+      require-selection
+      :confirm-label="storeConfirmLabel"
+      @confirm="onStoreConfirm"
+    />
+
+    <DateTimeWheelSheet
+      v-model:visible="dtVisible"
+      :mode="dtMode"
+      :model-value="dtValue"
+      @update:model-value="onDateTimeConfirm"
     />
   </div>
 </template>
@@ -294,8 +360,10 @@ import { computed, onDeactivated, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 import { useInspectionStore } from '../../stores/inspection'
-import { planStoreOptions, planPersonnelOptions, planTemplateOptions } from '../../data/inspection'
+import { planStoreTree, planPersonnelList, planTemplateList } from '../../data/inspection'
 import OptionSheet from '../../components/OptionSheet.vue'
+import RegionTreeSheet from '../../components/RegionTreeSheet.vue'
+import DateTimeWheelSheet from '../../components/DateTimeWheelSheet.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -448,25 +516,82 @@ const pickerVisible = ref(false)
 const pickerModel = ref('')
 const pickerConfig = ref({ title: '', options: [], multiple: false, kind: '', rowKey: '' })
 
-const toOptions = (list) => list.map((item) => ({ value: item, label: item }))
+const storeSheetVisible = ref(false)
+const storeSheetRowKey = ref('')
+
+const storeSheetRow = computed(() => form.storeRows.find((row) => row.key === storeSheetRowKey.value) || null)
+const storeSheetValue = computed(() => storeSheetRow.value?.storeName || '')
+
+const storeConfirmLabel = (node) => (node ? '确定选择该门店' : '请先选择门店')
+
+const openStoreSheet = (rowKey) => {
+  storeSheetRowKey.value = rowKey
+  storeSheetVisible.value = true
+}
+
+const onStoreConfirm = ({ value }) => {
+  if (storeSheetRow.value) storeSheetRow.value.storeName = value
+}
+
+const personnelOptions = planPersonnelList.map((item) => ({
+  value: item.name,
+  label: item.name,
+  avatar: item.name.slice(0, 1),
+  desc: item.dept
+}))
+
+const templateOptions = planTemplateList.map((item) => ({
+  value: item.name,
+  label: item.name,
+  desc: item.desc
+}))
 
 const openPicker = (kind, rowKey = '') => {
   const row = rowKey ? form.storeRows.find((item) => item.key === rowKey) : null
 
-  if (kind === 'store') {
-    pickerConfig.value = { title: '选择门店', options: toOptions(planStoreOptions), multiple: false, kind, rowKey }
-    pickerModel.value = row?.storeName || ''
-  } else if (kind === 'personnel') {
-    pickerConfig.value = { title: '选择巡检人', options: toOptions(planPersonnelOptions), multiple: true, kind, rowKey }
+  if (kind === 'personnel') {
+    pickerConfig.value = {
+      title: '选择巡检人',
+      options: personnelOptions,
+      multiple: true,
+      searchable: true,
+      searchPlaceholder: '搜索姓名或部门',
+      kind,
+      rowKey
+    }
     pickerModel.value = [...(row?.personnelNames || [])]
   } else if (kind === 'template') {
-    pickerConfig.value = { title: '选择巡检模板', options: toOptions(planTemplateOptions), multiple: false, kind, rowKey }
+    pickerConfig.value = {
+      title: '选择巡检模板',
+      options: templateOptions,
+      multiple: false,
+      searchable: true,
+      searchPlaceholder: '搜索模板名称',
+      kind,
+      rowKey
+    }
     pickerModel.value = row?.templateName || ''
   } else if (kind === 'assignee') {
-    pickerConfig.value = { title: '选择问题指派人', options: toOptions(planPersonnelOptions), multiple: true, kind, rowKey: '' }
+    pickerConfig.value = {
+      title: '选择问题指派人',
+      options: personnelOptions,
+      multiple: true,
+      searchable: true,
+      searchPlaceholder: '搜索姓名或部门',
+      kind,
+      rowKey: ''
+    }
     pickerModel.value = [...form.assigneeNames]
   } else if (kind === 'reviewer') {
-    pickerConfig.value = { title: '选择问题审核人', options: toOptions(planPersonnelOptions), multiple: true, kind, rowKey: '' }
+    pickerConfig.value = {
+      title: '选择问题审核人',
+      options: personnelOptions,
+      multiple: true,
+      searchable: true,
+      searchPlaceholder: '搜索姓名或部门',
+      kind,
+      rowKey: ''
+    }
     pickerModel.value = [...form.reviewerNames]
   }
 
@@ -492,6 +617,36 @@ const onPickerUpdate = (value) => {
   if (kind === 'store') row.storeName = value
   if (kind === 'personnel') row.personnelNames = Array.isArray(value) ? value : []
   if (kind === 'template') row.templateName = value
+}
+
+const dtVisible = ref(false)
+const dtMode = ref('date')
+const dtTarget = ref('')
+const dtValue = ref('')
+
+const formatDateText = (value) => {
+  const [year, month, day] = String(value).split('-')
+  if (!year || !month || !day) return value
+  return `${Number(month)}月${Number(day)}日`
+}
+
+const openDateSheet = (field) => {
+  dtMode.value = 'date'
+  dtTarget.value = field
+  dtValue.value = form[field] || ''
+  dtVisible.value = true
+}
+
+const openTimeSheet = (field) => {
+  dtMode.value = 'time'
+  dtTarget.value = field
+  dtValue.value = form[field] || ''
+  dtVisible.value = true
+}
+
+const onDateTimeConfirm = (value) => {
+  if (!dtTarget.value) return
+  form[dtTarget.value] = value
 }
 
 const validate = () => {
@@ -576,6 +731,8 @@ const handleSave = () => {
 
 onDeactivated(() => {
   pickerVisible.value = false
+  storeSheetVisible.value = false
+  dtVisible.value = false
 })
 </script>
 
@@ -770,6 +927,51 @@ onDeactivated(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.value-field {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #eef0f5;
+  border-radius: 12px;
+  background: #f8f9fc;
+  color: #23242b;
+  font-family: inherit;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.value-field:active {
+  border-color: rgba(61, 108, 245, 0.4);
+  background: #ffffff;
+}
+
+.value-field.is-empty .value-text {
+  color: #adb1bd;
+}
+
+.value-icon {
+  flex: 0 0 auto;
+  color: #4a6cf0;
+}
+
+.value-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.value-arrow {
+  flex: 0 0 auto;
+  color: #a9afbd;
 }
 
 .inline-fields--range {
