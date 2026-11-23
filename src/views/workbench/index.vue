@@ -15,12 +15,15 @@
           </div>
 
           <div class="notification-entry">
-            <button type="button" class="hero-bell" aria-label="消息通知" @click="openNotifications">
+            <button
+              type="button"
+              class="hero-bell"
+              :aria-label="notificationLabel"
+              @click="openNotifications"
+            >
               <t-icon name="notification" />
             </button>
-            <span v-if="unreadNotificationCount > 0" class="notification-badge">
-              {{ unreadNotificationCount > 9 ? '9+' : unreadNotificationCount }}
-            </span>
+            <span v-if="unreadNotificationCount > 0" class="notification-dot" aria-hidden="true"></span>
           </div>
         </div>
 
@@ -100,6 +103,25 @@
       </div>
     </section>
 
+    <section class="app-section workbench-section workbench-section--manage">
+      <button type="button" class="manage-entry" @click="maintenanceVisible = true">
+        <span class="manage-entry-icon" aria-hidden="true">
+          <svg class="manage-entry-svg" viewBox="64 64 896 896" fill="currentColor">
+            <path
+              d="M409.4 128c-42.4 0-76.7 34.4-76.7 76.8 0 20.3 8.1 39.9 22.4 54.3a76.74 76.74 0 0054.3 22.5h76.7v-76.8c0-42.3-34.3-76.7-76.7-76.8zm0 204.8H204.7c-42.4 0-76.7 34.4-76.7 76.8s34.4 76.8 76.7 76.8h204.6c42.4 0 76.7-34.4 76.7-76.8.1-42.4-34.3-76.8-76.6-76.8zM614 486.4c42.4 0 76.8-34.4 76.7-76.8V204.8c0-42.4-34.3-76.8-76.7-76.8-42.4 0-76.7 34.4-76.7 76.8v204.8c0 42.5 34.3 76.8 76.7 76.8zm281.4-76.8c0-42.4-34.4-76.8-76.7-76.8S742 367.2 742 409.6v76.8h76.7c42.3 0 76.7-34.4 76.7-76.8zm-76.8 128H614c-42.4 0-76.7 34.4-76.7 76.8 0 20.3 8.1 39.9 22.4 54.3a76.74 76.74 0 0054.3 22.5h204.6c42.4 0 76.7-34.4 76.7-76.8.1-42.4-34.3-76.7-76.7-76.8zM614 742.4h-76.7v76.8c0 42.4 34.4 76.8 76.7 76.8 42.4 0 76.8-34.4 76.7-76.8.1-42.4-34.3-76.7-76.7-76.8zM409.4 537.6c-42.4 0-76.7 34.4-76.7 76.8v204.8c0 42.4 34.4 76.8 76.7 76.8 42.4 0 76.8-34.4 76.7-76.8V614.4c0-20.3-8.1-39.9-22.4-54.3a76.92 76.92 0 00-54.3-22.5zM128 614.4c0 20.3 8.1 39.9 22.4 54.3a76.74 76.74 0 0054.3 22.5c42.4 0 76.8-34.4 76.7-76.8v-76.8h-76.7c-42.3 0-76.7 34.4-76.7 76.8z"
+            />
+          </svg>
+        </span>
+        <span class="manage-entry-copy">
+          <span class="manage-entry-title">巡检管理</span>
+          <span class="manage-entry-desc">计划配置 · 任务维护</span>
+        </span>
+        <span class="manage-entry-action" aria-hidden="true">
+          <t-icon name="chevron-right" size="15" />
+        </span>
+      </button>
+    </section>
+
     <section class="app-section workbench-section">
       <div class="section-head">
         <div class="section-head-main">
@@ -174,18 +196,59 @@
         </div>
       </div>
     </section>
+
+    <MaintenanceSheet
+      v-model:visible="maintenanceVisible"
+      title="巡检管理"
+      subtitle="选择需要维护的类型"
+      :items="maintenanceEntries"
+      @select="handleMaintenanceSelect"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onDeactivated, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTodoStore } from '../../stores/todo'
 import { useNotificationStore } from '../../stores/notifications'
+import { useInspectionStore } from '../../stores/inspection'
+import MaintenanceSheet from '../../components/MaintenanceSheet.vue'
 
 const router = useRouter()
 const todoStore = useTodoStore()
 const notificationStore = useNotificationStore()
+const inspectionStore = useInspectionStore()
+
+const maintenanceVisible = ref(false)
+
+const maintenanceEntries = computed(() => [
+  {
+    key: 'plans',
+    title: '巡检计划',
+    desc: `共 ${inspectionStore.plans.length} 个计划 · ${inspectionStore.inProgressPlanCount} 个进行中`,
+    icon: 'task',
+    tone: 'indigo',
+    route: '/inspection/plans'
+  },
+  {
+    key: 'tasks',
+    title: '巡检任务',
+    desc: `共 ${inspectionStore.tasks.length} 条任务 · ${inspectionStore.pendingTaskCount} 条待执行`,
+    icon: 'task-time',
+    tone: 'mint',
+    route: '/inspection/tasks'
+  }
+])
+
+const handleMaintenanceSelect = (item) => {
+  maintenanceVisible.value = false
+  router.push(item.route)
+}
+
+onDeactivated(() => {
+  maintenanceVisible.value = false
+})
 
 const currentEnterprise = {
   name: 'XX科技有限公司'
@@ -260,6 +323,12 @@ const pendingTotal = computed(
 )
 
 const unreadNotificationCount = computed(() => notificationStore.unreadCount)
+
+const notificationLabel = computed(() =>
+  unreadNotificationCount.value
+    ? `消息通知，${unreadNotificationCount.value} 条未读`
+    : '消息通知'
+)
 
 const rollingNotifications = computed(() => {
   const base = notificationStore.items.slice(0, 4)
@@ -525,21 +594,17 @@ const handleInspectionTouchCancel = () => {
   transform: scale(0.94);
 }
 
-.notification-badge {
+.notification-dot {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
   background: #ff5a5f;
-  color: #fff;
-  font-size: 10px;
-  line-height: 18px;
-  text-align: center;
-  font-weight: 700;
-  box-shadow: 0 4px 10px rgba(255, 90, 95, 0.35);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.92),
+    0 4px 8px rgba(255, 90, 95, 0.35);
 }
 
 .hero-metrics {
@@ -844,7 +909,7 @@ const handleInspectionTouchCancel = () => {
 
 /* 待办统计 */
 .task-grid {
-  margin-top: 14px;
+  margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
@@ -852,15 +917,15 @@ const handleInspectionTouchCancel = () => {
 
 .task-item {
   position: relative;
-  min-height: 96px;
-  padding: 14px 16px;
+  min-height: 86px;
+  padding: 12px 14px;
   border: 0;
   border-radius: 16px;
   text-align: left;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   overflow: hidden;
   transition: transform 0.2s ease;
 }
@@ -870,14 +935,14 @@ const handleInspectionTouchCancel = () => {
 }
 
 .task-label {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #232c3d;
   line-height: 1.2;
 }
 
 .task-value {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   line-height: 1;
   color: #1c2333;
@@ -886,10 +951,10 @@ const handleInspectionTouchCancel = () => {
 
 .task-icon {
   position: absolute;
-  right: 13px;
-  bottom: 13px;
-  width: 52px;
-  height: 50px;
+  right: 11px;
+  bottom: 11px;
+  width: 46px;
+  height: 44px;
   pointer-events: none;
 }
 
@@ -897,22 +962,22 @@ const handleInspectionTouchCancel = () => {
   position: absolute;
   left: 0;
   top: 0;
-  width: 39px;
-  height: 48px;
+  width: 34px;
+  height: 42px;
 }
 
 .task-icon-badge {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   border: 2px solid rgba(255, 255, 255, 0.92);
 }
 
@@ -970,6 +1035,115 @@ const handleInspectionTouchCancel = () => {
 .task-item.rose .task-icon-badge {
   background: linear-gradient(140deg, #ffa499 0%, #f56b60 100%);
   box-shadow: 0 5px 12px rgba(245, 107, 96, 0.3);
+}
+
+/* 巡检管理入口 */
+.workbench-section--manage {
+  padding-top: 18px;
+}
+
+.manage-entry {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 160% at 100% 0%, rgba(99, 132, 255, 0.16) 0%, rgba(99, 132, 255, 0) 56%),
+    linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+  box-shadow: 0 16px 34px rgba(63, 92, 170, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.manage-entry::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(99, 132, 255, 0.25) 1px, transparent 1px);
+  background-size: 13px 13px;
+  -webkit-mask-image: linear-gradient(100deg, transparent 42%, #000 100%);
+  mask-image: linear-gradient(100deg, transparent 42%, #000 100%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.manage-entry::after {
+  content: '';
+  position: absolute;
+  top: -52px;
+  right: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 1px solid rgba(99, 132, 255, 0.16);
+  pointer-events: none;
+}
+
+.manage-entry > * {
+  position: relative;
+  z-index: 1;
+}
+
+.manage-entry:active {
+  transform: scale(0.99);
+  box-shadow: 0 10px 24px rgba(63, 92, 170, 0.12);
+}
+
+.manage-entry-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #7a95ff 0%, #3d6cf5 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 22px rgba(61, 108, 245, 0.28);
+}
+
+.manage-entry-svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.manage-entry-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.manage-entry-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #1b2233;
+}
+
+.manage-entry-desc {
+  font-size: 12.5px;
+  color: #8a91a3;
+}
+
+.manage-entry-action {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #eef3ff;
+  color: #3d6cf5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 设备告警 */
@@ -1111,22 +1285,22 @@ const handleInspectionTouchCancel = () => {
   }
 
   .task-item {
-    min-height: 88px;
-    padding: 12px 14px;
+    min-height: 80px;
+    padding: 11px 12px;
   }
 
   .task-label {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .task-value {
-    font-size: 25px;
+    font-size: 23px;
   }
 
   .task-icon {
-    right: 10px;
-    bottom: 11px;
-    transform: scale(0.86);
+    right: 9px;
+    bottom: 10px;
+    transform: scale(0.8);
     transform-origin: bottom right;
   }
 }

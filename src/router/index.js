@@ -48,6 +48,30 @@ const routes = [
     meta: { title: '流程详情' }
   },
   {
+    path: '/inspection/plans',
+    name: 'inspection-plans',
+    component: () => import('../views/inspection-plans/index.vue'),
+    meta: { title: '巡检计划' }
+  },
+  {
+    path: '/inspection/plans/new',
+    name: 'inspection-plan-create',
+    component: () => import('../views/inspection-plan-edit/index.vue'),
+    meta: { title: '新增巡检计划' }
+  },
+  {
+    path: '/inspection/plans/:id/edit',
+    name: 'inspection-plan-edit',
+    component: () => import('../views/inspection-plan-edit/index.vue'),
+    meta: { title: '编辑巡检计划' }
+  },
+  {
+    path: '/inspection/tasks',
+    name: 'inspection-tasks',
+    component: () => import('../views/inspection-tasks/index.vue'),
+    meta: { title: '巡检任务' }
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../views/profile/index.vue'),
