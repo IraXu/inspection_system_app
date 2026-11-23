@@ -299,7 +299,6 @@
           </span>
           <t-icon name="chevron-right" size="16" class="select-arrow" />
         </button>
-        <p class="field-hint">巡检发现不合格项时，生成的整改工单默认指派给以上人员</p>
 
         <button type="button" class="select-field" @click="openPicker('reviewer')">
           <span class="select-label">问题审核人<em>*</em></span>
@@ -308,7 +307,6 @@
           </span>
           <t-icon name="chevron-right" size="16" class="select-arrow" />
         </button>
-        <p class="field-hint">整改完成后，问题将指派给以上人员进行审核确认</p>
       </div>
     </section>
 
