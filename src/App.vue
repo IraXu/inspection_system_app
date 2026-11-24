@@ -1,11 +1,35 @@
 <template>
   <div class="app-container" :class="{ 'preview-enabled': previewEnabled, 'preview-disabled': !previewEnabled }">
     <div class="dev-toolbar">
-      <span class="toolbar-label">原型预览</span>
-      <button type="button" class="preview-toggle" @click="previewEnabled = !previewEnabled">
-        <span class="toggle-dot"></span>
-        <span>{{ previewEnabled ? '开' : '关' }}</span>
+      <span class="toolbar-label">
+        <t-icon name="browse" />
+        <span class="toolbar-label__text">原型预览</span>
+      </span>
+
+      <button
+        type="button"
+        class="preview-switch"
+        :class="{ 'is-on': previewEnabled }"
+        role="switch"
+        :aria-checked="previewEnabled ? 'true' : 'false'"
+        aria-label="切换原型预览"
+        @click="previewEnabled = !previewEnabled"
+      >
+        <span class="switch-thumb"></span>
       </button>
+
+      <template v-if="isAuthPage">
+        <span class="toolbar-divider"></span>
+        <button
+          type="button"
+          class="privacy-reset"
+          title="清除隐私同意记录并重新显示弹窗"
+          @click="resetPrivacyDialog"
+        >
+          <t-icon name="refresh" />
+          <span>重置隐私弹窗</span>
+        </button>
+      </template>
     </div>
 
     <div class="preview-stage">
@@ -47,6 +71,8 @@
         <LiquidTabbar v-if="showTabbar" wide />
       </div>
     </div>
+
+    <PrivacyConsentDialog v-if="!privacyConsentGranted" @agree="onPrivacyAgree" />
   </div>
 </template>
 
@@ -54,14 +80,30 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import LiquidTabbar from './components/LiquidTabbar.vue'
+import PrivacyConsentDialog from './components/PrivacyConsentDialog.vue'
+import { grantPrivacyConsent, privacyConsentGranted, revokePrivacyConsent } from './utils/privacy-consent'
+import { initThirdPartySdks } from './utils/sdk'
 
 const route = useRoute()
 
 const previewEnabled = ref(true)
 
+const onPrivacyAgree = () => {
+  grantPrivacyConsent()
+  initThirdPartySdks()
+}
+
+// 演示用：清除同意记录，重新触发首次启动的隐私政策弹窗
+const resetPrivacyDialog = () => {
+  revokePrivacyConsent()
+}
+
 const showTabbar = computed(() => {
   return ['workbench', 'home', 'todo', 'profile'].includes(route.name)
 })
+
+// 重置隐私弹窗仅用于演示登录/注册时的首次启动流程
+const isAuthPage = computed(() => ['login', 'register'].includes(route.name))
 
 watch(() => route.name, () => {
   nextTick(() => {
@@ -79,6 +121,11 @@ onMounted(() => {
   window.addEventListener('resize', syncPreviewViewport)
   // 画布模式下页面滚动时画布位置会变化，需要同步更新浮层定位变量
   window.addEventListener('scroll', onPreviewScroll, { capture: true, passive: true })
+
+  // 已同意隐私政策的老用户，启动后再初始化第三方 SDK
+  if (privacyConsentGranted.value) {
+    initThirdPartySdks()
+  }
 })
 
 watch(previewEnabled, (value) => {
@@ -167,50 +214,100 @@ const onPreviewScroll = () => {
   z-index: 2000;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  height: 42px;
-  padding: 0 10px 0 14px;
-  border: 1px solid rgba(214, 223, 236, 0.92);
+  gap: 12px;
+  height: 44px;
+  padding: 0 8px 0 14px;
+  border: 1px solid rgba(211, 221, 236, 0.9);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #607089;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 10px 24px rgba(13, 33, 68, 0.06);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.82);
+  color: #56657e;
+  box-shadow: 0 12px 30px rgba(13, 33, 68, 0.08);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 .toolbar-label {
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-}
-
-.preview-toggle {
-  height: 30px;
-  padding: 0 12px 0 10px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(232, 246, 255, 0.96);
-  color: var(--theme-primary-ink);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-.toggle-dot {
-  width: 8px;
-  height: 8px;
+.toolbar-label :deep(.t-icon) {
+  font-size: 15px;
+  color: #8494ad;
+}
+
+.preview-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #dfe5ef;
+  transition: background 0.2s ease;
+}
+
+.preview-switch.is-on {
+  background: #3d6cf5;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--theme-primary);
-  box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.16);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(23, 38, 69, 0.24);
+  transition: transform 0.2s ease;
 }
 
-.preview-disabled .toggle-dot {
-  background: #9aa7ba;
-  box-shadow: 0 0 0 4px rgba(154, 167, 186, 0.12);
+.preview-switch.is-on .switch-thumb {
+  transform: translateX(16px);
+}
+
+.toolbar-divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 18px;
+  background: rgba(207, 217, 232, 0.9);
+}
+
+.privacy-reset {
+  height: 32px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4f6588;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.privacy-reset:hover {
+  background: rgba(61, 108, 245, 0.08);
+  color: #2f4d86;
+}
+
+.privacy-reset :deep(.t-icon) {
+  font-size: 14px;
+}
+
+.privacy-reset:active {
+  background: rgba(61, 108, 245, 0.14);
 }
 
 .preview-stage {
@@ -412,13 +509,35 @@ const onPreviewScroll = () => {
     padding-right: 8px;
   }
 
-  .toolbar-label {
+  .toolbar-label__text {
     display: none;
+  }
+
+  .toolbar-label :deep(.t-icon) {
+    font-size: 16px;
   }
 }
 </style>
 
 <style>
+/* 首次启动的隐私政策弹窗与业务弹层一致，限制在原型预览区域内 */
+body.prototype-preview-shell .privacy-gate,
+body.prototype-preview-canvas .privacy-gate {
+  inset: auto !important;
+  left: var(--preview-overlay-left, 0px) !important;
+  top: var(--preview-overlay-top, 0px) !important;
+  width: var(--preview-overlay-width, min(402px, 100vw)) !important;
+  height: var(--preview-overlay-height, 100dvh) !important;
+}
+
+body.prototype-preview-shell .privacy-gate {
+  border-radius: 34px;
+}
+
+body.prototype-preview-canvas .privacy-gate {
+  border-radius: 28px;
+}
+
 body.prototype-preview-shell .t-popup,
 body.prototype-preview-canvas .t-popup {
   left: var(--preview-overlay-left, 0px) !important;
