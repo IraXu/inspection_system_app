@@ -11,9 +11,15 @@
       <h1 class="auth-title">欢迎登录 鹤梦之家</h1>
       <p class="auth-subtitle">让巡检更智能、更高效</p>
 
-      <button type="button" class="auth-region" @click="openServerSheet">
-        <t-icon name="location" />
-        <span>{{ currentServer.label }}</span>
+      <button
+        type="button"
+        class="auth-region"
+        aria-haspopup="dialog"
+        @click="openServerSheet"
+      >
+        <t-icon name="earth" class="auth-region-icon" />
+        <span class="auth-region-value">{{ currentServer.label }}</span>
+        <t-icon name="chevron-down" class="auth-region-caret" />
       </button>
 
       <div class="auth-form">
@@ -67,8 +73,10 @@
       <div v-if="serverSheetVisible" class="auth-sheet-layer" @click.self="closeServerSheet">
         <div class="server-sheet">
           <div class="server-sheet-handle"></div>
-          <div class="server-sheet-title">切换服务器</div>
-          <div class="server-sheet-desc">中国大陆与亚太服务器数据相互独立，请选择账号所属区域</div>
+          <div class="server-sheet-head">
+            <h2 class="server-sheet-title">切换服务器</h2>
+            <p class="server-sheet-desc">账号与数据按区域独立存储，请选择账号所属区域</p>
+          </div>
 
           <div class="server-options">
             <button
@@ -79,26 +87,64 @@
               :class="{ 'is-active': server.value === pendingServerValue }"
               @click="pendingServerValue = server.value"
             >
-              <span class="server-option-icon">
-                <t-icon :name="server.icon" />
+              <span class="server-option-icon" aria-hidden="true">
+                <svg v-if="server.value === 'cn'" viewBox="0 0 24 24">
+                  <path
+                    d="M4.2 7 9.4 5l5.2 2 5.2-2v11.8l-5.2 2-5.2-2-5.2 2V7Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M9.4 5v11.8M14.6 7v11.8"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="7" cy="11.6" r="1.05" fill="currentColor" />
+                </svg>
+                <svg v-else viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="8"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                  />
+                  <path
+                    d="M4 12h16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M12 4c2.2 2.2 3.4 5 3.4 8s-1.2 5.8-3.4 8c-2.2-2.2-3.4-5-3.4-8S9.8 6.2 12 4Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </span>
               <span class="server-option-copy">
-                <span class="server-option-title">
-                  <span>{{ server.label }}</span>
-                  <span class="server-option-tag">{{ server.region }}</span>
-                </span>
-                <span class="server-option-host">{{ server.host }}</span>
+                <span class="server-option-name">{{ server.label }}</span>
+                <span class="server-option-desc">{{ server.desc }}</span>
               </span>
-              <t-icon
-                v-if="server.value === pendingServerValue"
-                name="check"
-                class="server-option-check"
-              />
+              <span
+                class="server-option-radio"
+                :class="{ 'is-checked': server.value === pendingServerValue }"
+              >
+                <t-icon name="check" />
+              </span>
             </button>
           </div>
 
           <button type="button" class="auth-submit server-confirm" @click="confirmServer">
-            <span>确定切换</span>
+            <span>{{ confirmLabel }}</span>
             <t-icon name="arrow-right" />
           </button>
           <button type="button" class="server-cancel" @click="closeServerSheet">取消</button>
@@ -122,16 +168,12 @@ const servers = [
   {
     value: 'cn',
     label: '中国大陆',
-    region: '华东节点',
-    host: 'cn-api.inspection.com',
-    icon: 'location'
+    desc: '适用于中国大陆地区账号'
   },
   {
     value: 'ap',
     label: '亚太',
-    region: '新加坡节点',
-    host: 'ap-api.inspection.com',
-    icon: 'earth'
+    desc: '适用于亚太地区账号'
   }
 ]
 
@@ -148,6 +190,16 @@ const pendingServerValue = ref(currentServerValue.value)
 
 const currentServer = computed(() => {
   return servers.find(server => server.value === currentServerValue.value) || servers[0]
+})
+
+const pendingServer = computed(() => {
+  return servers.find(server => server.value === pendingServerValue.value) || servers[0]
+})
+
+const confirmLabel = computed(() => {
+  return pendingServerValue.value === currentServerValue.value
+    ? '确定切换'
+    : `切换至${pendingServer.value.label}`
 })
 
 const openServerSheet = () => {
@@ -204,6 +256,47 @@ const goToRegister = () => {
     linear-gradient(180deg, #e9eefc 0%, #f2f5fe 26%, #fbfcff 58%, #ffffff 100%);
 }
 
+/* 服务器切换入口 */
+.auth-region {
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(61, 78, 245, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--auth-primary);
+  box-shadow: 0 6px 16px rgba(61, 78, 245, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.auth-region:active {
+  transform: scale(0.97);
+  background: #ffffff;
+}
+
+.auth-region .auth-region-icon {
+  font-size: 15px;
+}
+
+.auth-region-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--auth-primary);
+}
+
+.auth-region-caret {
+  margin-left: 1px;
+  font-size: 13px;
+  color: var(--auth-primary);
+  transition: transform 0.16s ease;
+}
+
+.auth-region:active .auth-region-caret {
+  transform: translateY(1px);
+}
+
 /* 服务器切换弹层 */
 .server-sheet {
   width: 100%;
@@ -221,15 +314,21 @@ const goToRegister = () => {
   background: rgba(148, 158, 178, 0.42);
 }
 
+.server-sheet-head {
+  padding-top: 2px;
+}
+
 .server-sheet-title {
+  margin: 0;
   font-size: 20px;
   line-height: 28px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--auth-ink);
 }
 
 .server-sheet-desc {
-  margin-top: 8px;
+  margin: 6px 0 0;
   font-size: 13px;
   line-height: 20px;
   color: var(--auth-sub);
@@ -246,18 +345,23 @@ const goToRegister = () => {
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 15px 16px;
   border: 1.5px solid transparent;
-  border-radius: 18px;
+  border-radius: 20px;
   background: #ffffff;
   box-shadow: 0 8px 20px rgba(28, 42, 80, 0.05);
   font-family: inherit;
   text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.server-option:active {
+  transform: scale(0.99);
 }
 
 .server-option.is-active {
   border-color: var(--auth-primary);
-  box-shadow: 0 8px 20px rgba(61, 78, 245, 0.12);
+  box-shadow: 0 10px 24px rgba(61, 78, 245, 0.15), inset 0 0 0 1px rgba(61, 78, 245, 0.08);
 }
 
 .server-option-icon {
@@ -265,13 +369,28 @@ const goToRegister = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 24%, #33498c 0%, #1b2751 58%, #0d1430 100%);
-  color: #9cc0ff;
-  font-size: 22px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(61, 78, 245, 0.14);
+  border-radius: 15px;
+  background: linear-gradient(145deg, #f4f7ff 0%, #e6edff 100%);
+  color: #4f63f2;
+  box-shadow: inset 0 1px 0 #ffffff, 0 6px 14px rgba(45, 66, 150, 0.08);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.server-option-icon svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.server-option.is-active .server-option-icon {
+  border-color: transparent;
+  background: linear-gradient(145deg, #6b83ff 0%, #3d4ef5 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(61, 78, 245, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .server-option-copy {
@@ -279,39 +398,53 @@ const goToRegister = () => {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
-.server-option-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.server-option-name {
   font-size: 16px;
-  line-height: 23px;
+  line-height: 22px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--auth-ink);
 }
 
-.server-option-tag {
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--auth-primary-soft);
-  color: #5468f0;
-  font-size: 11px;
-  font-weight: 600;
+.server-option-desc {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: #98a1b5;
 }
 
-.server-option-host {
-  margin-top: 3px;
-  font-size: 13px;
-  line-height: 19px;
-  color: var(--auth-sub);
-  word-break: break-all;
-}
-
-.server-option-check {
+.server-option-radio {
   flex-shrink: 0;
-  font-size: 18px;
-  color: var(--auth-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #d7dcea;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #ffffff;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.server-option-radio .t-icon {
+  font-size: 12px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.server-option-radio.is-checked {
+  border-color: var(--auth-primary);
+  background: var(--auth-primary);
+  box-shadow: 0 4px 10px rgba(61, 78, 245, 0.28);
+}
+
+.server-option-radio.is-checked .t-icon {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .server-confirm {

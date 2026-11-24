@@ -1,1 +1,0 @@
-import{L as a}from"./LegalPage-BlAKL_35.js";import{C as t,j as s,P as e,e as n,d as r}from"./index-DxZihFqD.js";const _={__name:"index",setup(o){return(c,l)=>(t(),s(a,{title:"用户协议",lead:e(r),sections:e(n)},null,8,["lead","sections"]))}};export{_ as default};

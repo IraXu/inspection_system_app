@@ -58,6 +58,10 @@
               </span>
             </div>
 
+            <Transition name="boot-splash">
+              <SplashScreen v-if="booting" />
+            </Transition>
+
             <div class="screen-scroll">
               <router-view v-slot="{ Component }">
                 <keep-alive>
@@ -76,6 +80,10 @@
         v-else
         class="app-canvas"
       >
+        <Transition name="boot-splash">
+          <SplashScreen v-if="booting" />
+        </Transition>
+
         <div class="screen-scroll screen-scroll--canvas">
           <router-view v-slot="{ Component }">
             <keep-alive>
@@ -88,7 +96,7 @@
       </div>
     </div>
 
-    <PrivacyConsentDialog v-if="!privacyConsentGranted" @agree="onPrivacyAgree" />
+    <PrivacyConsentDialog v-if="!booting && !privacyConsentGranted" @agree="onPrivacyAgree" />
   </div>
 </template>
 
@@ -97,12 +105,15 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import LiquidTabbar from './components/LiquidTabbar.vue'
 import PrivacyConsentDialog from './components/PrivacyConsentDialog.vue'
+import SplashScreen from './components/SplashScreen.vue'
 import { grantPrivacyConsent, privacyConsentGranted, revokePrivacyConsent } from './utils/privacy-consent'
 import { initThirdPartySdks } from './utils/sdk'
 
 const route = useRoute()
 
 const previewEnabled = ref(true)
+const booting = ref(true)
+let bootTimer = null
 
 const onPrivacyAgree = () => {
   grantPrivacyConsent()
@@ -142,6 +153,11 @@ onMounted(() => {
   if (privacyConsentGranted.value) {
     initThirdPartySdks()
   }
+
+  // 冷启动过渡页：至少展示 1.5 秒，等待首屏资源就绪后再淡出
+  bootTimer = window.setTimeout(() => {
+    booting.value = false
+  }, 1500)
 })
 
 watch(previewEnabled, (value) => {
@@ -162,6 +178,7 @@ onBeforeUnmount(() => {
   document.body.classList.remove('prototype-preview-canvas')
   window.removeEventListener('resize', syncPreviewViewport)
   window.removeEventListener('scroll', onPreviewScroll, true)
+  window.clearTimeout(bootTimer)
 })
 
 
@@ -415,6 +432,16 @@ const onPreviewScroll = () => {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 0 0 2px rgba(10, 14, 22, 0.28);
   transform: translateZ(0);
+}
+
+/* 冷启动过渡页淡出 */
+.boot-splash-leave-active {
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+.boot-splash-leave-to {
+  opacity: 0;
+  filter: blur(6px);
 }
 
 /* 模拟状态栏：灵动岛 + 时间 + 信号/电量 */
