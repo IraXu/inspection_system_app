@@ -99,7 +99,13 @@ const routes = [
     path: '/privacy',
     name: 'privacy',
     component: () => import('../views/privacy/index.vue'),
-    meta: { title: '用户隐私' }
+    meta: { title: '隐私政策' }
+  },
+  {
+    path: '/value-added-agreement',
+    name: 'value-added-agreement',
+    component: () => import('../views/value-added-agreement/index.vue'),
+    meta: { title: '增值服务协议' }
   },
   {
     path: '/about',

@@ -35,7 +35,7 @@
 
       <div v-else class="privacy-card__body">
         <p>您的信息仅用于为您提供服务，鹤梦之家会坚决保障您的隐私信息安全。</p>
-        <p>如果您仍不同意本隐私协议，很遗憾我们将无法继续为您提供服务。</p>
+        <p>如果您仍不同意本隐私政策，很遗憾我们将无法继续为您提供服务。</p>
         <div class="privacy-doc-lines">
           <button type="button" class="privacy-doc-link" @click="openDoc('agreement')">
             点击查看《用户协议》
@@ -72,12 +72,11 @@
         </header>
 
         <div class="privacy-reader__scroll">
-          <p class="privacy-reader__meta">{{ LEGAL_EFFECTIVE_DATE }}</p>
-          <p class="privacy-reader__lead">{{ activeDoc === 'privacy' ? privacyLead : agreementLead }}</p>
-          <div v-for="section in activeSections" :key="section.title" class="privacy-reader__block">
-            <h4>{{ section.title }}</h4>
-            <p v-for="paragraph in section.paragraphs" :key="paragraph">{{ paragraph }}</p>
+          <div class="privacy-reader__meta">
+            <p v-for="line in LEGAL_VERSION_INFO" :key="line">{{ line }}</p>
           </div>
+          <p class="privacy-reader__lead">{{ activeDoc === 'privacy' ? privacyLead : agreementLead }}</p>
+          <LegalContent :sections="activeSections" />
         </div>
 
         <footer class="privacy-reader__footer">
@@ -90,8 +89,9 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import LegalContent from './LegalContent.vue'
 import {
-  LEGAL_EFFECTIVE_DATE,
+  LEGAL_VERSION_INFO,
   agreementLead,
   agreementSections,
   privacyLead,
@@ -291,33 +291,19 @@ const exitApp = () => {
 .privacy-reader__meta {
   margin: 0 0 10px;
   font-size: 12px;
+  line-height: 1.6;
   color: #9d9ea7;
 }
 
-.privacy-reader__lead {
+.privacy-reader__meta p {
   margin: 0;
+}
+
+.privacy-reader__lead {
+  margin: 0 0 18px;
   font-size: 13.5px;
   line-height: 1.9;
   color: #4d4e58;
-}
-
-.privacy-reader__block {
-  margin-top: 18px;
-}
-
-.privacy-reader__block h4 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.4;
-  font-weight: 700;
-  color: #17181d;
-}
-
-.privacy-reader__block p {
-  margin: 8px 0 0;
-  font-size: 13.5px;
-  line-height: 1.9;
-  color: #5b5c66;
 }
 
 .privacy-reader__footer {

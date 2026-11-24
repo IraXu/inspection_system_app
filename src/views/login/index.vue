@@ -60,7 +60,7 @@
       登录即同意
       <button type="button" class="auth-agreement-link" @click="router.push('/agreement')">用户协议</button>
       和
-      <button type="button" class="auth-agreement-link" @click="router.push('/privacy')">隐私协议</button>
+      <button type="button" class="auth-agreement-link" @click="router.push('/privacy')">隐私政策</button>
     </p>
 
     <transition name="server-sheet">

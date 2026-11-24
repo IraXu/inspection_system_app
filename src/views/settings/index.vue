@@ -134,7 +134,7 @@ const showLogoutDialog = ref(false)
 const menuItems = ref([
   { id: 'language', title: '语言', icon: 'pi-globe' },
   { id: 'agreement', title: '用户协议', icon: 'pi-doc', path: '/agreement' },
-  { id: 'privacy', title: '用户隐私', icon: 'pi-shield', path: '/privacy' }
+  { id: 'privacy', title: '隐私政策', icon: 'pi-shield', path: '/privacy' }
 ])
 
 const LANGUAGE_STORAGE_KEY = 'app-language'

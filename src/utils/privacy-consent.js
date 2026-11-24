@@ -4,7 +4,7 @@ import { ref } from 'vue'
 const STORAGE_KEY = 'app-privacy-consent'
 
 // 隐私政策版本号：政策内容更新时递增，用户需要重新确认
-export const PRIVACY_POLICY_VERSION = '2026.01'
+export const PRIVACY_POLICY_VERSION = '2026.11'
 
 const readPrivacyConsent = () => {
   try {
