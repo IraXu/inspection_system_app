@@ -658,6 +658,10 @@ const hideBrokenImage = (event) => {
   color: #1b1d24;
 }
 
+.page-navbar :deep(.t-navbar__content) {
+  background-color: transparent;
+}
+
 .page-navbar :deep(.t-navbar__title) {
   font-size: 17px;
   font-weight: 700;

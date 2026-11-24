@@ -404,10 +404,10 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) 64px;
   align-items: center;
-  height: calc(var(--prototype-navbar-height) + 8px);
+  height: calc(var(--prototype-safe-top) + var(--prototype-navbar-height) + 8px);
   padding-top: var(--prototype-safe-top);
-  background: rgba(255, 255, 255, 0.94);
-  border-bottom: 1px solid rgba(238, 240, 244, 0.9);
+  background: linear-gradient(180deg, rgba(245, 247, 251, 0.96) 0%, rgba(242, 245, 250, 0.88) 100%);
+  border-bottom: 1px solid rgba(238, 240, 244, 0.55);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }

@@ -11,7 +11,10 @@
         <div class="hero-top">
           <div class="hero-copy">
             <h1 class="hero-title">工作台</h1>
-            <p class="hero-subtitle">{{ currentEnterprise.name }}</p>
+            <div class="hero-enterprise">
+              <span class="hero-enterprise-bar" aria-hidden="true"></span>
+              <span class="hero-enterprise-name">{{ currentEnterprise.name }}</span>
+            </div>
           </div>
 
           <div class="notification-entry">
@@ -563,10 +566,31 @@ const handleInspectionTouchCancel = () => {
   color: #16181f;
 }
 
-.hero-subtitle {
+.hero-enterprise {
   margin-top: 12px;
-  font-size: 15px;
-  color: #666b7c;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.hero-enterprise-bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 15px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #5b6cfb 0%, #4059f0 100%);
+}
+
+.hero-enterprise-name {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1b1f2e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .notification-entry {
