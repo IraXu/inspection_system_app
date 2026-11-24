@@ -43,6 +43,21 @@
           </div>
 
           <div class="phone-screen">
+            <div class="phone-status" aria-hidden="true">
+              <span class="status-time">9:41</span>
+              <span class="dynamic-island"></span>
+              <span class="status-icons">
+                <span class="status-signal"><i></i><i></i><i></i><i></i></span>
+                <svg class="status-wifi" viewBox="0 0 16 12">
+                  <path d="M1.2 4.3a10.2 10.2 0 0 1 13.6 0" />
+                  <path d="M3.8 7a6.6 6.6 0 0 1 8.4 0" />
+                  <path d="M6.2 9.5a3.2 3.2 0 0 1 3.6 0" />
+                  <circle cx="8" cy="11.2" r="1.1" />
+                </svg>
+                <span class="status-battery"><span class="status-battery__level"></span></span>
+              </span>
+            </div>
+
             <div class="screen-scroll">
               <router-view v-slot="{ Component }">
                 <keep-alive>
@@ -52,6 +67,7 @@
             </div>
 
             <LiquidTabbar v-if="showTabbar" />
+            <div class="phone-home-indicator" aria-hidden="true"></div>
           </div>
         </div>
       </div>
@@ -386,6 +402,9 @@ const onPreviewScroll = () => {
 }
 
 .phone-screen {
+  --phone-status-height: 44px;
+  --prototype-safe-top: max(var(--phone-status-height), env(safe-area-inset-top, 0px));
+  --prototype-content-top: calc(var(--prototype-safe-top) + var(--prototype-navbar-height));
   position: relative;
   width: var(--phone-width);
   height: var(--phone-height);
@@ -396,6 +415,158 @@ const onPreviewScroll = () => {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 0 0 2px rgba(10, 14, 22, 0.28);
   transform: translateZ(0);
+}
+
+/* 模拟状态栏：灵动岛 + 时间 + 信号/电量 */
+.phone-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  height: var(--phone-status-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 0 24px;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 251, 255, 0.86) 0%,
+    rgba(248, 251, 255, 0.42) 64%,
+    rgba(248, 251, 255, 0) 100%
+  );
+  color: #151a23;
+  pointer-events: none;
+}
+
+.status-time {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dynamic-island {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 104px;
+  height: 30px;
+  border-radius: 999px;
+  background: #050608;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%);
+}
+
+.dynamic-island::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%, #33445e 0%, #101a28 55%, #05080d 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateY(-50%);
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 11px;
+}
+
+.status-signal i {
+  width: 3px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.status-signal i:nth-child(1) {
+  height: 4px;
+}
+
+.status-signal i:nth-child(2) {
+  height: 6px;
+}
+
+.status-signal i:nth-child(3) {
+  height: 8px;
+}
+
+.status-signal i:nth-child(4) {
+  height: 11px;
+}
+
+.status-wifi {
+  width: 16px;
+  height: 12px;
+}
+
+.status-wifi path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.status-wifi circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.status-battery {
+  position: relative;
+  width: 24px;
+  height: 12px;
+  padding: 1.5px;
+  border: 1.2px solid currentColor;
+  border-radius: 3.5px;
+}
+
+.status-battery::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -4px;
+  width: 2px;
+  height: 4px;
+  border-radius: 0 1px 1px 0;
+  background: currentColor;
+  opacity: 0.7;
+  transform: translateY(-50%);
+}
+
+.status-battery__level {
+  display: block;
+  width: 74%;
+  height: 100%;
+  border-radius: 1.5px;
+  background: currentColor;
+}
+
+/* 底部 Home 指示条 */
+.phone-home-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 61;
+  width: 134px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(22, 27, 36, 0.72);
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .app-canvas {
@@ -520,6 +691,11 @@ const onPreviewScroll = () => {
 </style>
 
 <style>
+/* 手机壳内固定导航栏让出模拟状态栏高度 */
+.phone-screen .page-navbar {
+  top: var(--phone-status-height, 44px) !important;
+}
+
 /* 首次启动的隐私政策弹窗与业务弹层一致，限制在原型预览区域内 */
 body.prototype-preview-shell .privacy-gate,
 body.prototype-preview-canvas .privacy-gate {
