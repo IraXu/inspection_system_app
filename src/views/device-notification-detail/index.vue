@@ -10,10 +10,11 @@
 
     <template v-if="notification">
       <div class="detail-banner app-card">
-        <div class="detail-image" @click="viewerVisible = true">
-          <img :src="notification.eventImage" alt="" @error="hideBrokenImage" />
-          <div class="detail-image-shade"></div>
-          <span class="detail-image-tip">点击查看告警截图</span>
+        <div class="detail-image" @click="notification.eventImage && (viewerVisible = true)">
+          <AppLogoMark v-if="!notification.eventImage" class="detail-image-mark" :size="72" />
+          <img v-else :src="notification.eventImage" alt="" @error="hideBrokenImage" />
+          <div v-if="notification.eventImage" class="detail-image-shade"></div>
+          <span v-if="notification.eventImage" class="detail-image-tip">点击查看告警截图</span>
         </div>
 
         <div class="detail-head">
@@ -90,6 +91,7 @@ import { Toast } from 'tdesign-mobile-vue'
 import { useNotificationStore } from '../../stores/notifications'
 import { eventTypeMap } from '../../data/device-notifications'
 import PhotoViewer from '../../components/PhotoViewer.vue'
+import AppLogoMark from '../../components/AppLogoMark.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -194,6 +196,13 @@ onMounted(() => {
   aspect-ratio: 16 / 9;
   background: #eef1f8;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-image-mark {
+  color: #c3cbd9;
 }
 
 .detail-image img {

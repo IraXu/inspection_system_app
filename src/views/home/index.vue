@@ -103,7 +103,22 @@
             @click="openDevice(device)"
           >
             <div class="device-thumbnail">
-              <img :src="device.thumbnail" :alt="device.name" loading="lazy" decoding="async" />
+              <div
+                class="thumb-placeholder"
+                :class="{ 'is-hidden': loadedThumbIds.has(device.id) }"
+              >
+                <AppLogoMark :size="44" />
+              </div>
+              <img
+                v-if="device.thumbnail && !failedThumbIds.has(device.id)"
+                :src="device.thumbnail"
+                :alt="device.name"
+                loading="lazy"
+                decoding="async"
+                :class="{ 'is-loaded': loadedThumbIds.has(device.id) }"
+                @load="markThumbLoaded(device.id)"
+                @error="markThumbFailed(device.id)"
+              />
               <span class="status-tag" :class="device.status">{{ getStatusText(device.status) }}</span>
             </div>
             <div class="device-info">
@@ -286,12 +301,24 @@ import { Toast } from 'tdesign-mobile-vue'
 import { buildImageUrl } from '../../utils/media'
 import VideoMapCanvas from '../../components/VideoMapCanvas.vue'
 import RegionTreeSheet from '../../components/RegionTreeSheet.vue'
+import AppLogoMark from '../../components/AppLogoMark.vue'
 
 const router = useRouter()
 
 const searchText = ref('')
 const loading = ref(true)
 const deviceRefreshing = ref(false)
+const loadedThumbIds = ref(new Set())
+const failedThumbIds = ref(new Set())
+
+const markThumbLoaded = (id) => {
+  loadedThumbIds.value.add(id)
+}
+
+const markThumbFailed = (id) => {
+  loadedThumbIds.value.delete(id)
+  failedThumbIds.value.add(id)
+}
 
 // 视频广场 / 点位地图
 const viewMode = ref('video')
@@ -396,7 +423,8 @@ const devices = ref([
   },
   {
     id: 2, name: '摄像头-车间1出口', status: 'online', storeId: 'store-sh-factory', storeName: '上海工厂',
-    thumbnail: thumbnailUrl, license: 'CAM-SH-A102', type: '低功耗摄像机', area: '生产车间 · A线', regionId: 'line-sh-a',
+    // 演示：该设备尚未拿到实时抓图，展示占位图
+    thumbnail: '', license: 'CAM-SH-A102', type: '低功耗摄像机', area: '生产车间 · A线', regionId: 'line-sh-a',
     lat: 32.0598, lng: 118.7302, lastEvent: null,
     marker: { left: 38, top: 20 }
   },
@@ -992,17 +1020,40 @@ const getFilterCount = (value) => {
 
 .device-thumbnail {
   position: relative;
-  aspect-ratio: 1.12;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 16px;
-  background: #dfe4ee;
+  background: linear-gradient(150deg, #e9edf6 0%, #dfe5f0 100%);
+}
+
+.thumb-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c3cbd9;
+  transition: opacity 0.24s ease;
+}
+
+.thumb-placeholder.is-hidden {
+  opacity: 0;
 }
 
 .device-thumbnail img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.device-thumbnail img.is-loaded {
+  opacity: 1;
 }
 
 .device-card.offline .device-thumbnail img {

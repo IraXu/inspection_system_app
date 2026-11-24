@@ -27,7 +27,7 @@ const createAlert = (payload) => {
     ...payload,
     timestamp: formatFullTime(time),
     time: formatDisplayTime(time),
-    eventImage: buildImageUrl(payload.imagePrompt)
+    eventImage: payload.imagePrompt ? buildImageUrl(payload.imagePrompt) : ''
   }
 }
 
@@ -80,8 +80,7 @@ export const deviceNotifications = [
       '检查摄像头电源与交换机供电状态',
       '确认网络链路与 IPC 在线情况',
       '恢复后重新校验视频流与抓拍能力'
-    ],
-    imagePrompt: 'security camera offline, dark entrance of factory workshop, CCTV still frame'
+    ]
   }),
   createAlert({
     id: 'alarm-1002',

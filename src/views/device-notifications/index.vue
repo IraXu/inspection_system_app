@@ -59,7 +59,19 @@
         <span v-if="manageMode" class="check-dot" :class="{ 'is-on': selectedIds.includes(item.id) }">✓</span>
 
         <div class="message-thumb">
-          <img :src="item.eventImage" alt="" loading="lazy" decoding="async" @error="hideBrokenImage" />
+          <div class="thumb-placeholder" :class="{ 'is-hidden': loadedImageIds.has(item.id) }">
+            <AppLogoMark :size="30" />
+          </div>
+          <img
+            v-if="item.eventImage && !failedImageIds.has(item.id)"
+            :src="item.eventImage"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            :class="{ 'is-loaded': loadedImageIds.has(item.id) }"
+            @load="markImageLoaded(item.id)"
+            @error="markImageFailed(item.id)"
+          />
         </div>
 
         <div class="message-body">
@@ -345,6 +357,7 @@ import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 import { useNotificationStore } from '../../stores/notifications'
 import { alertEventTypes, eventTypeMap } from '../../data/device-notifications'
+import AppLogoMark from '../../components/AppLogoMark.vue'
 
 const router = useRouter()
 const notificationStore = useNotificationStore()
@@ -364,6 +377,17 @@ const regionPickerVisible = ref(false)
 const pendingRegion = ref('')
 const pendingStore = ref('')
 const regionDragOffset = ref(0)
+const loadedImageIds = ref(new Set())
+const failedImageIds = ref(new Set())
+
+const markImageLoaded = (id) => {
+  loadedImageIds.value.add(id)
+}
+
+const markImageFailed = (id) => {
+  loadedImageIds.value.delete(id)
+  failedImageIds.value.add(id)
+}
 let regionDragStartY = 0
 let regionPointerId = null
 
@@ -625,10 +649,6 @@ const confirmDelete = () => {
   deleteDialogVisible.value = false
   manageMode.value = false
 }
-
-const hideBrokenImage = (event) => {
-  event.target.style.opacity = '0'
-}
 </script>
 
 <style scoped>
@@ -870,14 +890,36 @@ const hideBrokenImage = (event) => {
   flex: 0 0 94px;
   border-radius: 12px;
   overflow: hidden;
-  background: #eef1f8;
+  background: linear-gradient(150deg, #eef1f8 0%, #e2e7f2 100%);
+}
+
+.thumb-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c3cbd9;
+  transition: opacity 0.24s ease;
+}
+
+.thumb-placeholder.is-hidden {
+  opacity: 0;
 }
 
 .message-thumb img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 0.2s ease;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.message-thumb img.is-loaded {
+  opacity: 1;
 }
 
 .message-body {
