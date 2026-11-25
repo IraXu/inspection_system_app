@@ -126,6 +126,8 @@ const resetPrivacyDialog = () => {
 }
 
 const showTabbar = computed(() => {
+  // 冷启动过渡页期间不显示，避免 Tabbar 盖在 Splash 之上
+  if (booting.value) return false
   return ['workbench', 'home', 'todo', 'profile'].includes(route.name)
 })
 

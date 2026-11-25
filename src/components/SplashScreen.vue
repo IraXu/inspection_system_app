@@ -40,7 +40,8 @@ import AppLogoMark from './AppLogoMark.vue'
 .splash-screen {
   position: absolute;
   inset: 0;
-  z-index: 59;
+  /* 高于 Tabbar(60)：淡出过程中不会让 Tabbar 压在过渡页上方 */
+  z-index: 70;
   display: flex;
   flex-direction: column;
   align-items: center;

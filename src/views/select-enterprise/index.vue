@@ -75,14 +75,14 @@
 
       <div class="ent-join">
         <div class="ent-join-title">
-          <t-icon name="building" />
+          <img class="ent-join-icon" :src="joinIcon" alt="" />
           <span>加入新企业</span>
         </div>
         <p class="ent-join-desc">输入企业管理员提供的企业码</p>
 
         <div class="ent-join-card">
           <label class="ent-code">
-            <t-icon name="building" />
+            <img class="ent-code-icon" :src="joinIcon" alt="" />
             <input
               v-model="enterpriseCode"
               type="text"
@@ -131,6 +131,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
+import joinIcon from '../../assets/images/enterprise-join-icon.svg'
 
 const router = useRouter()
 
@@ -409,9 +410,11 @@ const joinEnterprise = () => {
   line-height: 25px;
 }
 
-.ent-join-title .t-icon {
-  color: #98a1b4;
-  font-size: 17px;
+.ent-join-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .ent-join-desc {
@@ -439,10 +442,11 @@ const joinEnterprise = () => {
   background: #f4f5fa;
 }
 
-.ent-code .t-icon {
+.ent-code-icon {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  color: #aab2c4;
-  font-size: 18px;
+  display: block;
 }
 
 .ent-code input {
