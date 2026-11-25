@@ -1,0 +1,35 @@
+// 手机号国际区号：中国大陆置顶为默认项，其后为海外用户常用国家/地区
+export const COUNTRY_CODES = [
+  { code: 'CN', name: '中国大陆', dial: '86', digits: 11 },
+  { code: 'HK', name: '中国香港', dial: '852', digits: 8 },
+  { code: 'MO', name: '中国澳门', dial: '853', digits: 8 },
+  { code: 'TW', name: '中国台湾', dial: '886', digits: 9 },
+  { code: 'SG', name: '新加坡', dial: '65', digits: 8 },
+  { code: 'MY', name: '马来西亚', dial: '60' },
+  { code: 'JP', name: '日本', dial: '81' },
+  { code: 'KR', name: '韩国', dial: '82' },
+  { code: 'TH', name: '泰国', dial: '66' },
+  { code: 'VN', name: '越南', dial: '84' },
+  { code: 'ID', name: '印度尼西亚', dial: '62' },
+  { code: 'PH', name: '菲律宾', dial: '63' },
+  { code: 'IN', name: '印度', dial: '91' },
+  { code: 'AU', name: '澳大利亚', dial: '61' },
+  { code: 'NZ', name: '新西兰', dial: '64' },
+  { code: 'US', name: '美国', dial: '1', digits: 10 },
+  { code: 'CA', name: '加拿大', dial: '1', digits: 10 },
+  { code: 'GB', name: '英国', dial: '44' },
+  { code: 'DE', name: '德国', dial: '49' },
+  { code: 'FR', name: '法国', dial: '33' },
+  { code: 'IT', name: '意大利', dial: '39' },
+  { code: 'ES', name: '西班牙', dial: '34' },
+  { code: 'NL', name: '荷兰', dial: '31' },
+  { code: 'RU', name: '俄罗斯', dial: '7' },
+  { code: 'AE', name: '阿联酋', dial: '971' },
+  { code: 'SA', name: '沙特阿拉伯', dial: '966' },
+  { code: 'TR', name: '土耳其', dial: '90' },
+  { code: 'BR', name: '巴西', dial: '55' },
+  { code: 'MX', name: '墨西哥', dial: '52' },
+  { code: 'ZA', name: '南非', dial: '27' }
+]
+
+export const DEFAULT_COUNTRY_CODE = 'CN'

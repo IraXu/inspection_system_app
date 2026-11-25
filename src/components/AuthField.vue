@@ -1,6 +1,7 @@
 <template>
   <div class="auth-field" :class="{ 'is-focused': focused }" @click="focusInput">
-    <t-icon :name="icon" class="auth-field-icon" />
+    <t-icon v-if="icon" :name="icon" class="auth-field-icon" />
+    <slot name="prefix"></slot>
     <input
       ref="inputRef"
       class="auth-field-input"

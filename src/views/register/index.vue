@@ -12,15 +12,7 @@
       <p class="auth-subtitle auth-subtitle--narrow">创建巡检账号后即可进入企业工作台，接收任务与设备告警</p>
 
       <div class="auth-form">
-        <AuthField
-          v-model="formData.phone"
-          icon="user"
-          placeholder="请输入手机号"
-          type="tel"
-          inputmode="tel"
-          :maxlength="11"
-          clearable
-        />
+        <PhoneField v-model="formData.phone" v-model:country="formData.country" />
         <AuthField
           v-model="formData.code"
           icon="secured"
@@ -92,10 +84,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Toast } from 'tdesign-mobile-vue'
 import AuthField from '../../components/AuthField.vue'
+import PhoneField from '../../components/PhoneField.vue'
+import { findCountry, getSavedCountryCode, validatePhone } from '../../utils/phone'
 
 const router = useRouter()
 
 const formData = ref({
+  country: getSavedCountryCode(),
   phone: '',
   code: '',
   password: '',
@@ -107,8 +102,9 @@ const loading = ref(false)
 const countdown = ref(0)
 
 const sendCode = () => {
-  if (!formData.value.phone) {
-    Toast.warning('请输入手机号')
+  const phoneError = validatePhone(findCountry(formData.value.country), formData.value.phone)
+  if (phoneError) {
+    Toast.warning(phoneError)
     return
   }
 
@@ -124,8 +120,9 @@ const sendCode = () => {
 }
 
 const onSubmit = () => {
-  if (!formData.value.phone) {
-    Toast.warning('请输入手机号')
+  const phoneError = validatePhone(findCountry(formData.value.country), formData.value.phone)
+  if (phoneError) {
+    Toast.warning(phoneError)
     return
   }
   if (!formData.value.code) {

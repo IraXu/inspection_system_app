@@ -1,0 +1,1 @@
+import{L as a}from"./LegalPage-D7apn0PX.js";import{D as s,j as t,Q as e,G as r,E as c}from"./index-B-mGH8jD.js";const _={__name:"index",setup(o){return(n,i)=>(s(),t(a,{title:"隐私政策",lead:e(c),sections:e(r)},null,8,["lead","sections"]))}};export{_ as default};
