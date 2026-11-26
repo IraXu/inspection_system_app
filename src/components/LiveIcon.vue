@@ -179,6 +179,53 @@
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
       </template>
+
+      <template v-else-if="name === 'person'">
+        <circle cx="12" cy="7" r="3" />
+        <path d="M6.5 20c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5" />
+      </template>
+
+      <template v-else-if="name === 'baby'">
+        <circle cx="12" cy="12" r="7" />
+        <circle cx="9.5" cy="11" r="0.9" fill="currentColor" stroke="none" />
+        <circle cx="14.5" cy="11" r="0.9" fill="currentColor" stroke="none" />
+        <path d="M9.5 15c.8 1 3.2 1 4 0" />
+      </template>
+
+      <template v-else-if="name === 'scene-change'">
+        <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+        <circle cx="8.5" cy="10" r="1.5" />
+        <path d="M5 16l4-4 3 3 3-3 4 4" />
+        <path d="M16 4v2.5M14.5 5.25h3" />
+      </template>
+
+      <template v-else-if="name === 'pet'">
+        <path d="M5 8.5 7 6M19 8.5 17 6" />
+        <circle cx="12" cy="13.5" r="5.5" />
+        <circle cx="10" cy="12.5" r="0.7" fill="currentColor" stroke="none" />
+        <circle cx="14" cy="12.5" r="0.7" fill="currentColor" stroke="none" />
+        <path d="M10.5 15.5c.6.7 2.4.7 3 0" />
+      </template>
+
+      <template v-else-if="name === 'video-call'">
+        <path d="M6.5 5h3l1.8 4.5-2.2 1.3a9 9 0 0 0 4.1 4.1L14.5 12.7 19 14.5v3a2 2 0 0 1-2 2A15 15 0 0 1 4.5 7a2 2 0 0 1 2-2Z" />
+        <path d="M14.5 5.5 19 4v5l-4.5-1.5v-2Z" fill="currentColor" stroke="none" />
+      </template>
+
+      <template v-else-if="name === 'fence'">
+        <path d="M4 7v13M8 5v15M12 7v13M16 5v15M20 7v13" />
+        <path d="M3 11h18M3 16h18" />
+      </template>
+
+      <template v-else-if="name === 'fence-leave'">
+        <path d="M4 7v13M8 5v15M12 7v13M16 5v15" />
+        <path d="M3 11h14M3 16h14" />
+        <path d="m19 9.5 3 2.5-3 2.5M22 12h-5" />
+      </template>
+
+      <template v-else-if="name === 'fire'">
+        <path d="M12 3.5c1.6 3 4.2 4.6 4.2 8.2a4.2 4.2 0 0 1-8.4 0c0-1.3.6-2.3 1.4-3.2.2 1.1 1.1 1.9 2.2 2.1-.6-2.7-.2-5.4.6-7.1Z" />
+      </template>
     </g>
   </svg>
 </template>

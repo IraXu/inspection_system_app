@@ -137,7 +137,6 @@
         :aria-pressed="isTypeVisible(pill.value)"
         @click="toggleType(pill.value)"
       >
-        <LiveIcon :name="pill.icon" :size="15" />
         <span>{{ pill.label }}</span>
       </button>
     </section>
@@ -202,16 +201,17 @@
           <p class="pb-record-hint">选择需要下载的录像，支持多选</p>
 
           <div class="pb-record-scroll">
-            <div v-for="group in recordingGroups" :key="group.key" class="pb-record-group">
+            <div class="pb-record-group">
               <div class="pb-record-group-head">
-                <strong>{{ group.title }}</strong>
-                <button type="button" @click="toggleGroup(group)">
-                  {{ isGroupSelected(group) ? '取消全选' : '全选' }}
+                <strong>{{ dateTitle }}</strong>
+                <span class="pb-record-group-count">{{ recordingSegments.length }} 段</span>
+                <button type="button" class="pb-record-group-select" @click="toggleAllRecords">
+                  {{ isAllSelected ? '取消全选' : '全选' }}
                 </button>
               </div>
 
               <div
-                v-for="segment in group.segments"
+                v-for="segment in recordingSegments"
                 :key="segment.id"
                 class="pb-record-row"
                 :class="{ active: selectedIds.includes(segment.id) }"
@@ -415,12 +415,31 @@ const modes = [
 
 const typeMeta = {
   continuous: { label: '定时录像', color: '#8c96a5', icon: 'clock' },
-  motion: { label: '移动侦测', color: '#f0b429', icon: 'walk' },
-  alarm: { label: '告警事件', color: '#ef6a5f', icon: 'bell' }
+  person: { label: '识别到人物', color: '#4a9eff', icon: 'person' },
+  babyCry: { label: '宝宝哭声', color: '#8a6ff0', icon: 'baby' },
+  motion: { label: '有人移动', color: '#4ec5b8', icon: 'walk' },
+  sceneChange: { label: '画面变动', color: '#f5b042', icon: 'scene-change' },
+  pet: { label: '宠物移动', color: '#7ed957', icon: 'pet' },
+  videoCall: { label: '视频通话', color: '#5b8def', icon: 'video-call' },
+  enterFence: { label: '进入围栏', color: '#6b6ef0', icon: 'fence' },
+  leaveFence: { label: '离开围栏', color: '#7c7ff5', icon: 'fence-leave' },
+  fire: { label: '识别到烟火', color: '#ef6a5f', icon: 'fire' },
+  abnormalSound: { label: '异常声响', color: '#f09b5a', icon: 'sound' }
 }
 
 // 定时录像常驻展示，不提供开关；胶囊只控制事件类型
-const eventTypes = ['motion', 'alarm']
+const eventTypes = [
+  'person',
+  'babyCry',
+  'motion',
+  'sceneChange',
+  'pet',
+  'videoCall',
+  'enterFence',
+  'leaveFence',
+  'fire',
+  'abnormalSound'
+]
 
 const typePills = eventTypes.map(key => ({
   value: key,
@@ -541,24 +560,37 @@ const dateShift = (dateKey) => {
 
 const baseSegments = {
   cloud: [
-    { start: 360, duration: 150, type: 'continuous' },
-    { start: 549, duration: 9, type: 'motion' },
-    { start: 600, duration: 120, type: 'continuous' },
-    { start: 860, duration: 6, type: 'alarm' },
-    { start: 900, duration: 150, type: 'continuous' },
-    { start: 1140, duration: 120, type: 'continuous' }
+    { start: 360, duration: 120, type: 'continuous' },
+    { start: 485, duration: 8, type: 'person' },
+    { start: 510, duration: 6, type: 'motion' },
+    { start: 549, duration: 9, type: 'sceneChange' },
+    { start: 600, duration: 150, type: 'continuous' },
+    { start: 760, duration: 7, type: 'pet' },
+    { start: 820, duration: 8, type: 'enterFence' },
+    { start: 860, duration: 6, type: 'fire' },
+    { start: 900, duration: 120, type: 'continuous' },
+    { start: 1030, duration: 10, type: 'videoCall' },
+    { start: 1080, duration: 6, type: 'leaveFence' },
+    { start: 1100, duration: 8, type: 'abnormalSound' },
+    { start: 1140, duration: 120, type: 'continuous' },
+    { start: 1210, duration: 7, type: 'babyCry' }
   ],
   card: [
     { start: 0, duration: 150, type: 'continuous' },
     { start: 170, duration: 140, type: 'continuous' },
     { start: 330, duration: 145, type: 'continuous' },
     { start: 490, duration: 130, type: 'continuous' },
-    { start: 620, duration: 10, type: 'motion' },
+    { start: 620, duration: 10, type: 'person' },
     { start: 640, duration: 160, type: 'continuous' },
+    { start: 760, duration: 8, type: 'motion' },
     { start: 820, duration: 120, type: 'continuous' },
-    { start: 960, duration: 12, type: 'alarm' },
+    { start: 955, duration: 12, type: 'enterFence' },
     { start: 980, duration: 170, type: 'continuous' },
-    { start: 1160, duration: 140, type: 'continuous' }
+    { start: 1080, duration: 9, type: 'abnormalSound' },
+    { start: 1120, duration: 8, type: 'leaveFence' },
+    { start: 1160, duration: 140, type: 'continuous' },
+    { start: 1240, duration: 7, type: 'fire' },
+    { start: 1280, duration: 6, type: 'sceneChange' }
   ]
 }
 
@@ -768,18 +800,25 @@ const dayMinutes = computed(() =>
 const showRecordings = ref(false)
 const selectedIds = ref([])
 
-const recordingGroups = computed(() =>
-  dates.value.map(date => ({
-    key: date.key,
-    title: `${date.week} ${date.day}`,
-    segments: buildSegments(activeMode.value, date.key)
-  }))
+// 只显示当前选中日期的录像
+const recordingSegments = computed(() => segments.value)
+
+const isAllSelected = computed(() =>
+  recordingSegments.value.length > 0 &&
+  recordingSegments.value.every(segment => selectedIds.value.includes(segment.id))
 )
 
-const selectedRecords = computed(() => {
-  const all = recordingGroups.value.flatMap(group => group.segments)
-  return all.filter(segment => selectedIds.value.includes(segment.id))
-})
+const toggleAllRecords = () => {
+  if (isAllSelected.value) {
+    selectedIds.value = []
+  } else {
+    selectedIds.value = recordingSegments.value.map(segment => segment.id)
+  }
+}
+
+const selectedRecords = computed(() =>
+  recordingSegments.value.filter(segment => selectedIds.value.includes(segment.id))
+)
 
 const selectedMinutes = computed(() =>
   selectedRecords.value.reduce((total, segment) => total + (segment.end - segment.start), 0)
@@ -794,18 +833,6 @@ const toggleRecord = (segment) => {
   selectedIds.value = selectedIds.value.includes(segment.id)
     ? selectedIds.value.filter(id => id !== segment.id)
     : [...selectedIds.value, segment.id]
-}
-
-const isGroupSelected = (group) =>
-  group.segments.length > 0 && group.segments.every(segment => selectedIds.value.includes(segment.id))
-
-const toggleGroup = (group) => {
-  const ids = group.segments.map(segment => segment.id)
-  if (isGroupSelected(group)) {
-    selectedIds.value = selectedIds.value.filter(id => !ids.includes(id))
-    return
-  }
-  selectedIds.value = [...new Set([...selectedIds.value, ...ids])]
 }
 
 const downloadMinutes = computed(() => {
@@ -1337,23 +1364,17 @@ onUnmounted(() => {
 
 /* 事件类型 */
 .pb-types {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   padding: 14px 16px 12px;
   background: #ffffff;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pb-types::-webkit-scrollbar {
-  display: none;
 }
 
 .pb-type {
-  flex: 1 0 auto;
-  min-width: 108px;
-  height: 36px;
-  padding: 0 14px;
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
   border: 0;
   border-radius: 999px;
   background: var(--pill-color);
@@ -1361,9 +1382,8 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   box-shadow: 0 8px 16px rgba(31, 35, 41, 0.12);
   transition: opacity 0.2s ease, transform 0.16s ease, box-shadow 0.2s ease;
@@ -1457,18 +1477,26 @@ onUnmounted(() => {
 .pb-record-group-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   padding: 12px 2px 8px;
 }
 
 .pb-record-group-head strong {
+  flex: 0 0 auto;
   font-size: 13px;
   font-weight: 600;
   color: #3d4453;
 }
 
-.pb-record-group-head button {
+.pb-record-group-count {
+  flex: 1;
+  font-size: 11px;
+  color: #aab2c0;
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-record-group-select {
+  flex: 0 0 auto;
   border: 0;
   background: transparent;
   color: #4059f0;
