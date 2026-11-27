@@ -151,7 +151,7 @@
           <div class="sheet-title">联系我们</div>
           <div class="contact-info">
             <div class="contact-company">南京鹤梦信息技术有限公司</div>
-            <div class="contact-email">support@smartcloudcon.com</div>
+            <div class="contact-email">support@grushome.com</div>
           </div>
         </div>
       </div>
@@ -167,8 +167,8 @@ import { Toast } from 'tdesign-mobile-vue'
 const router = useRouter()
 
 // 在线客服、帮助中心为外部对接网页，替换为正式地址即可
-const ONLINE_SERVICE_URL = 'https://www.smartcloudcon.com/'
-const HELP_CENTER_URL = 'https://www.smartcloudcon.com/'
+const ONLINE_SERVICE_URL = 'https://www.grushome.com/'
+const HELP_CENTER_URL = 'https://www.grushome.com/'
 
 const contactSheetVisible = ref(false)
 const openFaq = ref(0)

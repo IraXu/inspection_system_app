@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const officialSite = 'https://www.smartcloudcon.com/'
+const officialSite = 'https://www.grushome.com/'
 
 const goBack = () => {
   router.back()

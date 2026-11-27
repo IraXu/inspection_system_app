@@ -7,7 +7,7 @@ export const LEGAL_VERSION_INFO = [
 ]
 
 export const COMPANY_NAME = '南京鹤梦信息技术有限公司'
-export const COMPANY_EMAIL = 'support@smartcloudcon.com'
+export const COMPANY_EMAIL = 'support@grushome.com'
 
 export const agreementLead =
   '《鹤梦之家用户协议》（以下简称“本协议”）由南京鹤梦信息技术有限公司（以下简称“鹤梦”或“我们”）与你（以下简称“你”）就注册、登录和使用鹤梦之家移动应用（以下简称“本应用”）及相关服务所订立。你点击同意、完成注册或实际使用本应用，即表示你已阅读、理解并接受本协议的全部内容；如你不同意其中任何条款，请立即停止注册或使用。'
@@ -262,7 +262,7 @@ export const agreementSections = [
       },
       {
         type: 'p',
-        text: '你向我们发出通知的，应通过客服邮箱 support@smartcloudcon.com 或我们另行公示的书面地址送达。'
+        text: '你向我们发出通知的，应通过客服邮箱 support@grushome.com 或我们另行公示的书面地址送达。'
       },
       { type: 'h', text: '（三）法律适用与争议解决' },
       {
@@ -290,7 +290,7 @@ export const agreementSections = [
     blocks: [
       {
         type: 'p',
-        text: '如你对本协议有疑问、意见或投诉，可通过以下方式与我们联系：南京鹤梦信息技术有限公司，电子邮箱 support@smartcloudcon.com。'
+        text: '如你对本协议有疑问、意见或投诉，可通过以下方式与我们联系：南京鹤梦信息技术有限公司，电子邮箱 support@grushome.com。'
       },
       {
         type: 'p',
@@ -500,7 +500,7 @@ export const privacySections = [
       },
       {
         type: 'p',
-        text: '你可以通过应用内「设置」相关入口，或发送邮件至 support@smartcloudcon.com 行使上述权利。为保障安全，我们可能先核验你的身份；我们将在收到请求后 15 个工作日内答复。'
+        text: '你可以通过应用内「设置」相关入口，或发送邮件至 support@grushome.com 行使上述权利。为保障安全，我们可能先核验你的身份；我们将在收到请求后 15 个工作日内答复。'
       },
       {
         type: 'p',
@@ -597,7 +597,7 @@ export const privacySections = [
     blocks: [
       {
         type: 'p',
-        text: '如你对本政策或个人信息处理有任何疑问、意见、请求或投诉，可以通过以下方式联系我们：南京鹤梦信息技术有限公司，电子邮箱 support@smartcloudcon.com。'
+        text: '如你对本政策或个人信息处理有任何疑问、意见、请求或投诉，可以通过以下方式联系我们：南京鹤梦信息技术有限公司，电子邮箱 support@grushome.com。'
       },
       {
         type: 'p',
@@ -879,7 +879,7 @@ export const valueAddedSections = [
     blocks: [
       {
         type: 'p',
-        text: '如你对云服务、订单、扣费或本协议有任何疑问，可以通过 support@smartcloudcon.com 与我们联系，并提供账号、设备序列号、订单号等信息，以便我们尽快核实。我们将在 15 个工作日内答复。'
+        text: '如你对云服务、订单、扣费或本协议有任何疑问，可以通过 support@grushome.com 与我们联系，并提供账号、设备序列号、订单号等信息，以便我们尽快核实。我们将在 15 个工作日内答复。'
       },
       {
         type: 'p',

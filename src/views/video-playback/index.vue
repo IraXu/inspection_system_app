@@ -58,7 +58,7 @@
 
       <div v-else class="pb-stage-empty">
         <t-icon name="video" size="30px" />
-        <p>点击下方时间轴选择录像</p>
+        <p>左右滑动下方时间轴选择录像</p>
       </div>
     </section>
 
@@ -78,9 +78,9 @@
       </button>
     </section>
 
-    <!-- 时间轴 -->
+    <!-- 时间轴（居中指针 + 滑动调时间 + 缩放） -->
     <section class="pb-band">
-      <div ref="timelineScroll" class="pb-tl-scroll">
+      <div ref="timelineScroll" class="pb-tl-scroll" @scroll.passive="onTimelineScroll">
         <div class="pb-tl" :style="{ width: `${timelineWidth}px` }">
           <div class="pb-tl-hours">
             <span
@@ -98,30 +98,54 @@
               v-for="segment in visibleSegments"
               :key="segment.id"
               class="pb-tl-seg"
+              :class="{ active: currentSegment && segment.id === currentSegment.id }"
               :style="{
                 left: `${(segment.start / 1440) * 100}%`,
                 width: `${((segment.end - segment.start) / 1440) * 100}%`,
                 background: typeMeta[segment.type].color
               }"
             ></span>
-
-            <span
-              v-if="currentSegment"
-              class="pb-playhead"
-              :style="{ left: `${(playheadMinute / 1440) * 100}%` }"
-            ></span>
           </div>
         </div>
+      </div>
+
+      <!-- 居中固定指针 -->
+      <div class="pb-tl-cursor" aria-hidden="true">
+        <span class="pb-tl-cursor-head"></span>
+        <span class="pb-tl-cursor-line"></span>
       </div>
 
       <div class="pb-tl-nav">
         <button type="button" class="pb-tl-jump" aria-label="上一段录像" @click="jumpSegment(-1)">
           <LiveIcon name="skip-prev" :size="20" />
         </button>
-        <span class="pb-tl-ticks"></span>
+        <div class="pb-tl-status">
+          <span class="pb-tl-status-time">{{ centerTimeText }}</span>
+          <span
+            class="pb-tl-status-tag"
+            :style="currentSegment ? { color: typeMeta[currentSegment.type].color } : null"
+          >
+            {{ currentSegment ? typeLabel(currentSegment.type) : '该时段无录像' }}
+          </span>
+        </div>
         <button type="button" class="pb-tl-jump" aria-label="下一段录像" @click="jumpSegment(1)">
           <LiveIcon name="skip-next" :size="20" />
         </button>
+      </div>
+
+      <div class="pb-zoom">
+        <button type="button" class="pb-zoom-btn" aria-label="缩小时间轴" @click="zoomStep(-1)">−</button>
+        <input
+          class="pb-zoom-range"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          :value="zoomRangeValue"
+          aria-label="时间轴缩放"
+          @input="onZoomInput"
+        />
+        <button type="button" class="pb-zoom-btn" aria-label="放大时间轴" @click="zoomStep(1)">＋</button>
       </div>
     </section>
 
@@ -638,25 +662,154 @@ const endTimeText = computed(() =>
   currentSegment.value ? formatMinute(currentSegment.value.end) : '00:00'
 )
 
-const hourWidth = 110
-const timelineWidth = 24 * hourWidth
+/* 时间轴：居中固定指针 + 滑动调时间 + 缩放 */
+const HOUR_WIDTH_MIN = 20
+const HOUR_WIDTH_MAX = 320
+const hourWidth = ref(110)
+const timelineWidth = computed(() => 24 * hourWidth.value)
 const timelineScroll = ref(null)
+const centerMinute = ref(0)
+
+const centerTimeText = computed(() => formatMinute(centerMinute.value))
+
+const zoomPercent = computed(
+  () => ((hourWidth.value - HOUR_WIDTH_MIN) / (HOUR_WIDTH_MAX - HOUR_WIDTH_MIN)) * 100
+)
+
+const zoomRangeValue = computed(() => Math.round(zoomPercent.value))
 
 const hourLabels = computed(() => {
+  const step = hourWidth.value >= 88 ? 30 : hourWidth.value >= 44 ? 60 : 120
   const list = []
-  for (let minute = 0; minute < 1440; minute += 30) {
+  for (let minute = 0; minute < 1440; minute += step) {
     list.push({ minute, text: formatMinute(minute), hour: minute % 60 === 0 })
   }
   return list
 })
 
-const scrollTimelineTo = (minute) => {
+// 程序化滚动期间忽略 scroll 事件，避免与用户滑动互相打架
+let expectedScrollLeft = null
+let expectedScrollTimer = null
+let scrollSuppressUntil = 0
+// 用户正在滑动/缩放时，暂停播放的自动跟随
+let scrubbingUntil = 0
+
+const scrollToMinute = (minute) => {
+  const host = timelineScroll.value
+  if (!host) return
+  const target = Math.max(
+    0,
+    Math.min((minute / 1440) * timelineWidth.value, host.scrollWidth - host.clientWidth)
+  )
+  expectedScrollLeft = target
+  clearTimeout(expectedScrollTimer)
+  expectedScrollTimer = setTimeout(() => {
+    expectedScrollLeft = null
+  }, 160)
+  host.scrollTo({ left: target, behavior: 'auto' })
+}
+
+// 指针居中处的分钟 → 同步当前片段与播放进度
+const syncCenter = (minute) => {
+  centerMinute.value = minute
+  // 滚动像素取整会带来不到 1 分钟的误差，用容差避免边界处误判为无录像
+  const tolerance = 1
+  const target = visibleSegments.value.find(
+    segment => minute >= segment.start - tolerance && minute <= segment.end + tolerance
+  )
+  if (target) {
+    currentSegment.value = target
+    const progress = ((minute - target.start) / (target.end - target.start)) * 100
+    playProgress.value = Math.min(100, Math.max(0, progress))
+    return
+  }
+  currentSegment.value = null
+  playProgress.value = 0
+  if (isPlaying.value) {
+    isPlaying.value = false
+    stopPlayback()
+  }
+}
+
+const seekToMinute = (minute) => {
+  const clamped = Math.min(1440, Math.max(0, minute))
+  syncCenter(clamped)
+  scrollToMinute(clamped)
+}
+
+const onTimelineScroll = () => {
+  const host = timelineScroll.value
+  if (!host) return
+  if (Date.now() < scrollSuppressUntil) return
+  if (expectedScrollLeft !== null && Math.abs(host.scrollLeft - expectedScrollLeft) < 4) return
+  const minute = Math.min(1440, Math.max(0, (host.scrollLeft / timelineWidth.value) * 1440))
+  syncCenter(minute)
+  scrubbingUntil = Date.now() + 400
+}
+
+const applyZoom = (nextHourWidth) => {
+  const clamped = Math.min(HOUR_WIDTH_MAX, Math.max(HOUR_WIDTH_MIN, nextHourWidth))
+  if (Math.abs(clamped - hourWidth.value) < 0.5) return
+  // 宽度变化会让浏览器用旧滚动量触发一次 scroll，先压制再重排
+  scrollSuppressUntil = Date.now() + 220
+  hourWidth.value = clamped
   nextTick(() => {
-    const host = timelineScroll.value
-    if (!host) return
-    const target = (minute / 1440) * timelineWidth - host.clientWidth * 0.38
-    host.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
+    scrollToMinute(centerMinute.value)
+    syncCenter(centerMinute.value)
   })
+}
+
+const zoomStep = (direction) => {
+  applyZoom(direction > 0 ? hourWidth.value * 1.4 : hourWidth.value / 1.4)
+}
+
+const onZoomInput = (event) => {
+  const percent = Number(event.target.value)
+  applyZoom(HOUR_WIDTH_MIN + ((HOUR_WIDTH_MAX - HOUR_WIDTH_MIN) * percent) / 100)
+}
+
+/* 双指捏合缩放 */
+let pinchStartDistance = 0
+let pinchStartHourWidth = 0
+let pinchAnchorMinute = 0
+
+const touchDistance = (touches) =>
+  Math.hypot(
+    touches[0].clientX - touches[1].clientX,
+    touches[0].clientY - touches[1].clientY
+  )
+
+const onTimelineTouchStart = (event) => {
+  if (event.touches.length !== 2) return
+  pinchStartDistance = touchDistance(event.touches)
+  pinchStartHourWidth = hourWidth.value
+  pinchAnchorMinute = centerMinute.value
+}
+
+const onTimelineTouchMove = (event) => {
+  if (event.touches.length !== 2 || !pinchStartDistance) return
+  event.preventDefault()
+  const ratio = touchDistance(event.touches) / pinchStartDistance
+  const next = Math.min(HOUR_WIDTH_MAX, Math.max(HOUR_WIDTH_MIN, pinchStartHourWidth * ratio))
+  if (Math.abs(next - hourWidth.value) < 0.5) return
+  scrollSuppressUntil = Date.now() + 220
+  hourWidth.value = next
+  nextTick(() => scrollToMinute(pinchAnchorMinute))
+}
+
+const onTimelineTouchEnd = (event) => {
+  if (event.touches.length < 2) pinchStartDistance = 0
+}
+
+/* 容器尺寸变化后，保持居中时刻不变 */
+let resizeTimer = null
+const onViewportResize = () => {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    if (!timelineScroll.value) return
+    scrollSuppressUntil = Date.now() + 220
+    scrollToMinute(centerMinute.value)
+  }, 160)
 }
 
 const pickFirstSegment = () => {
@@ -665,7 +818,9 @@ const pickFirstSegment = () => {
   isPlaying.value = false
   playProgress.value = 0
   stopPlayback()
-  if (target) scrollTimelineTo(target.start)
+  const minute = target ? target.start : 0
+  centerMinute.value = minute
+  scrollToMinute(minute)
 }
 
 const shiftDate = (step) => {
@@ -697,30 +852,18 @@ const jumpSegment = (direction) => {
   index = Math.min(list.length - 1, Math.max(0, index))
 
   const target = list[index]
-  currentSegment.value = target
-  playProgress.value = 0
+  seekToMinute(target.start)
   isPlaying.value = true
   startPlayback()
-  scrollTimelineTo(target.start)
 }
 
 const seekByClick = (event) => {
   const track = event.currentTarget
   const rect = track.getBoundingClientRect()
   const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width))
-  const minute = ratio * 1440
-  const target = visibleSegments.value.find(segment => minute >= segment.start && minute <= segment.end)
-
-  if (!target) {
-    Toast('该时段无录像')
-    return
-  }
-
-  currentSegment.value = target
-  playProgress.value = ((minute - target.start) / (target.end - target.start)) * 100
   isPlaying.value = false
   stopPlayback()
-  scrollTimelineTo(minute)
+  seekToMinute(ratio * 1440)
 }
 
 const cycleRate = () => {
@@ -736,6 +879,12 @@ const startPlayback = () => {
     if (playProgress.value >= 100) {
       isPlaying.value = false
       stopPlayback()
+    }
+    // 播放时时间轴跟随，指针始终居中；用户正在滑动时不抢滚动
+    if (Date.now() >= scrubbingUntil) {
+      const minute = playheadMinute.value
+      centerMinute.value = minute
+      scrollToMinute(minute)
     }
   }, 120)
 }
@@ -952,14 +1101,32 @@ const goBack = () => {
 pickFirstSegment()
 
 onMounted(() => {
+  const host = timelineScroll.value
+  if (host) {
+    host.addEventListener('touchstart', onTimelineTouchStart, { passive: true })
+    host.addEventListener('touchmove', onTimelineTouchMove, { passive: false })
+    host.addEventListener('touchend', onTimelineTouchEnd, { passive: true })
+    host.addEventListener('touchcancel', onTimelineTouchEnd, { passive: true })
+  }
+  window.addEventListener('resize', onViewportResize)
   if (currentSegment.value) {
-    scrollTimelineTo(currentSegment.value.start)
+    scrollToMinute(currentSegment.value.start)
   }
 })
 
 onUnmounted(() => {
   stopPlayback()
   stopDownload()
+  clearTimeout(expectedScrollTimer)
+  clearTimeout(resizeTimer)
+  window.removeEventListener('resize', onViewportResize)
+  const host = timelineScroll.value
+  if (host) {
+    host.removeEventListener('touchstart', onTimelineTouchStart)
+    host.removeEventListener('touchmove', onTimelineTouchMove)
+    host.removeEventListener('touchend', onTimelineTouchEnd)
+    host.removeEventListener('touchcancel', onTimelineTouchEnd)
+  }
 })
 </script>
 
@@ -1244,6 +1411,7 @@ onUnmounted(() => {
 
 /* 时间轴 */
 .pb-band {
+  position: relative;
   padding: 4px 0 6px;
   background: #f6f7f9;
   border-top: 1px solid #f0f1f4;
@@ -1253,10 +1421,14 @@ onUnmounted(() => {
 .pb-tl-scroll {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0 20px;
+  /* 左右各留半个屏宽，保证任意时刻都能滑到居中指针处 */
+  padding: 0 50%;
   scrollbar-width: none;
-  mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
 }
 
 .pb-tl-scroll::-webkit-scrollbar {
@@ -1280,6 +1452,7 @@ onUnmounted(() => {
   font-size: 9.5px;
   color: #bcc2cc;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pb-tl-hours span.hour {
@@ -1289,7 +1462,7 @@ onUnmounted(() => {
 
 .pb-tl-track {
   position: relative;
-  height: 12px;
+  height: 14px;
   margin-top: 8px;
   border-radius: 999px;
   background: #e2e6ec;
@@ -1307,35 +1480,45 @@ onUnmounted(() => {
   transition: background 0.2s ease;
 }
 
-.pb-playhead {
+.pb-tl-seg.active {
+  z-index: 2;
+  box-shadow: 0 0 0 2px #ffffff, 0 2px 8px rgba(31, 35, 41, 0.28);
+}
+
+/* 居中固定指针 */
+.pb-tl-cursor {
   position: absolute;
-  top: -10px;
-  height: 32px;
-  width: 2px;
-  margin-left: -1px;
-  border-radius: 2px;
-  background: #1f2329;
-  z-index: 3;
+  top: 20px;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
-.pb-playhead::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+.pb-tl-cursor-head {
+  width: 0;
+  height: 0;
+  border-left: 5.5px solid transparent;
+  border-right: 5.5px solid transparent;
+  border-top: 8px solid #1f2329;
+}
+
+.pb-tl-cursor-line {
+  width: 2px;
+  height: 32px;
+  border-radius: 2px;
   background: #1f2329;
-  transform: translateX(-50%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
 }
 
 .pb-tl-nav {
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr) 46px;
   align-items: center;
-  padding: 6px 10px 0;
+  padding: 8px 10px 0;
 }
 
 .pb-tl-jump {
@@ -1354,12 +1537,91 @@ onUnmounted(() => {
   color: #2a5bff;
 }
 
-.pb-tl-ticks {
-  height: 8px;
-  background-image: radial-gradient(circle, #d5dae2 1px, transparent 1.2px);
-  background-size: 55px 8px;
-  background-position: 0 center;
-  background-repeat: repeat-x;
+.pb-tl-status {
+  justify-self: center;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.pb-tl-status-time {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1f2329;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.pb-tl-status-tag {
+  max-width: 100%;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #b0b6c1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 时间轴缩放 */
+.pb-zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 24px 2px;
+}
+
+.pb-zoom-btn {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border: 0;
+  border-radius: 50%;
+  background: #eceff5;
+  color: #4b5058;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pb-zoom-btn:active {
+  background: #e0e5ee;
+}
+
+.pb-zoom-range {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #dfe4ec 0%, #c6cede 100%);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.pb-zoom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #3348e6;
+  box-shadow: 0 2px 6px rgba(31, 35, 41, 0.22);
+}
+
+.pb-zoom-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #3348e6;
+  box-shadow: 0 2px 6px rgba(31, 35, 41, 0.22);
 }
 
 /* 事件类型 */
